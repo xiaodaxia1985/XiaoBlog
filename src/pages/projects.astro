@@ -327,6 +327,20 @@
     .hero-watermark{display:none;}
     .hero-arc{box-shadow:none!important;animation:none!important;}
   }
+  @media(max-width:480px){
+    .projects-grid,.patents-grid{grid-template-columns:1fr;gap:20px;}
+    .project-info{padding:18px 16px;}
+    .project-info h3{font-size:15px;-webkit-line-clamp:unset;display:block;overflow:visible;}
+    .project-desc{font-size:12.5px;-webkit-line-clamp:unset;display:block;overflow:visible;}
+    .project-tag{font-size:11px;padding:3px 10px;}
+    .project-view{font-size:12px;}
+    .patent-card{padding:20px 18px;}
+    .patent-card h3{font-size:15px;}
+    .patent-card p{font-size:12.5px;-webkit-line-clamp:unset;display:block;overflow:visible;}
+    .patent-number{font-size:11px;}
+    .patent-thumb{aspect-ratio:16/9;}
+    section{padding:72px 18px;}
+  }
   .fade-up{opacity:1;transform:none;transition:opacity .8s ease,transform .8s ease;}
   .fade-up.visible{opacity:1;transform:none;}
 </style>
