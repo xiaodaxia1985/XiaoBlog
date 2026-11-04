@@ -1,0 +1,285 @@
+---
+import { insights } from '../data/insights.mjs';
+---
+<!DOCTYPE html>
+<html lang="zh-CN" style="background:#0A0A0A;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0A0A0A">
+<title>洞察详情 — 杨逍</title>
+<meta name="description" content="杨逍的行业洞察专栏文章：产业数字化、AI 落地、技术架构与经营价值。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style is:global>
+  :root{
+    --bg:#0A0A0A;
+    --bg-card:#161616;
+    --bg-input:#0F0F0F;
+    --accent:#39FF14;
+    --accent-rgb:57,255,20;
+    --accent-dim:rgba(57,255,20,.15);
+    --accent-dark:#1a8a00;
+    --text:#FFFFFF;
+    --text-secondary:#A1A1AA;
+    --text-muted:#71717A;
+    --border:rgba(255,255,255,.08);
+    --radius:16px;
+    --radius-sm:10px;
+    --max-width:1000px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Noto Sans SC','Inter',sans-serif;
+    background:#0A0A0A;color:var(--text);line-height:1.75;overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  }
+  ::selection{background:var(--accent);color:#000;}
+  a{text-decoration:none;color:inherit;}
+  img{display:block;}
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:#333;border-radius:4px;}
+
+  /* ===== Reading progress ===== */
+  .reading-progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--accent);z-index:1100;box-shadow:0 0 10px rgba(var(--accent-rgb),.6);transition:width .08s linear;}
+
+  /* ===== Navigation ===== */
+  .nav{
+    position:fixed;top:0;left:0;right:0;z-index:1000;padding:20px 40px;
+    display:flex;align-items:center;justify-content:space-between;
+    background:rgba(10,10,10,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+  }
+  .nav-logo{font-weight:800;font-size:20px;letter-spacing:-.5px;}
+  .nav-logo span{color:var(--accent);}
+  .nav-back{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:var(--text-secondary);transition:color .3s ease;cursor:pointer;letter-spacing:.06em;}
+  .nav-back:hover{color:var(--accent);}
+  .nav-back svg{width:18px;height:18px;}
+
+  /* ===== Hero ===== */
+  .article-hero{
+    position:relative;padding:150px 40px 56px;overflow:hidden;
+    background:linear-gradient(110deg,#080808 0%,#0a0a0a 38%,#141414 62%,#222 100%);
+  }
+  .article-hero::after{content:'';position:absolute;right:-10%;top:-30%;width:60%;height:160%;
+    background:radial-gradient(ellipse at center,rgba(var(--accent-rgb),.08),transparent 62%);pointer-events:none;}
+  .article-hero-watermark{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    font-family:'Inter',sans-serif;font-size:clamp(48px,12vw,170px);font-weight:900;color:#27272A;
+    opacity:.06;white-space:nowrap;letter-spacing:-.06em;text-transform:uppercase;pointer-events:none;z-index:0;
+  }
+  .article-hero-content{max-width:860px;margin:0 auto;width:100%;position:relative;z-index:2;}
+  .article-badge{display:inline-flex;align-items:center;gap:12px;margin-bottom:22px;}
+  .article-badge .line{width:40px;height:2px;background:var(--accent);border-radius:2px;box-shadow:0 0 8px var(--accent);}
+  .article-badge .label{color:var(--accent);font-family:'Inter',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase;text-shadow:0 0 12px rgba(var(--accent-rgb),.4);}
+  .article-title{font-size:clamp(30px,4.6vw,52px);font-weight:800;line-height:1.32;letter-spacing:.03em;margin-bottom:20px;}
+  .article-tagline{font-size:16px;color:var(--text-secondary);max-width:640px;line-height:1.9;letter-spacing:.02em;margin-bottom:34px;}
+  .article-meta{display:flex;flex-wrap:wrap;gap:28px;margin-bottom:38px;}
+  .meta-item h4{font-family:'Inter',sans-serif;font-size:11px;color:var(--text-muted);letter-spacing:.12em;margin-bottom:7px;}
+  .meta-item p{font-size:14px;color:var(--text);font-weight:500;letter-spacing:.02em;}
+  .article-actions{display:flex;gap:14px;flex-wrap:wrap;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:var(--radius-sm);
+    font-size:14px;font-weight:600;cursor:pointer;transition:all .3s ease;border:2px solid transparent;font-family:inherit;letter-spacing:.05em;}
+  .btn-primary{background:var(--accent);color:#000;border-color:var(--accent);box-shadow:0 0 20px rgba(var(--accent-rgb),.25);}
+  .btn-primary:hover{box-shadow:0 0 30px rgba(var(--accent-rgb),.5);transform:translateY(-2px);}
+  .btn-outline{background:transparent;color:var(--accent);border-color:var(--accent);}
+  .btn-outline:hover{background:var(--accent-dim);box-shadow:0 0 20px rgba(var(--accent-rgb),.2);transform:translateY(-2px);}
+  .btn svg{width:17px;height:17px;}
+
+  /* ===== Article body ===== */
+  .article-body{max-width:860px;margin:0 auto;padding:0 40px 72px;}
+  .article-cover{width:100%;aspect-ratio:16/9;border-radius:var(--radius);overflow:hidden;background:#1a1a1a;border:1px solid var(--border);margin-bottom:48px;box-shadow:0 20px 60px rgba(0,0,0,.35);}
+  .article-cover img{width:100%;height:100%;object-fit:cover;}
+  .article-lead{font-size:15.5px;color:var(--text-secondary);line-height:2.05;letter-spacing:.02em;padding-left:22px;border-left:2px solid rgba(var(--accent-rgb),.45);margin-bottom:52px;}
+  .article-section{margin-bottom:44px;}
+  .article-section h3{font-size:21px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:12px;letter-spacing:.06em;color:var(--text);}
+  .article-section h3::before{content:'';width:26px;height:2px;background:var(--accent);border-radius:2px;box-shadow:0 0 8px var(--accent);flex-shrink:0;}
+  .article-section p{font-size:15.5px;color:var(--text-secondary);line-height:2.05;margin-bottom:16px;letter-spacing:.02em;}
+  .article-section p:last-child{margin-bottom:0;}
+
+  /* Takeaways */
+  .takeaway{margin:56px 0;padding:34px 32px;border-radius:var(--radius);background:var(--bg-card);border:1px solid rgba(var(--accent-rgb),.18);position:relative;overflow:hidden;}
+  .takeaway::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),rgba(var(--accent-rgb),.15));}
+  .takeaway h3{font-size:16px;font-weight:700;letter-spacing:.1em;color:var(--accent);margin-bottom:22px;display:flex;align-items:center;gap:10px;}
+  .takeaway h3 svg{width:20px;height:20px;}
+  .takeaway-list{display:grid;grid-template-columns:1fr;gap:14px;list-style:none;}
+  .takeaway-list li{display:flex;align-items:flex-start;gap:12px;font-size:14.5px;color:var(--text-secondary);line-height:1.85;letter-spacing:.02em;}
+  .takeaway-list li svg{width:18px;height:18px;color:var(--accent);flex-shrink:0;margin-top:3px;}
+
+  /* Tags */
+  .article-tags{display:flex;flex-wrap:wrap;gap:10px;padding-top:28px;border-top:1px solid var(--border);}
+  .article-tag{padding:7px 16px;border-radius:8px;background:var(--accent-dim);border:1px solid rgba(var(--accent-rgb),.2);font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;color:var(--accent);letter-spacing:.04em;transition:all .3s ease;}
+  .article-tag:hover{background:rgba(var(--accent-rgb),.2);box-shadow:0 0 12px rgba(var(--accent-rgb),.15);}
+
+  /* Prev / Next */
+  .article-nav{max-width:860px;margin:0 auto;padding:0 40px 80px;display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;}
+  .article-nav-link{flex:1;min-width:220px;padding:22px 24px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);transition:all .3s ease;display:flex;align-items:center;gap:16px;}
+  .article-nav-link:hover{border-color:rgba(var(--accent-rgb),.25);transform:translateY(-4px);box-shadow:0 8px 30px rgba(0,0,0,.3);}
+  .article-nav-link.next{flex-direction:row-reverse;text-align:right;}
+  .article-nav-link svg{width:22px;height:22px;color:var(--accent);flex-shrink:0;}
+  .article-nav-link .nav-text{flex:1;}
+  .article-nav-link .nav-label{font-family:'Inter',sans-serif;font-size:11px;color:var(--text-muted);letter-spacing:.12em;margin-bottom:6px;}
+  .article-nav-link .nav-title{font-size:15px;font-weight:600;color:var(--text);letter-spacing:.02em;line-height:1.5;}
+  .article-nav-link.placeholder{visibility:hidden;pointer-events:none;}
+
+  .footer{text-align:center;padding:40px;border-top:1px solid var(--border);font-size:13px;color:var(--text-muted);}
+
+  .fade-in{opacity:0;transform:translateY(26px);transition:opacity .6s ease,transform .6s ease;}
+  .fade-in.visible{opacity:1;transform:translateY(0);}
+
+  @media(max-width:640px){
+    .nav{padding:16px 20px;}
+    .article-hero{padding:110px 20px 40px;}
+    .article-body,.article-nav{padding-left:20px;padding-right:20px;}
+    .article-meta{gap:18px;}
+    .article-title{letter-spacing:.01em;}
+    .takeaway{padding:26px 22px;}
+    .btn{justify-content:center;}
+    .article-nav-link{min-width:100%;}
+    .article-nav-link.next{flex-direction:row;text-align:left;}
+    .article-nav-link.placeholder{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="reading-progress" id="readingProgress"></div>
+
+<!-- ===== Navigation ===== -->
+<nav class="nav">
+  <a href="/XiaoBlog/#hero" class="nav-logo">杨<span>.</span>逍</a>
+  <a href="/XiaoBlog/insights" class="nav-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    返回洞察列表
+  </a>
+</nav>
+
+<!-- ===== Hero ===== -->
+<header class="article-hero">
+  <div class="article-hero-watermark">INSIGHT</div>
+  <div class="article-hero-content">
+    <div class="article-badge fade-in">
+      <span class="line"></span>
+      <span class="label" id="articleCategory">洞察</span>
+    </div>
+    <h1 class="article-title fade-in" id="articleTitle">加载中...</h1>
+    <p class="article-tagline fade-in" id="articleTagline"></p>
+    <div class="article-meta fade-in" id="articleMeta"></div>
+    <div class="article-actions fade-in">
+      <a href="/XiaoBlog/insights" class="btn btn-outline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        全部洞察
+      </a>
+      <a href="/XiaoBlog/#contact" class="btn btn-primary">
+        聊聊这个议题
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ===== Article ===== -->
+<main class="article-body" id="articleBody">
+  <div class="article-cover fade-in" id="articleCover"></div>
+  <p class="article-lead fade-in" id="articleLead"></p>
+  <div id="articleSections"></div>
+
+  <section class="takeaway fade-in" id="articleTakeaway">
+    <h3>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>
+      核心观点
+    </h3>
+    <ul class="takeaway-list" id="articleTakeaways"></ul>
+  </section>
+
+  <div class="article-tags fade-in" id="articleTags"></div>
+</main>
+
+<!-- ===== Prev / Next ===== -->
+<div class="article-nav" id="articleNav"></div>
+
+<footer class="footer">
+  <p>© 2026 杨逍. 保留所有权利.</p>
+</footer>
+
+<script is:inline define:vars={{ insightData: insights }}>
+  const params = new URLSearchParams(window.location.search);
+  const requestedId = parseInt(params.get('id') || '1', 10);
+  const post = insightData.find((p) => p.id === requestedId) || insightData[0];
+
+  document.title = post.title + ' — 杨逍洞察';
+  const descMeta = document.querySelector('meta[name="description"]');
+  if (descMeta) descMeta.setAttribute('content', post.excerpt);
+
+  document.getElementById('articleCategory').textContent = post.category;
+  document.getElementById('articleTitle').textContent = post.title;
+  document.getElementById('articleTagline').textContent = post.tagline;
+  document.getElementById('articleMeta').innerHTML =
+    '<div class="meta-item"><h4>发布日期</h4><p>' + post.date + '</p></div>' +
+    '<div class="meta-item"><h4>阅读时长</h4><p>' + post.readTime + '</p></div>' +
+    '<div class="meta-item"><h4>作者</h4><p>杨逍</p></div>' +
+    '<div class="meta-item"><h4>栏目</h4><p>' + post.category + '</p></div>';
+
+  document.getElementById('articleCover').innerHTML =
+    '<img src="' + post.image + '" alt="' + post.title + '" decoding="async">';
+  document.getElementById('articleLead').textContent = post.lead;
+
+  document.getElementById('articleSections').innerHTML = post.sections
+    .map((sec) =>
+      '<section class="article-section fade-in"><h3>' + sec.title + '</h3>' +
+      sec.paras.map((p) => '<p>' + p + '</p>').join('') +
+      '</section>'
+    )
+    .join('');
+
+  const checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  document.getElementById('articleTakeaways').innerHTML = post.takeaways
+    .map((t) => '<li>' + checkIcon + '<span>' + t + '</span></li>')
+    .join('');
+
+  document.getElementById('articleTags').innerHTML = post.tags
+    .map((t) => '<span class="article-tag">' + t + '</span>')
+    .join('');
+
+  // Prev / next
+  const prevPost = insightData.find((p) => p.id === post.id - 1);
+  const nextPost = insightData.find((p) => p.id === post.id + 1);
+  const prevIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>';
+  const nextIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+
+  document.getElementById('articleNav').innerHTML =
+    (prevPost
+      ? '<a href="/XiaoBlog/insight?id=' + prevPost.id + '" class="article-nav-link">' + prevIcon +
+        '<div class="nav-text"><div class="nav-label">上一篇</div><div class="nav-title">' + prevPost.title + '</div></div></a>'
+      : '<div class="article-nav-link placeholder"></div>') +
+    (nextPost
+      ? '<a href="/XiaoBlog/insight?id=' + nextPost.id + '" class="article-nav-link next">' +
+        '<div class="nav-text"><div class="nav-label">下一篇</div><div class="nav-title">' + nextPost.title + '</div></div>' + nextIcon + '</a>'
+      : '<div class="article-nav-link placeholder"></div>');
+
+  // Reveal animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.fade-in').forEach((el) => observer.observe(el));
+
+  // Reading progress
+  const progress = document.getElementById('readingProgress');
+  const updateProgress = () => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const ratio = max > 0 ? window.scrollY / max : 0;
+    progress.style.width = Math.min(100, Math.max(0, ratio * 100)) + '%';
+  };
+  window.addEventListener('scroll', updateProgress, { passive: true });
+  updateProgress();
+</script>
+</body>
+</html>
