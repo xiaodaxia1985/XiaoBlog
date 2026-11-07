@@ -1,0 +1,40 @@
+/* 设计令牌：间距、字号、行高、容器宽度。所有页面在此取用，不再随手写数值。 */
+:root{
+  /* 间距只保留 9 档 */
+  --space-4:4px;
+  --space-8:8px;
+  --space-12:12px;
+  --space-16:16px;
+  --space-24:24px;
+  --space-32:32px;
+  --space-40:40px;
+  --space-56:56px;
+  --space-72:72px;
+
+  /* 字号层级：12 辅助 / 14 正文小 / 16 正文 / 20 卡片标题 / 28 区块标题 / 48 页面主标题 */
+  --fs-12:12px;
+  --fs-14:14px;
+  --fs-16:16px;
+  --fs-20:20px;
+  --fs-28:28px;
+  --fs-48:48px;
+
+  /* 行高 1.6–1.75 */
+  --lh-body:1.7;
+  --lh-tight:1.6;
+
+  /* 容器 */
+  --container-w:1200px;
+  --article-w:720px;
+  --gutter:32px;
+
+  /* 区块纵向间距 */
+  --section-y:56px;
+}
+
+@media(max-width:768px){
+  :root{
+    --gutter:24px;
+    --section-y:32px;
+  }
+}

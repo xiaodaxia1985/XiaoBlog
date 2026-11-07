@@ -1,8 +1,73 @@
 
 export const insights = [
   {
+    id: 11,
+    draft: true,
+    category: '90天实战',
+    topic: '个人商业创造',
+    status: '草稿 · 待确认',
+    date: '2026.11.08',
+    readTime: '6 分钟',
+    title: '用 90 天，做出第一个自己的产品',
+    excerpt:
+      '不卖课，不承诺收益，只公开记录一件事：一个做了 18 年 IT 的人，能不能靠自己的判断把产品卖出去。',
+    tagline:
+      '这一次，我不再只是交付别人的系统，而是为自己的判断负责。',
+    image: '/insights/insight-11.webp',
+    lead:
+      '过去 18 年，我做的项目大多发生在组织里：有预算、有团队、有明确的交付对象。离开这些条件，我还能不能独立找到需求、做出产品、找到愿意付钱的人？这是我想用 90 天回答的问题。',
+    sections: [
+      {
+        title: '为什么是 90 天',
+        paras: [
+          '时间太短，只能做演示；时间太长，容易变成又一个没有下文的计划。90 天刚好够完成一次完整的商业动作：找需求、做产品、找用户、验证收入，也足够暴露我在哪个环节判断失误。',
+          '我把起点定在 11 月 8 日，结束在次年 2 月 5 日。四个阶段按天数排开，每个阶段只解决一个问题，不并行铺开。'
+        ]
+      },
+      {
+        title: '这 90 天只做四件事',
+        paras: [
+          '先找真实需求。不是我觉得有价值，而是有人愿意为它花时间或花钱。我会把访谈、观察和判断落空的机会都写下来，而不是只挑好听的结论。',
+          '再把需求做成能用的产品，然后去找用户，最后用真实交易验证。收入不是唯一目标，但它是唯一不会撒谎的反馈。',
+          '顺序不能颠倒：先有需求再动手做，先有产品再谈推广，先有付费再谈规模。任何一步提前，都会让我用想象代替验证，也会让后面的记录失去意义。这三个月里，我宁可慢一点，也不想拿一个没被需要的东西自我感动。'
+        ]
+      },
+      {
+        title: '我会公开什么',
+        paras: [
+          '每周至少一篇记录：这周做了什么、得到什么数据、哪里判断错了、下一步怎么改。产品数据只写量级和趋势，不披露合作方与内部信息。',
+          '如果三个月后没有做出来，我也会写清楚失败在哪，而不是换个说法继续讲故事。',
+          '记录会尽量具体：哪天做了什么、花了多少时间、联系了多少人、得到了什么回复，数字不好看也照写，哪怕这周没有任何进展。因为只有真实的数字，才能在下一次判断时派上用场。我不打算把过程写成教程，也不会把还没验证的结论提前说成方法。'
+        ]
+      },
+      {
+        title: '怎么判断该继续还是该停',
+        paras: [
+          '每个阶段结束，我会停下来回答三个问题：有没有真实的用户在持续使用、有没有人为它付钱、我是否还相信这件事值得做。三个问题里若有两个是否定的，就调整方向；如果每次都用"再等等"解释数据，就停。',
+          '停下来不丢人。真正难堪的是用三个月证明自己很忙，却没有证明任何一个人需要这个产品。'
+        ]
+      },
+      {
+        title: '我不承诺什么',
+        paras: [
+          '不承诺收益，不卖课，不把过程包装成方法论。90 天结束，可能只是一个很小的产品，也可能什么都没有。',
+          '我能承诺的只有两点：过程真实，判断可追溯。剩下的交给市场。'
+        ]
+      }
+    ],
+    takeaways: [
+      '90 天只做一次完整的商业动作，不铺开',
+      '需求必须由真实的付费意愿验证',
+      '每周公开进展、数据和判断失误',
+      '不承诺收益，也不把失败藏起来'
+    ],
+    tags: ['90天实战', '个人商业', '产品验证', '公开记录']
+  },
+  {
     id: 1,
-    category: 'Industrial Digitalization',
+    draft: true,
+    category: '产业数字化',
+    topic: '个人商业系统',
     date: '2026.11.02',
     readTime: '9 分钟',
     title: '产业数字化不是上一套 ERP 就行',
@@ -10,7 +75,7 @@ export const insights = [
       '饲料、养殖、加工、销售四段数据怎么才能真正打通？拆解集团级全链条可追溯的三层架构与落地路径。',
     tagline:
       '真正的数字化，是从饲料到餐桌的业务贯通，而不是某个部门的工具上线。',
-    image: '/XiaoBlog/insights/insight-1.jpg',
+    image: '/insights/insight-1.webp',
     lead:
       '很多集团把“上 ERP”当成数字化转型的终点：系统上线、报表能出、验收通过，项目就算结束。但一年后再看，采购、养殖、加工、销售依旧各说各话，库存对不上、成本算不清、风险看不见。问题不在系统，而在业务没有被真正贯通。',
     sections: [
@@ -53,7 +118,9 @@ export const insights = [
   },
   {
     id: 2,
-    category: 'AI in Real Business',
+    draft: true,
+    category: 'AI 与产品',
+    topic: 'AI与产品创造',
     date: '2026.10.28',
     readTime: '8 分钟',
     title: '大模型进产业：先找 ROI 最高的三个场景',
@@ -61,7 +128,7 @@ export const insights = [
       '智能饲喂、健康预警、OCR 报告识别 —— 我在近 200 个家庭农场做过的成本收益测算与取舍。',
     tagline:
       '产业场景不缺 AI 故事，缺的是能算清投入产出的那三个切入点。',
-    image: '/XiaoBlog/insights/insight-2.jpg',
+    image: '/insights/insight-2.webp',
     lead:
       '大模型进入产业，最容易犯的错是从“技术能做什么”出发，而不是从“这一笔投入多久能回本”出发。在近 200 个家庭农场的实践中，我最终只保留了三个 ROI 清晰、可规模化复制的场景。',
     sections: [
@@ -104,7 +171,9 @@ export const insights = [
   },
   {
     id: 3,
-    category: 'Enterprise Software',
+    draft: true,
+    category: '技术与管理',
+    topic: '个人商业系统',
     date: '2026.10.21',
     readTime: '8 分钟',
     title: '自研、采购还是低代码：集团级选型的判断框架',
@@ -112,7 +181,7 @@ export const insights = [
       '从总拥有成本、迭代速度、组织能力三个维度，给出一张可复用的决策矩阵。',
     tagline:
       '选型不是技术偏好，而是把组织的长期能力与短期成本放在同一张表上。',
-    image: '/XiaoBlog/insights/insight-3.jpg',
+    image: '/insights/insight-3.webp',
     lead:
       '“自研还是采购”是集团数字化最常见的争论。支持自研的人讲差异化，支持采购的人讲效率，最后往往由预算和话语权决定。真正需要的是一个可复用的判断框架。',
     sections: [
@@ -155,20 +224,22 @@ export const insights = [
   },
   {
     id: 4,
-    category: 'Technology & Architecture',
+    draft: true,
+    category: '技术与管理',
+    topic: '',
     date: '2026.10.14',
     readTime: '10 分钟',
     title: '从 Binder IPC 到微服务：高并发架构的底层一致性',
     excerpt:
-      '4 亿 DAU 产品的流量治理、缓存分层与故障隔离，哪些经验搬到产业系统里依然有效。',
+      '高并发产品的流量治理、缓存分层与故障隔离，哪些经验搬到产业系统里依然有效。',
     tagline:
       '高并发不是堆机器，而是在一致性、可用性和成本之间做清醒的取舍。',
-    image: '/XiaoBlog/insights/insight-4.jpg',
+    image: '/insights/insight-4.webp',
     lead:
-      '从 Android Framework 的 Binder IPC，到 4 亿 DAU 的后端微服务，我处理过的核心问题其实是同一个：在资源有限的前提下，如何让系统在压力下仍然保持一致与可用。',
+      '从 Android Framework 的 Binder IPC，到高并发的后端微服务，我处理过的核心问题其实是同一个：在资源有限的前提下，如何让系统在压力下仍然保持一致与可用。',
     sections: [
       {
-        title: '4 亿 DAU 的流量真相',
+        title: '高峰流量的真实来源',
         paras: [
           '峰值流量从来不是均匀分布的。真正压垮系统的，往往是几个热点接口在短时间内被放大。治理的第一步不是扩容，而是识别热点、拆分读写、给不同业务设定不同的服务质量。',
           '我们会把接口按“是否可降级、是否可缓存、是否强一致”分类，再决定资源优先级。这个分类比任何单一的性能优化都更重要。'
@@ -206,7 +277,9 @@ export const insights = [
   },
   {
     id: 5,
-    category: 'Business Innovation',
+    draft: true,
+    category: '产业数字化',
+    topic: '个人商业系统',
     date: '2026.10.07',
     readTime: '7 分钟',
     title: '数字化转型的核心是业务创新，不是系统上线',
@@ -214,7 +287,7 @@ export const insights = [
       '智慧养殖与冷链温控如何从实验室走到生产一线，以及为什么多数项目死在上线之后。',
     tagline:
       '系统上线只是交付了一半，业务动作改变才算真正完成。',
-    image: '/XiaoBlog/insights/insight-5.jpg',
+    image: '/insights/insight-5.webp',
     lead:
       '我见过太多“成功上线”的项目：验收报告漂亮，使用率却在上线三个月后跌到个位数。原因通常不是技术，而是业务动作没有跟着系统一起改变。',
     sections: [
@@ -257,7 +330,9 @@ export const insights = [
   },
   {
     id: 6,
-    category: 'Data Governance',
+    draft: true,
+    category: '产业数字化',
+    topic: '个人商业系统',
     date: '2026.09.29',
     readTime: '9 分钟',
     title: '数据中台：从“有数据”到“能用数据”',
@@ -265,7 +340,7 @@ export const insights = [
       '多业务板块的口径统一、指标血缘与标签体系 —— 我踩过的五个坑和最终解法。',
     tagline:
       '数据中台的价值不在存了多少数据，而在多少决策真正引用了它。',
-    image: '/XiaoBlog/insights/insight-6.jpg',
+    image: '/insights/insight-6.webp',
     lead:
       '“我们已经有数据了”，这是数据中台项目最危险的一句话。有数据，只说明系统在产生记录；能用数据，才说明组织能据此做判断。两者之间隔着口径、质量和信任三道坎。',
     sections: [
@@ -308,7 +383,9 @@ export const insights = [
   },
   {
     id: 7,
-    category: 'IoT & Hardware',
+    draft: true,
+    category: '产业数字化',
+    topic: '',
     date: '2026.09.22',
     readTime: '8 分钟',
     title: '边缘计算在养殖与冷链中的真实价值',
@@ -316,7 +393,7 @@ export const insights = [
       '传感器选型、网关架构与离线同步：低成本硬件如何支撑 200 个农场的稳定采集。',
     tagline:
       '边缘计算不是为了炫技，而是为了让弱网络环境下的数据仍然可靠。',
-    image: '/XiaoBlog/insights/insight-7.jpg',
+    image: '/insights/insight-7.webp',
     lead:
       '养殖场和冷链仓库的网络条件，和写字楼完全不同：信号弱、断电常见、设备无人值守。把所有数据直接传云端，听起来先进，实际往往不可用。边缘计算的价值就在这里。',
     sections: [
@@ -359,17 +436,19 @@ export const insights = [
   },
   {
     id: 8,
-    category: 'Team Building',
+    draft: true,
+    category: '技术与管理',
+    topic: '个人商业系统',
     date: '2026.09.15',
     readTime: '8 分钟',
     title: '技术团队从 0 到 100 的组织演进',
     excerpt:
-      '招聘、梯队、OKR 与工程效能，跨地域百人团队的管理复盘。',
+      '招聘、梯队、目标管理与工程效能，跨地域研发团队的管理复盘。',
     tagline:
       '团队规模每翻一倍，管理方式就必须换一次，否则增长会变成内耗。',
-    image: '/XiaoBlog/insights/insight-8.jpg',
+    image: '/insights/insight-8.webp',
     lead:
-      '从几个人到一百人，我经历过三次团队规模的跃迁。每一次都伴随着旧管理方式失效。团队不是线性放大，而是阶段性重构。',
+      '从几个人到更大的团队，我经历过三次团队规模的跃迁。每一次都伴随着旧管理方式失效。团队不是线性放大，而是阶段性重构。',
     sections: [
       {
         title: '0 到 10 人：先活下来',
@@ -410,7 +489,9 @@ export const insights = [
   },
   {
     id: 9,
-    category: 'Fintech for Agri',
+    draft: true,
+    category: '产业数字化',
+    topic: '个人商业系统',
     date: '2026.09.08',
     readTime: '8 分钟',
     title: '农业产业链金融：让银行敢给农户贷款',
@@ -418,7 +499,7 @@ export const insights = [
       '基于真实生产数据的风控模型设计，以及数据可信度的三道关。',
     tagline:
       '银行不是不愿意贷，而是缺少能证明还款能力的可信数据。',
-    image: '/XiaoBlog/insights/insight-9.jpg',
+    image: '/insights/insight-9.webp',
     lead:
       '农户贷款难，表面看是抵押物不足，深层原因是信息不对称：银行看不到真实的生产与经营状况，只能提高门槛。产业链金融的机会，就在于用数字化把这段信息补上。',
     sections: [
@@ -461,7 +542,9 @@ export const insights = [
   },
   {
     id: 10,
-    category: 'Case Study',
+    draft: true,
+    category: '产业数字化',
+    topic: '个人商业系统',
     date: '2026.09.01',
     readTime: '9 分钟',
     title: '年降本 300 万是怎么算出来的',
@@ -469,7 +552,7 @@ export const insights = [
       '运输效率 +40%、单位成本 -12% —— 一笔一笔拆解冷链平台的经营账。',
     tagline:
       '数字不是汇报口径，而是可以被拆到每一台车、每一座冷库的经营结果。',
-    image: '/XiaoBlog/insights/insight-10.jpg',
+    image: '/insights/insight-10.webp',
     lead:
       '“年降本 300 万、增收 5000 万”经常被写进汇报材料，却很少有人能把它拆开。这篇文章，我把冷链平台的账本一笔一笔拆给你看。',
     sections: [
@@ -511,3 +594,6 @@ export const insights = [
     tags: ['冷链', '经营分析', '降本', 'TCO', '案例复盘']
   }
 ];
+
+// 已发布 = 未标记 draft。列表、首页、专题页、90 天记录与计数都从这里取。
+export const publishedInsights = insights.filter((post) => !post.draft);
