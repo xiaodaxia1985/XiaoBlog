@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="个人商业创造者">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#080808"/>
+      <stop offset="0.55" stop-color="#101010"/>
+      <stop offset="1" stop-color="#1b1b1b"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.82" cy="0.18" r="0.55">
+      <stop offset="0" stop-color="#39FF14" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#39FF14" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
+      <path d="M80 0H0V80" fill="none" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect width="1600" height="900" fill="url(#grid)"/>
+  <rect width="1600" height="900" fill="url(#glow)"/>
+  <g fill="none" stroke="#39FF14" stroke-opacity="0.5" stroke-width="2">
+    <path d="M300 620 L520 470 L720 520 L940 350 L1180 400 L1360 250"/>
+    <path d="M300 620 L520 700 L760 660 L980 730 L1220 640"/>
+  </g>
+  <g fill="#39FF14">
+    <circle cx="300" cy="620" r="7" fill-opacity="0.9"/>
+    <circle cx="520" cy="470" r="5" fill-opacity="0.7"/>
+    <circle cx="720" cy="520" r="5" fill-opacity="0.7"/>
+    <circle cx="940" cy="350" r="6" fill-opacity="0.85"/>
+    <circle cx="1180" cy="400" r="5" fill-opacity="0.7"/>
+    <circle cx="1360" cy="250" r="5" fill-opacity="0.7"/>
+    <circle cx="520" cy="700" r="4" fill-opacity="0.55"/>
+    <circle cx="760" cy="660" r="4" fill-opacity="0.55"/>
+    <circle cx="980" cy="730" r="4" fill-opacity="0.55"/>
+    <circle cx="1220" cy="640" r="4" fill-opacity="0.55"/>
+  </g>
+  <g stroke="#39FF14" stroke-opacity="0.85" stroke-linecap="square">
+    <line x1="96" y1="112" x2="188" y2="112" stroke-width="4"/>
+  </g>
+  <g fill="#FFFFFF" fill-opacity="0.28">
+    <rect x="96" y="136" width="180" height="12" rx="6"/>
+    <rect x="96" y="164" width="110" height="12" rx="6"/>
+  </g>
+</svg>

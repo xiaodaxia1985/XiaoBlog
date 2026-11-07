@@ -16,7 +16,7 @@ export const stages = [
       '借助 AI 创造：用 AI 完成设计、开发与内容生产',
       '建立品牌与内容：品牌表达 V1 与首批 6 篇公开内容'
     ],
-    postIds: [11]
+    postIds: ['90-days-first-product']
   },
   {
     id: 2,

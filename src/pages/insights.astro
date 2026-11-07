@@ -1,9 +1,8 @@
 ---
-import { publishedInsights } from '../data/insights.mjs';
+import { getPublishedPosts } from '../lib/insights';
+import { CATEGORIES as categories, TOPICS as topics } from '../lib/taxonomy';
 
-const posts = publishedInsights;
-const categories = ['90天实战', '产业数字化', 'AI 与产品', '技术与管理'];
-const topics = ['个人商业创造', 'AI与产品创造', '个人商业系统'];
+const posts = await getPublishedPosts();
 const countOf = (c) => posts.filter((p) => p.category === c).length;
 const topicCountOf = (t) => posts.filter((p) => p.topic === t).length;
 ---
@@ -211,9 +210,9 @@ const topicCountOf = (t) => posts.filter((p) => p.topic === t).length;
     </div>
     <div class="projects-grid" id="insightGrid">
       {posts.map((post, i) => (
-        <a href={`/insight?id=${post.id}`} class="project-card fade-up" data-category={post.category} data-topic={post.topic}>
+        <a href={post.url} class="project-card fade-up" data-category={post.category} data-topic={post.topic}>
           <div class="project-img">
-            <img src={post.image} alt={post.title} width="1600" height="900" loading={i === 0 ? 'eager' : 'lazy'} decoding="async">
+            <img src={post.cover} alt={post.title} width="1600" height="900" loading={i === 0 ? 'eager' : 'lazy'} decoding="async">
           </div>
           <div class="project-info">
             <span class="project-tag">{post.category}</span>

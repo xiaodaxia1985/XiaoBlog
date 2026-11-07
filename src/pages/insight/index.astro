@@ -1,0 +1,29 @@
+---
+import { legacyIds } from '../../data/legacy-ids.mjs';
+---
+<!DOCTYPE html>
+<html lang="zh-CN" style="background:#0A0A0A;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="robots" content="noindex">
+<title>正在打开文章 — 个人商业创造者</title>
+<link rel="stylesheet" href="/fonts/fonts.css">
+<link rel="stylesheet" href="/css/tokens.css">
+<style>
+  body{font-family:'Noto Sans SC','Inter',sans-serif;background:#0A0A0A;color:#A1A1AA;min-height:100vh;display:grid;place-items:center;padding:24px;line-height:1.8;text-align:center;}
+  a{color:#39FF14;text-decoration:none;border-bottom:1px solid rgba(57,255,20,.35);}
+  p{font-size:14px;}
+</style>
+<script is:inline define:vars={{ legacyIds }}>
+  const raw = new URLSearchParams(location.search).get('id');
+  const slug = raw ? legacyIds[Number(raw)] : null;
+  location.replace(slug ? `/insight/${slug}/` : '/insights/');
+</script>
+</head>
+<body>
+  <p>正在打开文章… 如果没有自动跳转，<a href="/insights">回到洞察列表</a>。</p>
+</body>
+</html>

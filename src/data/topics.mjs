@@ -1,5 +1,5 @@
 // 三个方向 · 专题页配置
-// title 与 insights.mjs 的 topic 字段保持一致，文章按 topic 自动聚合。
+// title 与文章 frontmatter 的 topic 字段保持一致，文章按 topic 自动聚合。
 
 export const topics = [
   {

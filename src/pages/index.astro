@@ -1,13 +1,14 @@
 ---
-import { publishedInsights } from '../data/insights.mjs';
+import { getPublishedPosts } from '../lib/insights';
 import { stages } from '../data/stages.mjs';
 import { topics } from '../data/topics.mjs';
 
-const latest = publishedInsights.slice(0, 3);
+const posts = await getPublishedPosts();
+const latest = posts.slice(0, 3);
 const directions = topics;
-const countByTopic = (t) => publishedInsights.filter((p) => p.topic === t).length;
-const latestByTopic = (t) => publishedInsights.find((p) => p.topic === t);
-const postOf = (id) => publishedInsights.find((p) => p.id === id);
+const countByTopic = (t) => posts.filter((p) => p.topic === t).length;
+const latestByTopic = (t) => posts.find((p) => p.topic === t);
+const postOf = (slug) => posts.find((p) => p.slug === slug);
 const cnNums = ['一', '二', '三', '四'];
 ---
 <!DOCTYPE html>
@@ -383,9 +384,9 @@ section{padding:var(--section-y) var(--gutter);}
           <strong>90<em>天</em></strong>
           <span>个人商业实践周期</span>
         </div>
-        {publishedInsights.length > 0 && (
+        {posts.length > 0 && (
           <div class="hero-stat">
-            <strong>{publishedInsights.length}<em>篇</em></strong>
+            <strong>{posts.length}<em>篇</em></strong>
             <span>已发布洞察</span>
           </div>
         )}
@@ -491,7 +492,7 @@ section{padding:var(--section-y) var(--gutter);}
             <div class="stage-posts">
               <span class="stage-posts-label">相关记录</span>
               {posts.length ? posts.map((p) => (
-                <a class="stage-post" href={`/insight/?id=${p.id}`}>
+                <a class="stage-post" href={p.url}>
                   <span class="stage-post-date">{p.date}</span>
                   <span class="stage-post-title">{p.title}</span>
                 </a>
@@ -515,9 +516,9 @@ section{padding:var(--section-y) var(--gutter);}
     </div>
     <div class="latest-grid">
       {latest.map((post) => (
-        <a class="latest-card fade-up" href={`/insight/?id=${post.id}`}>
+        <a class="latest-card fade-up" href={post.url}>
           <div class="latest-img">
-            <img src={post.image} alt={post.title} width="1600" height="900" loading="lazy" decoding="async" />
+            <img src={post.cover} alt={post.title} width="1600" height="900" loading="lazy" decoding="async" />
           </div>
           <div class="latest-info">
             <span class="latest-tag">{post.category}</span>

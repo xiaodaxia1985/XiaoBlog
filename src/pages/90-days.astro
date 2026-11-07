@@ -1,9 +1,10 @@
 ---
 import { stages } from '../data/stages.mjs';
-import { publishedInsights } from '../data/insights.mjs';
+import { getPublishedPosts } from '../lib/insights';
 
-const postOf = (id) => publishedInsights.find((p) => p.id === id);
-const archiveCount = publishedInsights.filter((p) => p.category === '90天实战').length;
+const published = await getPublishedPosts();
+const postOf = (slug) => published.find((p) => p.slug === slug);
+const archiveCount = published.filter((p) => p.category === '90天实战').length;
 const cnNums = ['一', '二', '三', '四'];
 ---
 <!DOCTYPE html>
@@ -177,7 +178,7 @@ const cnNums = ['一', '二', '三', '四'];
           <div class="records">
             <h3>相关记录</h3>
             {posts.length ? posts.map((p) => (
-              <a class="record" href={`/insight/?id=${p.id}`}>
+              <a class="record" href={p.url}>
                 <span class="record-date">{p.date}</span>
                 <span class="record-title">{p.title}</span>
               </a>

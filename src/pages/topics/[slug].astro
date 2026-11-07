@@ -1,13 +1,13 @@
 ---
 import { topics } from '../../data/topics.mjs';
-import { publishedInsights } from '../../data/insights.mjs';
+import { getPublishedPosts } from '../../lib/insights';
 
 export function getStaticPaths() {
   return topics.map((topic) => ({ params: { slug: topic.slug }, props: { topic } }));
 }
 
 const { topic } = Astro.props;
-const posts = publishedInsights.filter((p) => p.topic === topic.title);
+const posts = (await getPublishedPosts()).filter((p) => p.topic === topic.title);
 const siblings = topics.filter((t) => t.slug !== topic.slug);
 ---
 <!DOCTYPE html>
@@ -155,9 +155,9 @@ const siblings = topics.filter((t) => t.slug !== topic.slug);
       <div class="section-head"><span class="line"></span><h2 id="articlesTitle">已经发布</h2></div>
       <div class="article-grid">
         {posts.map((post, i) => (
-          <a class="article-card" href={`/insight/?id=${post.id}`}>
+          <a class="article-card" href={post.url}>
             <div class="article-img">
-              <img src={post.image} alt={post.title} width="1600" height="900" loading={i === 0 ? 'eager' : 'lazy'} decoding="async">
+              <img src={post.cover} alt={post.title} width="1600" height="900" loading={i === 0 ? 'eager' : 'lazy'} decoding="async">
             </div>
             <div class="article-info">
               <span class="article-tag">{post.category}</span>
