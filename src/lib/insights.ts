@@ -57,12 +57,14 @@ function firstParagraph(body: string): string {
     if (/^>/.test(text)) continue;
     if (/^[-*+]\s/.test(text)) continue;
     if (/^\d+\.\s/.test(text)) continue;
-    return stripMarkdown(text).replace(/\s+/g, '');
+    const plain = stripMarkdown(text).replace(/\s+/g, '');
+    if (plain.length < 12) continue;
+    return plain;
   }
   return '';
 }
 
-/** 摘要：frontmatter 写了 excerpt 就用它，否则取正文第一段，截到 80–90 字并以句号收尾。 */
+/** 摘要：frontmatter 写了 excerpt 就用它，否则取正文第一个足够长的段落，截到 80–90 字并以句号收尾。 */
 function deriveExcerpt(body: string, override?: string): string {
   if (override && override.trim()) return override.trim();
   const text = firstParagraph(body);
