@@ -23,3 +23,7 @@ Thumbs.db
 # local preview & image backups
 preview-shots/
 covers-originals/
+
+# QA artifacts: screenshots, long captures, verification output
+.qa/
+_verify/
