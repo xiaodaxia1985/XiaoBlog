@@ -12,6 +12,13 @@ const { topic } = Astro.props;
 const posts = (await getPublishedPosts()).filter((p) => p.topic === topic.title);
 const siblings = topics.filter((t) => t.slug !== topic.slug);
 const topicNo = topic.num.split('·')[0].trim();
+
+const lens = [
+  { num: '01', label: '这段方向在讲什么', title: topic.point, body: [topic.definition] },
+  { num: '02', label: '理论', body: [topic.lens.theory] },
+  { num: '03', label: '方法', body: [topic.lens.method] },
+  { num: '04', label: '实践', body: topic.lens.practice },
+];
 ---
 <!DOCTYPE html>
 <html lang="zh-CN" style="background:#0c0c0c;">
@@ -39,52 +46,71 @@ const topicNo = topic.num.split('·')[0].trim();
   ::-webkit-scrollbar-track{background:var(--bg);}
   ::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:4px;}
 
-  .wrap{max-width:var(--container-w);margin:0 auto;padding:0 var(--gutter);}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 24px;}
 
   /* ===== 页头 ===== */
-  .page-hero{padding:calc(64px + var(--space-40)) 0 var(--space-40);border-bottom:1px solid var(--border);}
-  .crumb{display:flex;align-items:center;gap:var(--space-8);font-size:var(--fs-12);color:var(--text-muted);margin-bottom:var(--space-24);}
-  .crumb a{transition:color .2s ease;}
+  .page-hero{padding:calc(64px + 40px) 0 34px;}
+  .crumb{display:flex;align-items:center;gap:var(--space-8);font-size:12px;color:var(--text-muted);margin-bottom:22px;}
   .crumb a:hover{color:var(--text);}
-  .eyebrow{display:flex;align-items:center;gap:var(--space-8);font-size:var(--fs-12);color:var(--text-muted);margin-bottom:var(--space-16);}
-  .eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;}
-  .page-hero h1{font-size:var(--fs-48);font-weight:600;line-height:1.18;letter-spacing:0;margin-bottom:var(--space-12);text-wrap:balance;}
-  .page-hero .definition{max-width:720px;font-size:var(--fs-20);line-height:var(--lh-tight);color:var(--text);}
-  .page-hero .intro{max-width:720px;margin-top:var(--space-16);font-size:var(--fs-16);color:var(--text-secondary);}
-  .page-hero .intro + .intro{margin-top:var(--space-12);}
+  .eyebrow{display:flex;align-items:baseline;gap:10px;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:13px;letter-spacing:.04em;color:var(--accent);margin-bottom:12px;}
+  .eyebrow span{font-family:'Noto Sans SC',sans-serif;font-size:10px;letter-spacing:.14em;color:var(--text-muted);}
+  .page-hero h1{font-size:clamp(28px,3vw,36px);font-weight:700;line-height:1.28;letter-spacing:.004em;text-wrap:balance;}
+
+  /* ===== 导语：四块 ===== */
+  .lens{padding:6px 0 0;}
+  .lens-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .lens-card{padding:20px 22px;border:1px solid var(--border);border-radius:2px;background:rgba(255,255,255,.022);}
+  .lens-no{display:block;font-family:'Inter',sans-serif;font-size:19px;font-weight:700;line-height:1;letter-spacing:-.02em;color:var(--accent);margin-bottom:8px;font-variant-numeric:tabular-nums;}
+  .lens-label{display:block;font-size:10px;letter-spacing:.14em;color:var(--text-muted);margin-bottom:10px;}
+  .lens-title{font-size:16px;font-weight:600;line-height:1.5;color:var(--text);margin-bottom:10px;}
+  .lens-card p{font-size:14.5px;line-height:1.8;color:var(--text-secondary);}
+  .lens-card p + p{margin-top:12px;}
 
   /* ===== 区块 ===== */
-  .section{padding:var(--space-40) 0 var(--space-56);}
-  .section + .section{padding-top:0;}
-  .section-head{margin-bottom:var(--space-24);}
-  .section-head h2{font-size:var(--fs-28);font-weight:600;line-height:1.3;letter-spacing:0;}
+  .block{padding:36px 0 0;margin-top:36px;border-top:1px solid rgba(255,255,255,.10);}
+  .block-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;}
+  .block-no{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;line-height:1;letter-spacing:-.02em;color:var(--accent);}
+  .block-head h2{font-size:15px;font-weight:700;letter-spacing:.05em;color:var(--text);}
+  .block-head .count{margin-left:auto;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:12px;color:var(--text-muted);}
 
-  /* 文章列表 */
-  .post-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-24);}
-  .post-card{display:flex;flex-direction:column;gap:var(--space-8);min-height:200px;padding:var(--space-24);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);transition:background-color .2s ease,border-color .2s ease;}
-  .post-card:hover{background:var(--surface-2);border-color:rgba(255,255,255,.2);}
-  .post-tag{align-self:flex-start;padding:2px 6px;border:1px solid var(--border);border-radius:4px;font-size:var(--fs-12);color:var(--text-muted);}
-  .post-card h3{font-size:var(--fs-20);font-weight:600;line-height:1.4;letter-spacing:0;}
-  .post-excerpt{flex:1;font-size:var(--fs-14);line-height:var(--lh-tight);color:var(--text-secondary);}
-  .post-meta{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);}
+  /* 文章条目：编号 + 标签 + 标题 + 摘要 */
+  .post-row{display:grid;grid-template-columns:34px minmax(0,1fr) 18px;column-gap:16px;align-items:start;padding:20px 0;border-top:1px solid var(--border);transition:opacity .2s ease;}
+  .post-row:first-of-type{border-top:none;padding-top:4px;}
+  .post-row:hover .post-title{color:var(--accent);}
+  .post-row:hover .post-arrow{transform:translateX(3px);}
+  .post-no{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;color:var(--accent);padding-top:3px;}
+  .post-tag{display:inline-block;padding:2px 6px;border:1px solid var(--border);border-radius:3px;font-size:11px;color:var(--text-muted);margin-bottom:8px;}
+  .post-title{font-size:17px;font-weight:600;line-height:1.5;color:var(--text);transition:color .2s ease;text-wrap:balance;}
+  .post-excerpt{margin-top:8px;font-size:14px;line-height:1.75;color:var(--text-secondary);max-width:640px;}
+  .post-meta{margin-top:10px;display:block;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:12px;color:var(--text-muted);}
+  .post-arrow{align-self:center;font-size:14px;color:var(--text-muted);transition:transform .2s ease;}
 
-  /* 其他方向 */
-  .siblings{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-16);}
-  .sibling{display:flex;flex-direction:column;gap:var(--space-8);padding:var(--space-24);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);transition:background-color .2s ease,border-color .2s ease;}
-  .sibling:hover{background:var(--surface-2);border-color:rgba(255,255,255,.2);}
-  .sib-num{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);}
-  .sibling h3{font-size:var(--fs-16);font-weight:600;}
-  .sibling p{font-size:var(--fs-14);color:var(--text-muted);line-height:var(--lh-tight);}
-  .sibling .arrow{margin-top:var(--space-4);font-size:var(--fs-14);color:var(--text);}
+  .empty-row{padding:22px 0;border-top:1px solid var(--border);font-size:14px;line-height:1.8;color:var(--text-secondary);}
+
+  /* 其他方向：同一套编号 */
+  .sib-row{display:grid;grid-template-columns:34px minmax(0,1fr) 18px;column-gap:16px;align-items:start;padding:18px 0;border-top:1px solid var(--border);}
+  .sib-row:first-of-type{border-top:none;}
+  .sib-row:hover .sib-title{color:var(--accent);}
+  .sib-no{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;color:var(--accent);padding-top:3px;}
+  .sib-title{font-size:16px;font-weight:600;line-height:1.5;color:var(--text);transition:color .2s ease;}
+  .sib-def{margin-top:6px;font-size:13.5px;line-height:1.7;color:var(--text-muted);max-width:560px;}
+  .sib-arrow{align-self:center;font-size:14px;color:var(--text-muted);}
+
+  main{padding-bottom:var(--space-56);}
 
   @media(max-width:768px){
-    .page-hero{padding:calc(56px + var(--space-32)) 0 var(--space-32);}
-    .page-hero h1{font-size:28px;line-height:1.25;}
-    .page-hero .definition{font-size:var(--fs-16);}
-    .page-hero .intro{font-size:var(--fs-14);}
-    .post-grid{grid-template-columns:1fr;}
-    .post-card{min-height:0;padding:var(--space-16);}
-    .siblings{grid-template-columns:1fr;}
+    .wrap{padding:0 20px;}
+    .page-hero{padding:calc(56px + 24px) 0 22px;}
+    .page-hero h1{font-size:26px;line-height:1.32;}
+    .lens-grid{grid-template-columns:1fr;gap:12px;}
+    .lens-card{padding:18px;}
+    .lens-no{font-size:17px;}
+    .lens-card p{font-size:14px;line-height:1.8;}
+    .block{padding-top:28px;margin-top:28px;}
+    .post-row{grid-template-columns:26px minmax(0,1fr) 14px;column-gap:12px;padding:18px 0;}
+    .post-title{font-size:16px;}
+    .post-excerpt{font-size:13.5px;}
+    .sib-row{grid-template-columns:26px minmax(0,1fr) 14px;column-gap:12px;}
   }
 </style>
 </head>
@@ -95,46 +121,63 @@ const topicNo = topic.num.split('·')[0].trim();
 <header class="page-hero">
   <div class="wrap">
     <div class="crumb"><a href="/#focus">我在做什么</a><span aria-hidden="true">/</span><span>{topic.title}</span></div>
-    <p class="eyebrow">{topicNo}</p>
+    <div class="eyebrow">{topicNo}<span>{topic.num.split('·')[1]?.trim() ?? ''}</span></div>
     <h1>{topic.title}</h1>
-    <p class="definition">{topic.definition}</p>
-    {topic.intro.map((para) => <p class="intro">{para}</p>)}
   </div>
 </header>
 
 <main>
-  {posts.length > 0 && (
-    <section class="section" aria-labelledby="articlesTitle">
-      <div class="wrap">
-        <div class="section-head"><h2 id="articlesTitle">已经发布</h2></div>
-        <div class="post-grid">
-          {posts.map((post) => (
-            <a class="post-card" href={post.url}>
-              <span class="post-tag">{post.category}</span>
-              <h3>{post.title}</h3>
-              <p class="post-excerpt">{post.excerpt}</p>
-              <span class="post-meta">{post.date} · {post.readTime}</span>
-            </a>
-          ))}
+  <section class="wrap lens" aria-label="这个方向在讲什么">
+    <div class="lens-grid">
+      {lens.map((item) => (
+        <div class="lens-card">
+          <span class="lens-no">{item.num}</span>
+          <span class="lens-label">{item.label}</span>
+          {item.title && <h2 class="lens-title">{item.title}</h2>}
+          {item.body.map((text) => <p>{text}</p>)}
         </div>
-      </div>
-    </section>
-  )}
+      ))}
+    </div>
+  </section>
 
-  <section class="section">
-    <div class="wrap">
-      <div class="section-head"><h2>切换到其他方向</h2></div>
-      <div class="siblings">
-        {siblings.map((s) => (
-          <a class="sibling" href={`/topics/${s.slug}`}>
-            <span class="sib-num">{s.num.split('·')[0].trim()}</span>
-            <h3>{s.title}</h3>
-            <p>{s.definition}</p>
-            <span class="arrow">进入专题 →</span>
+  <section class="wrap block" aria-labelledby="articlesTitle">
+    <div class="block-head">
+      <span class="block-no">05</span>
+      <h2 id="articlesTitle">已经发布</h2>
+      {posts.length > 0 && <span class="count">{posts.length} 篇</span>}
+    </div>
+    {posts.length > 0 ? (
+      <div>
+        {posts.map((post, i) => (
+          <a class="post-row" href={post.url}>
+            <span class="post-no">{String(i + 1).padStart(2, '0')}</span>
+            <span>
+              <span class="post-tag">{post.category}</span>
+              <h3 class="post-title">{post.title}</h3>
+              <span class="post-excerpt">{post.excerpt}</span>
+              <span class="post-meta">{post.date} · {post.readTime}</span>
+            </span>
+            <span class="post-arrow" aria-hidden="true">→</span>
           </a>
         ))}
       </div>
-    </div>
+    ) : (
+      <p class="empty-row">这个方向的第一批记录还在整理，稍后发布。</p>
+    )}
+  </section>
+
+  <section class="wrap block" aria-labelledby="siblingsTitle">
+    <div class="block-head"><span class="block-no">06</span><h2 id="siblingsTitle">切换到其他方向</h2></div>
+    {siblings.map((s) => (
+      <a class="sib-row" href={`/topics/${s.slug}`}>
+        <span class="sib-no">{s.num.split('·')[0].trim()}</span>
+        <span>
+          <h3 class="sib-title">{s.title}</h3>
+          <span class="sib-def">{s.definition}</span>
+        </span>
+        <span class="sib-arrow" aria-hidden="true">→</span>
+      </a>
+    ))}
   </section>
 </main>
 

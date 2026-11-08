@@ -28,71 +28,86 @@ import Footer from '../components/Footer.astro';
   ::-webkit-scrollbar-track{background:var(--bg);}
   ::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:4px;}
 
-  .container{max-width:var(--container-w);margin:0 auto;padding:0 var(--gutter);}
+  .container{max-width:980px;margin:0 auto;padding:0 24px;}
 
-  main{padding:calc(64px + var(--space-56)) 0 0;}
-  .eyebrow{display:flex;align-items:center;gap:var(--space-8);font-size:var(--fs-12);color:var(--text-muted);margin-bottom:var(--space-16);}
-  .eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;}
-  h1{font-size:var(--fs-48);font-weight:600;line-height:1.18;letter-spacing:0;margin-bottom:var(--space-12);text-wrap:balance;}
-  .positioning{font-size:var(--fs-16);color:var(--text-secondary);max-width:640px;margin-bottom:var(--space-16);}
-  .contact-line{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-8);font-size:var(--fs-14);color:var(--text-muted);}
+  main{padding:calc(64px + 40px) 0 0;}
+  .eyebrow{display:flex;align-items:center;gap:var(--space-8);font-size:11px;letter-spacing:.06em;color:var(--text-muted);margin-bottom:14px;}
+  .eyebrow::before{content:'';width:6px;height:6px;background:var(--accent);flex-shrink:0;}
+  h1{font-size:clamp(28px,3vw,34px);font-weight:700;line-height:1.3;letter-spacing:.004em;margin-bottom:12px;text-wrap:balance;}
+  .positioning{font-size:15px;line-height:1.8;color:var(--text-secondary);max-width:620px;margin-bottom:14px;}
+  .contact-line{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-8);font-size:12.5px;color:var(--text-muted);}
   .contact-line a{color:var(--text-secondary);border-bottom:1px solid var(--border);transition:border-color .2s ease;}
   .contact-line a:hover{color:var(--text);border-color:rgba(255,255,255,.3);}
 
-  .resume-section{padding:var(--space-56) 0;border-top:1px solid var(--border);}
-  .resume-section:first-of-type{border-top:none;padding-top:var(--space-40);}
-  .section-title{font-size:var(--fs-28);font-weight:600;line-height:1.3;letter-spacing:0;margin-bottom:var(--space-24);}
+  /* ===== 分区：编号 + 细线 ===== */
+  .resume-section{padding-top:34px;margin-top:36px;border-top:1px solid rgba(255,255,255,.10);}
+  .section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px;}
+  .section-no{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:24px;font-weight:700;line-height:1;letter-spacing:-.02em;color:var(--accent);}
+  .section-head h2{font-size:15px;font-weight:700;letter-spacing:.05em;color:var(--text);}
+  .section-head .count{margin-left:auto;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11px;color:var(--text-muted);}
 
-  /* 经历时间线：左侧年份列对齐 */
-  .timeline{display:flex;flex-direction:column;}
-  .timeline-item{display:grid;grid-template-columns:160px minmax(0,1fr);gap:var(--space-24);padding:var(--space-16) 0;border-bottom:1px solid var(--border);}
-  .timeline-item:last-child{border-bottom:none;}
-  .timeline-year{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-14);color:var(--text-muted);white-space:nowrap;}
-  .timeline-body h3{font-size:var(--fs-16);font-weight:600;margin-bottom:var(--space-4);letter-spacing:0;}
-  .timeline-body .duty{font-size:var(--fs-14);color:var(--text-secondary);}
+  /* 经历：编号 / 年份 / 左侧色条 */
+  .tl{display:grid;grid-template-columns:30px 132px minmax(0,1fr);column-gap:18px;padding:18px 0;border-top:1px solid var(--border);}
+  .tl:first-child{border-top:none;padding-top:2px;}
+  .tl-no{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;color:var(--accent);padding-top:2px;}
+  .tl-year{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11.5px;letter-spacing:0;color:var(--text-muted);padding-top:3px;white-space:nowrap;}
+  .tl-body{border-left:3px solid rgba(216,242,107,.24);padding-left:16px;}
+  .tl:first-child .tl-body{border-left-color:var(--accent);}
+  .tl-body h3{font-size:16px;font-weight:600;line-height:1.55;letter-spacing:.006em;color:var(--text);margin-bottom:6px;}
+  .tl-duty{max-width:640px;font-size:13.5px;line-height:1.8;color:var(--text-secondary);}
 
-  /* 教育背景与其他 */
-  .edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-24);}
-  .edu-item{padding:var(--space-24);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
-  .edu-item h3{font-size:var(--fs-16);font-weight:600;margin-bottom:var(--space-8);}
-  .edu-item p{font-size:var(--fs-14);color:var(--text-secondary);}
-  .patent-block{margin-top:var(--space-24);padding-top:var(--space-16);border-top:1px solid var(--border);}
-  .patent-block h3{font-size:var(--fs-16);font-weight:600;margin-bottom:var(--space-4);}
-  .patent-block p{font-size:var(--fs-14);color:var(--text-secondary);}
+  /* 教育 / 技术方向 / 专利：三块 */
+  .fact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  .fact{padding:18px 20px;border:1px solid var(--border);border-radius:2px;background:rgba(255,255,255,.022);}
+  .fact-no{display:block;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:17px;font-weight:700;line-height:1;letter-spacing:-.02em;color:var(--accent);margin-bottom:10px;}
+  .fact h3{font-size:14.5px;font-weight:600;line-height:1.5;color:var(--text);margin-bottom:6px;}
+  .fact p{font-size:13px;line-height:1.75;color:var(--text-secondary);}
 
   /* 能力域 */
-  .skill-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-24);}
-  .skill-item{padding:var(--space-24);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
-  .skill-item h3{font-size:var(--fs-20);font-weight:600;margin-bottom:var(--space-8);}
-  .skill-item p{font-size:var(--fs-14);color:var(--text-secondary);}
+  .skill-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 32px;}
+  .skill-item{display:grid;grid-template-columns:30px minmax(0,1fr);column-gap:12px;padding:14px 0;border-top:1px solid var(--border);}
+  .skill-item:nth-child(-n+2){border-top:none;padding-top:2px;}
+  .skill-no{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:12px;font-weight:600;color:var(--accent);padding-top:3px;}
+  .skill-item h3{font-size:14.5px;font-weight:600;line-height:1.5;color:var(--text);margin-bottom:4px;}
+  .skill-item p{font-size:13px;line-height:1.75;color:var(--text-secondary);}
 
   /* 代表成果 */
-  .result-list{display:flex;flex-direction:column;gap:var(--space-12);}
-  .result-item{display:flex;align-items:baseline;gap:var(--space-12);font-size:var(--fs-16);color:var(--text-secondary);}
-  .result-item::before{content:'→';color:var(--text-muted);flex-shrink:0;}
+  .result-row{display:grid;grid-template-columns:30px minmax(0,1fr);column-gap:12px;padding:12px 0;border-top:1px solid var(--border);}
+  .result-row:first-child{border-top:none;padding-top:2px;}
+  .result-no{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:12px;font-weight:600;color:var(--accent);padding-top:3px;}
+  .result-text{font-size:14px;line-height:1.75;color:var(--text-secondary);}
 
   /* 现状与方向 */
   .now-block{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-32);}
-  .now-copy{max-width:640px;}
-  .now-copy p{font-size:var(--fs-16);color:var(--text-secondary);margin-bottom:var(--space-16);}
+  .now-copy{max-width:600px;}
+  .now-copy p{font-size:14.5px;line-height:1.8;color:var(--text-secondary);margin-bottom:14px;}
   .now-copy strong{color:var(--text);font-weight:600;}
-  .now-actions{display:flex;gap:var(--space-12);flex-wrap:wrap;margin-top:var(--space-24);}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-8);padding:var(--space-12) var(--space-24);border-radius:var(--radius-sm);font-size:var(--fs-14);font-weight:500;cursor:pointer;border:1px solid transparent;transition:background-color .2s ease,border-color .2s ease,color .2s ease;}
+  .now-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-8);padding:9px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:background-color .2s ease,border-color .2s ease,color .2s ease;}
   .btn-primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
   .btn-primary:hover{background:#E4F98C;border-color:#E4F98C;}
   .btn-secondary{background:transparent;color:var(--text);border-color:var(--border);}
   .btn-secondary:hover{background:var(--surface);border-color:rgba(255,255,255,.22);}
-  .btn svg{width:16px;height:16px;stroke-width:1.5;}
-  .now-period{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);white-space:nowrap;padding-top:var(--space-4);}
+  .btn svg{width:15px;height:15px;stroke-width:1.5;}
+  .now-period{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11px;color:var(--text-muted);white-space:nowrap;padding-top:3px;}
 
   @media(max-width:768px){
-    main{padding:calc(56px + var(--space-32)) 0 0;}
-    h1{font-size:28px;line-height:1.25;}
-    .section-title{font-size:24px;}
-    .timeline-item{grid-template-columns:1fr;gap:var(--space-4);}
-    .edu-grid{grid-template-columns:1fr;}
+    .container{padding:0 20px;}
+    main{padding:calc(56px + 26px) 0 0;}
+    h1{font-size:26px;line-height:1.34;}
+    .positioning{font-size:14px;line-height:1.75;}
+    .resume-section{padding-top:26px;margin-top:28px;}
+    .section-no{font-size:20px;}
+    .tl{grid-template-columns:24px minmax(0,1fr);column-gap:12px;row-gap:4px;padding:16px 0;}
+    .tl-year{grid-column:2;grid-row:1;padding-top:0;}
+    .tl-body{grid-column:2;grid-row:2;padding-left:12px;border-left-width:2px;}
+    .tl-body h3{font-size:15px;}
+    .tl-duty{font-size:13px;}
+    .fact-grid{grid-template-columns:1fr;}
     .skill-grid{grid-template-columns:1fr;}
+    .skill-item:nth-child(2){border-top:1px solid var(--border);padding-top:14px;}
     .now-block{flex-direction:column;gap:var(--space-16);}
+    .now-copy{max-width:100%;}
   }
   @media(max-width:480px){
     .now-actions{flex-direction:column;}
@@ -116,97 +131,141 @@ import Footer from '../components/Footer.astro';
     </div>
 
     <section class="resume-section">
-      <h2 class="section-title">经历时间线</h2>
+      <div class="section-head">
+        <span class="section-no">01</span>
+        <h2>经历时间线</h2>
+        <span class="count">5 段</span>
+      </div>
       <div class="timeline">
-        <div class="timeline-item">
-          <div class="timeline-year">2019.06 — 至今</div>
-          <div class="timeline-body">
+        <article class="tl">
+          <span class="tl-no">01</span>
+          <span class="tl-year">2019.06 — 至今</span>
+          <div class="tl-body">
             <h3>运营总监（数字化平台负责人）· 冷链物流与农产品供应链</h3>
-            <p class="duty">负责冷链平台的规划、建设与运营，统筹仓储、运输与订单系统的集成和数据打通；推动温控可视化、调度与异常预警在业务中落地，并牵头跨企业的数据协同项目。</p>
+            <p class="tl-duty">负责冷链平台的规划、建设与运营，统筹仓储、运输与订单系统的集成和数据打通；推动温控可视化、调度与异常预警在业务中落地，并牵头跨企业的数据协同项目。</p>
           </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-year">2016.09 — 2019.06</div>
-          <div class="timeline-body">
+        </article>
+        <article class="tl">
+          <span class="tl-no">02</span>
+          <span class="tl-year">2016.09 — 2019.06</span>
+          <div class="tl-body">
             <h3>技术总监（集团数字化负责人）· 农牧食品与集团信息化</h3>
-            <p class="duty">负责集团数字化规划与年度 IT 预算，统筹 ERP、仓储、质量与 BI 系统的建设；推动 AI、物联网与大数据在养殖、生产、供应链场景的应用，管理内部团队与外部供应商。</p>
+            <p class="tl-duty">负责集团数字化规划与年度 IT 预算，统筹 ERP、仓储、质量与 BI 系统的建设；推动 AI、物联网与大数据在养殖、生产、供应链场景的应用，管理内部团队与外部供应商。</p>
           </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-year">2011.09 — 2016.08</div>
-          <div class="timeline-body">
+        </article>
+        <article class="tl">
+          <span class="tl-no">03</span>
+          <span class="tl-year">2011.09 — 2016.08</span>
+          <div class="tl-body">
             <h3>项目负责人 / 移动端技术负责人 · 移动互联网与工具类产品</h3>
-            <p class="duty">负责移动端产品的研发、测试与发布全流程，主导系统架构、流量监控与安全防护；管理跨职能研发团队，支撑产品的持续迭代与海外分发。</p>
+            <p class="tl-duty">负责移动端产品的研发、测试与发布全流程，主导系统架构、流量监控与安全防护；管理跨职能研发团队，支撑产品的持续迭代与海外分发。</p>
           </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-year">2010 — 2011</div>
-          <div class="timeline-body">
+        </article>
+        <article class="tl">
+          <span class="tl-no">04</span>
+          <span class="tl-year">2010 — 2011</span>
+          <div class="tl-body">
             <h3>Java/Android 工程师 · 移动通信与手机系统软件</h3>
-            <p class="duty">负责 Android Framework 层模块的维护，定位内存泄漏、线程死锁与进程间通信异常；在英文环境中与海外团队协作完成版本交付。</p>
+            <p class="tl-duty">负责 Android Framework 层模块的维护，定位内存泄漏、线程死锁与进程间通信异常；在英文环境中与海外团队协作完成版本交付。</p>
           </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-year">2008.06 — 2010.06</div>
-          <div class="timeline-body">
+        </article>
+        <article class="tl">
+          <span class="tl-no">05</span>
+          <span class="tl-year">2008.06 — 2010.06</span>
+          <div class="tl-body">
             <h3>Java 工程师 · 消费电子与制造软件</h3>
-            <p class="duty">参与阅读器客户端与 ERP 系统的开发，负责列表加载、缓存与数据库结构设计，处理大批量订单的查询性能问题。</p>
+            <p class="tl-duty">参与阅读器客户端与 ERP 系统的开发，负责列表加载、缓存与数据库结构设计，处理大批量订单的查询性能问题。</p>
           </div>
-        </div>
+        </article>
       </div>
     </section>
 
     <section class="resume-section">
-      <h2 class="section-title">教育背景与其他</h2>
-      <div class="edu-grid">
-        <div class="edu-item">
+      <div class="section-head">
+        <span class="section-no">02</span>
+        <h2>教育 · 技术方向 · 专利</h2>
+      </div>
+      <div class="fact-grid">
+        <div class="fact">
+          <span class="fact-no">01</span>
           <h3>2004 — 2008 · 南京工业大学</h3>
           <p>电子信息科学与技术（本科）</p>
         </div>
-        <div class="edu-item">
+        <div class="fact">
+          <span class="fact-no">02</span>
           <h3>技术方向</h3>
           <p>Android Framework、Java、企业系统集成（ERP / WMS / QMS / BI）、物联网与 AI 应用</p>
         </div>
-      </div>
-      <div class="patent-block">
-        <h3>国家专利 5 项</h3>
-        <p>2 项发明专利、3 项实用新型，方向为农产品质量评价、饲喂装置与数据录入系统。</p>
+        <div class="fact">
+          <span class="fact-no">03</span>
+          <h3>国家专利 5 项</h3>
+          <p>2 项发明专利、3 项实用新型，方向为农产品质量评价、饲喂装置与数据录入系统。</p>
+        </div>
       </div>
     </section>
 
     <section class="resume-section">
-      <h2 class="section-title">能力域</h2>
+      <div class="section-head">
+        <span class="section-no">03</span>
+        <h2>能力域</h2>
+      </div>
       <div class="skill-grid">
         <div class="skill-item">
-          <h3>产业数字化</h3>
-          <p>从业务流程梳理到系统落地，能把复杂需求拆成可交付的路径。</p>
+          <span class="skill-no">01</span>
+          <div>
+            <h3>产业数字化</h3>
+            <p>从业务流程梳理到系统落地，能把复杂需求拆成可交付的路径。</p>
+          </div>
         </div>
         <div class="skill-item">
-          <h3>产品与研发</h3>
-          <p>覆盖需求、设计、开发与迭代，习惯用产品结果检验投入。</p>
+          <span class="skill-no">02</span>
+          <div>
+            <h3>产品与研发</h3>
+            <p>覆盖需求、设计、开发与迭代，习惯用产品结果检验投入。</p>
+          </div>
         </div>
         <div class="skill-item">
-          <h3>AI 应用</h3>
-          <p>把 AI 放进真实工作流，放大个人与团队的有效产出。</p>
+          <span class="skill-no">03</span>
+          <div>
+            <h3>AI 应用</h3>
+            <p>把 AI 放进真实工作流，放大个人与团队的有效产出。</p>
+          </div>
         </div>
         <div class="skill-item">
-          <h3>技术管理</h3>
-          <p>带过跨职能团队，处理复杂系统的协作、节奏与风险。</p>
+          <span class="skill-no">04</span>
+          <div>
+            <h3>技术管理</h3>
+            <p>带过跨职能团队，处理复杂系统的协作、节奏与风险。</p>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="resume-section">
-      <h2 class="section-title">代表成果</h2>
-      <div class="result-list">
-        <div class="result-item">把集团级产业数字化平台从规划推进到上线运营</div>
-        <div class="result-item">打通饲料、养殖、加工与销售环节的业务数据</div>
-        <div class="result-item">长期负责移动端产品的架构、性能与稳定运行</div>
+      <div class="section-head">
+        <span class="section-no">04</span>
+        <h2>代表成果</h2>
+      </div>
+      <div class="result-row">
+        <span class="result-no">01</span>
+        <span class="result-text">把集团级产业数字化平台从规划推进到上线运营</span>
+      </div>
+      <div class="result-row">
+        <span class="result-no">02</span>
+        <span class="result-text">打通饲料、养殖、加工与销售环节的业务数据</span>
+      </div>
+      <div class="result-row">
+        <span class="result-no">03</span>
+        <span class="result-text">长期负责移动端产品的架构、性能与稳定运行</span>
       </div>
     </section>
 
     <section class="resume-section">
-      <h2 class="section-title">现状与方向</h2>
+      <div class="section-head">
+        <span class="section-no">05</span>
+        <h2>现状与方向</h2>
+        <span class="count">2026.11.08 — 2027.02.05</span>
+      </div>
       <div class="now-block">
         <div class="now-copy">
           <p><strong>2026 年 11 月起，我用 90 天做一次完整的个人商业实践。</strong>从寻找真实需求、做出自己的产品，到建立内容与收入闭环，过程全部公开记录。</p>
@@ -218,7 +277,6 @@ import Footer from '../components/Footer.astro';
             <a href="/insights" class="btn btn-secondary">阅读洞察</a>
           </div>
         </div>
-        <div class="now-period">2026.11.08 — 2027.02.05</div>
       </div>
     </section>
   </div>

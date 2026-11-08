@@ -1,6 +1,7 @@
 ---
-import { getCollection, getEntry, render } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
 import { getAllPosts, toPost } from '../../lib/insights';
+import { layoutArticle, type Block } from '../../lib/article-layout';
 import { shade, INK } from '../../lib/cover-palette.mjs';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
@@ -13,7 +14,7 @@ export async function getStaticPaths() {
 const { slug } = Astro.params;
 const entry = await getEntry('insights', slug);
 const post = toPost(entry);
-const { Content } = await render(entry);
+const layout = layoutArticle(entry.body ?? '', post.category);
 
 const all = await getAllPosts();
 const sameCategory = all.filter((p) => p.category === post.category);
@@ -28,7 +29,6 @@ const opinionCards = post.takeaways.map((text, i) => ({
   ...shade(i, post.takeaways.length),
 }));
 
-// 深色文字变量：卡片与封面共用同一组色值（见 cover-palette.mjs）。
 const inkVars = `--oc-ink:${INK.strong};--oc-body:${INK.body};--oc-soft:${INK.soft};--oc-dot:${INK.dot};--oc-rule:${INK.rule}`;
 
 const draftLabel = post.draft ? '草稿 · 未发布' : '';
@@ -41,6 +41,42 @@ const jsonLd = {
   description: post.excerpt,
   image: post.cover,
 };
+
+const attr = (value: string) => value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+function renderBlocks(blocks: Block[]): string {
+  return blocks
+    .map((block) => {
+      switch (block.type) {
+        case 'p':
+          return `<p>${block.html}</p>`;
+        case 'hook':
+          return `<p class="hook">${block.html}</p>`;
+        case 'key':
+          return `<aside class="key"><span class="key-tag">判断</span><p>${block.html}</p></aside>`;
+        case 'quote':
+          return `<blockquote class="quote"><p>${block.html}</p></blockquote>`;
+        case 'h3':
+          return `<h3>${block.html}</h3>`;
+        case 'list': {
+          const tag = block.ordered ? 'ol' : 'ul';
+          return `<${tag} class="art-list">${block.items.map((item) => `<li>${item}</li>`).join('')}</${tag}>`;
+        }
+        case 'figure': {
+          const size = block.width && block.height ? ` width="${attr(block.width)}" height="${attr(block.height)}"` : '';
+          const caption = block.alt ? `<figcaption>${escapeCaption(block.alt)}</figcaption>` : '';
+          return `<figure class="art-figure"><img src="${attr(block.src)}" alt="${attr(block.alt)}"${size} loading="lazy" decoding="async">${caption}</figure>`;
+        }
+        default:
+          return '';
+      }
+    })
+    .join('');
+}
+
+function escapeCaption(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
 ---
 <!DOCTYPE html>
 <html lang="zh-CN" style="background:#0C0C0C;">
@@ -75,13 +111,16 @@ const jsonLd = {
     --surface-2:#1A1A1A;
     --accent:#D8F26B;
     --accent-rgb:216,242,107;
-    --accent-dim:rgba(216,242,107,.12);
     --text:#F5F5F4;
+    --body:#D2D2CD;
     --text-secondary:#A8A8A3;
     --text-muted:#75756F;
     --border:rgba(255,255,255,.09);
     --radius:12px;
-    --read-w:680px;
+    /* 版心：正文 680px ≈ 每行 40 个汉字（17px）；左侧编号栏 96px */
+    --art-w:680px;
+    --rail-w:96px;
+    --rail-gap:32px;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   html{scroll-behavior:smooth;}
@@ -96,41 +135,84 @@ const jsonLd = {
 
   .reading-progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--accent);z-index:1100;transition:width .08s linear;}
 
-  /* ===== 阅读版心：桌面约 37 字/行，移动约 20 字/行 ===== */
-  .article-head{padding:calc(64px + 48px) 0 36px;}
-  .read-wrap{width:100%;max-width:calc(var(--read-w) + 48px);margin:0 auto;padding:0 24px;}
+  /* ===== 容器：页头、轮播卡、正文共用同一条版心线 ===== */
+  .art-inner{width:100%;max-width:calc(var(--art-w) + var(--rail-w) + var(--rail-gap) + 48px);margin:0 auto;padding:0 24px;}
+  .col{max-width:var(--art-w);margin-left:calc(var(--rail-w) + var(--rail-gap));}
 
-  .meta-line{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-8);font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;color:var(--text-muted);margin-bottom:14px;font-variant-numeric:tabular-nums;}
+  .article-head{padding:calc(64px + 40px) 0 30px;}
+  .meta-line{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-8);font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.6;color:var(--text-muted);margin-bottom:12px;font-variant-numeric:tabular-nums;}
   .meta-line .dot{color:rgba(255,255,255,.22);}
   .article-status{display:inline-flex;align-items:center;padding:2px 8px;border:1px dashed rgba(242,193,78,.45);border-radius:4px;background:rgba(242,193,78,.08);color:#F2C14E;font-size:12px;font-weight:500;letter-spacing:0;}
 
-  .article-title{font-size:clamp(30px,3.4vw,42px);font-weight:700;line-height:1.3;letter-spacing:.01em;text-wrap:balance;}
-  .article-tagline{margin-top:14px;font-size:17px;font-weight:400;line-height:1.75;color:var(--text-secondary);letter-spacing:0;}
+  .article-title{font-size:clamp(28px,2.5vw,34px);font-weight:700;line-height:1.32;letter-spacing:.004em;text-wrap:balance;}
+  .article-tagline{margin-top:12px;font-size:15.5px;font-weight:400;line-height:1.8;color:var(--text-secondary);letter-spacing:0;}
 
-  .article-cover{width:100%;aspect-ratio:16/10;max-height:300px;border-radius:var(--radius);overflow:hidden;background:var(--bg-card);border:1px solid var(--border);margin-bottom:var(--space-24);}
-  .article-cover img{width:100%;height:100%;object-fit:cover;}
+  .card-col{margin-bottom:var(--space-24);}
+  .article-cover{width:100%;aspect-ratio:16/10;max-height:300px;border-radius:var(--radius);overflow:hidden;background:var(--bg-card);border:1px solid var(--border);}
 
   .article-body{padding-bottom:var(--space-40);}
 
-  /* 中文长文排版：不缩进、靠段距分层；标题上间距 ≥ 下间距的 2.5 倍。 */
+  /* ===== 正文：左编号栏 + 节分割线 + 判断块 + 引用卡 ===== */
   .markdown{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-feature-settings:"palt" 1,"kern" 1;font-kerning:normal;}
-  .markdown > p{font-size:18px;line-height:1.9;letter-spacing:.01em;color:var(--text-secondary);margin:0 0 1.35em;}
-  .markdown > p:first-child{font-size:19px;line-height:1.9;letter-spacing:.01em;color:#EDEDEA;margin-bottom:1.6em;}
-  .markdown > h2{font-size:22px;font-weight:700;line-height:1.45;letter-spacing:.02em;margin:2em 0 .7em;color:var(--text);}
-  .markdown > h3{font-size:19px;font-weight:600;line-height:1.5;letter-spacing:.02em;margin:1.8em 0 .55em;color:var(--text);}
-  .markdown > ul,.markdown > ol{margin:0 0 1.35em;padding-left:1.5em;color:var(--text-secondary);font-size:18px;line-height:1.85;}
-  .markdown li{margin-bottom:.45em;}
-  .markdown li::marker{color:var(--text-muted);}
-  .markdown > blockquote{margin:1.6em 0;padding:2px 0 2px 20px;border-left:3px solid rgba(var(--accent-rgb),.55);color:#D6D6D1;font-size:17px;line-height:1.9;}
-  .markdown > blockquote p{margin:0;font-size:17px;line-height:1.9;}
+  .markdown p{font-size:17px;line-height:1.82;letter-spacing:.008em;color:var(--body);margin:0 0 26px;}
+  .markdown p:last-child{margin-bottom:0;}
+  .markdown strong{color:var(--text);font-weight:600;}
+  .markdown code{font-family:'Inter',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;}
   .markdown a{color:var(--accent);border-bottom:1px solid rgba(var(--accent-rgb),.4);}
-  .markdown img{border-radius:var(--radius);margin:2em 0;background:var(--bg-card);}
-  .markdown code{font-family:'Inter',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;}
+
+  .intro{padding-top:6px;max-width:var(--art-w);margin-left:calc(var(--rail-w) + var(--rail-gap));}
+  .hook{font-size:clamp(34px,4vw,46px)!important;line-height:1.08!important;font-weight:700;color:var(--accent)!important;letter-spacing:-.032em;margin:0 0 18px!important;}
+
+  .key{margin:30px 0;padding:20px 0;border-top:1px solid rgba(var(--accent-rgb),.34);border-bottom:1px solid rgba(var(--accent-rgb),.34);}
+  .key-tag{display:inline-block;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:.16em;color:var(--text-muted);margin-bottom:8px;}
+  .key p{font-size:21px!important;font-weight:600;line-height:1.6!important;color:var(--accent)!important;letter-spacing:.004em;margin:0;}
+
+  .quote{margin:30px 0;padding:24px 26px;background:rgba(var(--accent-rgb),.06);border:1px solid rgba(var(--accent-rgb),.24);border-radius:2px;}
+  .quote p{font-size:17.5px!important;line-height:1.85!important;color:#F0F0EC!important;margin:0;}
+
+  .art-list{margin:0 0 26px;padding-left:1.4em;color:var(--body);font-size:17px;line-height:1.82;}
+  .art-list li{margin-bottom:8px;}
+  .art-list li::marker{color:var(--accent);}
+
+  .art-figure{margin:36px 0 36px calc(-1 * (var(--rail-w) + var(--rail-gap)));}
+  .art-figure img{width:100%;height:auto;border-radius:2px;border:1px solid rgba(255,255,255,.08);background:var(--bg-card);}
+  .art-figure figcaption{margin-top:10px;font-size:12.5px;line-height:1.7;color:var(--text-muted);}
+
+  .sec{display:grid;grid-template-columns:var(--rail-w) minmax(0,var(--art-w));column-gap:var(--rail-gap);padding-top:32px;margin-top:36px;border-top:1px solid rgba(255,255,255,.10);}
+  .sec-head{position:sticky;top:88px;align-self:start;padding-top:2px;}
+  .sec-num{display:block;font-family:'Inter',sans-serif;font-size:30px;font-weight:700;line-height:1;letter-spacing:-.03em;color:var(--accent);font-variant-numeric:tabular-nums;}
+  .sec-label{display:block;margin-top:8px;font-size:10px;letter-spacing:.14em;color:var(--text-muted);line-height:1.5;}
+  .sec-title{font-size:19px;font-weight:700;line-height:1.5;letter-spacing:.012em;margin:0 0 20px;color:var(--text);text-wrap:balance;}
+
+  .end-mark{max-width:var(--art-w);margin:44px 0 0 calc(var(--rail-w) + var(--rail-gap));padding-top:24px;border-top:1px solid rgba(255,255,255,.10);color:var(--accent);}
+  .end-mark span{display:block;font-size:17px;font-weight:600;line-height:1.8;letter-spacing:.01em;}
+
+  .article-tags{display:flex;flex-wrap:wrap;gap:var(--space-8);padding-top:var(--space-24);margin-top:var(--space-40);border-top:1px solid var(--border);}
+  .article-tag{padding:4px 8px;border-radius:4px;background:transparent;border:1px solid var(--border);font-size:12px;font-weight:400;color:var(--text-secondary);letter-spacing:0;}
+
+  .author-card{margin-top:var(--space-40);padding:var(--space-24);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);display:flex;align-items:flex-start;gap:var(--space-16);}
+  .author-avatar{width:40px;height:40px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);display:grid;place-items:center;color:var(--text);font-weight:600;font-size:16px;flex-shrink:0;}
+  .author-copy strong{display:block;font-size:15px;font-weight:600;margin-bottom:var(--space-8);}
+  .author-copy p{font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:var(--space-8);}
+  .author-copy a{font-size:12.5px;color:var(--text-muted);border-bottom:1px solid var(--border);}
+  .author-copy a:hover{color:var(--text);border-color:rgba(255,255,255,.3);}
+
+  .article-nav{margin-top:var(--space-40);display:grid;grid-template-columns:1fr 1fr;gap:var(--space-16);}
+  .article-nav-link{padding:var(--space-16) var(--space-24);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);transition:border-color .2s ease,background-color .2s ease;display:flex;flex-direction:column;gap:var(--space-4);}
+  .article-nav-link:hover{border-color:rgba(255,255,255,.2);background:var(--surface-2);}
+  .article-nav-link.next{text-align:right;align-items:flex-end;}
+  .article-nav-link .nav-label{font-size:12px;color:var(--text-muted);letter-spacing:0;}
+  .article-nav-link .nav-title{font-size:13.5px;font-weight:500;color:var(--text);line-height:1.6;}
+
+  .back-insights{display:flex;justify-content:center;margin-top:var(--space-40);}
+  .back-insights a{display:inline-flex;align-items:center;gap:var(--space-8);font-size:13px;color:var(--text-secondary);letter-spacing:0;transition:color .2s ease;}
+  .back-insights a:hover{color:var(--text);}
+  .back-insights svg{width:16px;height:16px;stroke-width:1.5;}
 
   /* 核心观点单卡轮播：同一主色 #D8F26B，靠明度阶梯区分；深色文字，3 秒自动切换，可拖拽 */
   .opinion-card{position:relative;width:100%;margin:0 0 var(--space-24);background:var(--card-bg);border:1px solid var(--oc-rule);border-radius:var(--radius);overflow:hidden;touch-action:pan-y;cursor:grab;transition:background-color .3s ease;}
   .opinion-card:active{cursor:grabbing;}
-  .js .opinion-card{height:288px;}
+  .js .opinion-card{height:272px;}
   .opinion-card:focus-visible{outline:2px solid var(--oc-ink);outline-offset:2px;}
   .opinion-slide{display:flex;flex-direction:column;gap:var(--space-16);padding:var(--space-32);background:var(--card-bg);}
   .opinion-slide + .opinion-slide{border-top:1px solid var(--oc-rule);}
@@ -141,7 +223,7 @@ const jsonLd = {
   .oc-category{display:flex;align-items:center;gap:var(--space-8);color:var(--oc-soft);}
   .oc-category::before{content:'';width:24px;height:3px;background:var(--card-accent);flex-shrink:0;}
   .oc-index{font-family:'Inter',sans-serif;letter-spacing:0;color:var(--oc-soft);font-variant-numeric:tabular-nums;}
-  .oc-text{flex:1;display:flex;align-items:center;font-size:clamp(24px,2.4vw,34px);font-weight:700;line-height:1.35;letter-spacing:.01em;color:var(--oc-ink);text-wrap:balance;}
+  .oc-text{flex:1;display:flex;align-items:center;font-size:clamp(24px,2.4vw,32px);font-weight:700;line-height:1.38;letter-spacing:.01em;color:var(--oc-ink);text-wrap:balance;}
   .oc-brand{display:flex;align-items:center;gap:var(--space-8);padding-right:88px;font-size:12px;letter-spacing:.02em;color:var(--oc-soft);}
   .oc-brand::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--card-accent);flex-shrink:0;}
   .opinion-dots{display:none;}
@@ -151,45 +233,35 @@ const jsonLd = {
   .opinion-dot[aria-current="true"]::before{background:var(--oc-ink);transform:scale(1.2);}
   .opinion-dot:focus-visible{outline:2px solid var(--oc-ink);outline-offset:-4px;border-radius:50%;}
 
-  .article-tags{display:flex;flex-wrap:wrap;gap:var(--space-8);padding-top:var(--space-24);margin-top:var(--space-40);border-top:1px solid var(--border);}
-  .article-tag{padding:4px 8px;border-radius:4px;background:transparent;border:1px solid var(--border);font-size:12px;font-weight:400;color:var(--text-secondary);letter-spacing:0;}
-
-  .author-card{margin-top:var(--space-40);padding:var(--space-24);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);display:flex;align-items:flex-start;gap:var(--space-16);}
-  .author-avatar{width:40px;height:40px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);display:grid;place-items:center;color:var(--text);font-weight:600;font-size:16px;flex-shrink:0;}
-  .author-copy strong{display:block;font-size:16px;font-weight:600;margin-bottom:var(--space-8);}
-  .author-copy p{font-size:14px;color:var(--text-secondary);line-height:1.7;margin-bottom:var(--space-8);}
-  .author-copy a{font-size:13px;color:var(--text-muted);border-bottom:1px solid var(--border);}
-  .author-copy a:hover{color:var(--text);border-color:rgba(255,255,255,.3);}
-
-  .article-nav{margin-top:var(--space-40);display:grid;grid-template-columns:1fr 1fr;gap:var(--space-16);}
-  .article-nav-link{padding:var(--space-16) var(--space-24);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);transition:border-color .2s ease,background-color .2s ease;display:flex;flex-direction:column;gap:var(--space-4);}
-  .article-nav-link:hover{border-color:rgba(255,255,255,.2);background:var(--surface-2);}
-  .article-nav-link.next{text-align:right;align-items:flex-end;}
-  .article-nav-link .nav-label{font-size:12px;color:var(--text-muted);letter-spacing:0;}
-  .article-nav-link .nav-title{font-size:14px;font-weight:500;color:var(--text);line-height:1.6;}
-
-  .back-insights{display:flex;justify-content:center;margin-top:var(--space-40);}
-  .back-insights a{display:inline-flex;align-items:center;gap:var(--space-8);font-size:14px;color:var(--text-secondary);letter-spacing:0;transition:color .2s ease;}
-  .back-insights a:hover{color:var(--text);}
-  .back-insights svg{width:16px;height:16px;stroke-width:1.5;}
-
-  /* 移动端：左右留白 20px、正文 17px/1.95，长段落再松一档 */
-  @media(max-width:640px){
-    .article-head{padding:calc(56px + 32px) 0 24px;}
-    .read-wrap{padding:0 20px;}
-    .meta-line{font-size:12px;margin-bottom:12px;}
-    .article-title{font-size:30px;line-height:1.32;}
-    .article-tagline{font-size:16px;line-height:1.75;margin-top:12px;}
-    .markdown > p{font-size:17px;line-height:1.95;margin-bottom:1.45em;}
-    .markdown > p:first-child{font-size:18px;line-height:1.9;margin-bottom:1.7em;}
-    .markdown > h2{font-size:20px;margin:2.2em 0 .8em;}
-    .markdown > h3{font-size:18px;margin:1.9em 0 .6em;}
-    .markdown > ul,.markdown > ol{font-size:17px;line-height:1.9;padding-left:1.4em;}
-    .markdown > blockquote{margin:1.5em 0;padding-left:16px;font-size:16px;}
-    .markdown > blockquote p{font-size:16px;}
-    .markdown img{margin:1.6em 0;}
-    .article-cover{margin-bottom:var(--space-24);}
-    .js .opinion-card{height:214px;}
+  /* 移动端：左右留白 20px；正文 16px/1.85，每行约 21 个汉字；编号收进标题行 */
+  @media(max-width:720px){
+    .art-inner{max-width:100%;padding:0 20px;}
+    .col{margin-left:0;max-width:100%;}
+    .intro{margin-left:0;max-width:100%;}
+    .end-mark{margin-left:0;max-width:100%;}
+    .article-head{padding:calc(56px + 28px) 0 22px;}
+    .meta-line{font-size:12px;margin-bottom:10px;}
+    .article-title{font-size:26px;line-height:1.34;}
+    .article-tagline{font-size:14.5px;line-height:1.75;margin-top:10px;}
+    .markdown p{font-size:16px;line-height:1.85;margin-bottom:22px;}
+    .hook{font-size:32px!important;margin-bottom:14px!important;}
+    .key{margin:24px 0;padding:16px 0;}
+    .key-tag{font-size:9.5px;margin-bottom:6px;}
+    .key p{font-size:18px!important;line-height:1.7!important;}
+    .quote{margin:24px 0;padding:18px 18px;}
+    .quote p{font-size:16px!important;line-height:1.85!important;}
+    .art-list{font-size:16px;line-height:1.85;padding-left:1.25em;margin-bottom:22px;}
+    .art-figure{margin:26px 0;}
+    .art-figure figcaption{font-size:12px;}
+    .sec{grid-template-columns:1fr;column-gap:0;padding-top:24px;margin-top:26px;}
+    .sec-head{position:static;display:flex;align-items:baseline;gap:10px;}
+    .sec-num{font-size:22px;display:inline-block;}
+    .sec-label{display:inline-block;margin-top:0;font-size:9.5px;letter-spacing:.12em;}
+    .sec-title{font-size:17.5px;line-height:1.5;margin:10px 0 16px;}
+    .end-mark{margin-top:32px;padding-top:20px;}
+    .end-mark span{font-size:15.5px;}
+    .article-cover{max-height:none;}
+    .js .opinion-card{height:206px;}
     .opinion-slide{padding:20px;gap:var(--space-12);}
     .oc-text{font-size:20px;line-height:1.5;}
     .oc-brand{padding-right:96px;}
@@ -214,89 +286,116 @@ const jsonLd = {
 <Nav variant="article" />
 
 <header class="article-head">
-  <div class="read-wrap">
-    <div class="meta-line">
-      <span>{post.date}</span><span class="dot">·</span>
-      <span>{post.category}</span><span class="dot">·</span>
-      <span>{post.readTime}</span>
-      {draftLabel && <span class="article-status">{draftLabel}</span>}
+  <div class="art-inner">
+    <div class="col">
+      <div class="meta-line">
+        <span>{post.date}</span><span class="dot">·</span>
+        <span>{post.category}</span><span class="dot">·</span>
+        <span>{post.readTime}</span>
+        {draftLabel && <span class="article-status">{draftLabel}</span>}
+      </div>
+      <h1 class="article-title">{post.title}</h1>
+      {post.tagline && <p class="article-tagline">{post.tagline}</p>}
     </div>
-    <h1 class="article-title">{post.title}</h1>
-    {post.tagline && <p class="article-tagline">{post.tagline}</p>}
   </div>
 </header>
 
 {opinionCards.length > 0 && (
-  <div class="read-wrap">
-    <section class="opinion-card" data-opinion tabindex="0" role="group" aria-roledescription="轮播" aria-label={`核心观点，共 ${post.takeaways.length} 条`} style={`--card-bg:${opinionCards[0].bg};--card-accent:${opinionCards[0].accent};${inkVars}`}>
-      {opinionCards.map((card, i) => (
-        <article class={`opinion-slide${i === 0 ? ' is-active' : ''}`} data-slide style={`--card-bg:${card.bg};--card-accent:${card.accent};${inkVars}`} aria-label={`第 ${card.index} 条，共 ${card.total} 条`}>
-          <div class="oc-meta">
-            <span class="oc-category">{post.category}</span>
-            <span class="oc-index">{card.index} / {card.total}</span>
-          </div>
-          <p class="oc-text">{card.text}</p>
-          <div class="oc-brand">个人商业创造者</div>
-        </article>
-      ))}
-      <div class="opinion-dots">
+  <div class="art-inner">
+    <div class="col card-col">
+      <section class="opinion-card" data-opinion tabindex="0" role="group" aria-roledescription="轮播" aria-label={`核心观点，共 ${post.takeaways.length} 条`} style={`--card-bg:${opinionCards[0].bg};--card-accent:${opinionCards[0].accent};${inkVars}`}>
         {opinionCards.map((card, i) => (
-          <button type="button" class="opinion-dot" data-dot data-index={i} aria-label={`查看第 ${card.index} 条观点`} aria-current={i === 0 ? 'true' : 'false'}></button>
+          <article class={`opinion-slide${i === 0 ? ' is-active' : ''}`} data-slide style={`--card-bg:${card.bg};--card-accent:${card.accent};${inkVars}`} aria-label={`第 ${card.index} 条，共 ${card.total} 条`}>
+            <div class="oc-meta">
+              <span class="oc-category">{post.category}</span>
+              <span class="oc-index">{card.index} / {card.total}</span>
+            </div>
+            <p class="oc-text">{card.text}</p>
+            <div class="oc-brand">个人商业创造者</div>
+          </article>
         ))}
-      </div>
-    </section>
+        <div class="opinion-dots">
+          {opinionCards.map((card, i) => (
+            <button type="button" class="opinion-dot" data-dot data-index={i} aria-label={`查看第 ${card.index} 条观点`} aria-current={i === 0 ? 'true' : 'false'}></button>
+          ))}
+        </div>
+      </section>
+    </div>
   </div>
 )}
 
 <main class="article-body">
-  <div class="read-wrap">
+  <div class="art-inner">
     {opinionCards.length === 0 && (
-      <div class="article-cover">
-        <img src={post.cover} alt={post.title} width="1600" height="1000" loading="eager" decoding="async">
+      <div class="col">
+        <div class="article-cover">
+          <img src={post.cover} alt={post.title} width="1600" height="1000" loading="eager" decoding="async">
+        </div>
       </div>
     )}
 
-    <div class="markdown">
-      <Content />
-    </div>
+    <article class="markdown">
+      {layout.intro.length > 0 && <div class="intro" set:html={renderBlocks(layout.intro)} />}
 
-    {post.tags.length > 0 && (
-      <div class="article-tags">
-        {post.tags.map((tag) => <span class="article-tag">{tag}</span>)}
+      {layout.sections.map((section) => (
+        <section class="sec">
+          <header class="sec-head">
+            <span class="sec-num">{section.num}</span>
+            <span class="sec-label">{section.label}</span>
+          </header>
+          <div class="sec-body">
+            {section.title && <h2 class="sec-title">{section.title}</h2>}
+            <Fragment set:html={renderBlocks(section.blocks)} />
+          </div>
+        </section>
+      ))}
+
+      {layout.end.length > 0 && (
+        <footer class="end-mark">
+          {layout.end.map((line) => <span set:html={line} />)}
+        </footer>
+      )}
+    </article>
+
+    <div class="col">
+      {post.tags.length > 0 && (
+        <div class="article-tags">
+          {post.tags.map((tag) => <span class="article-tag">{tag}</span>)}
+        </div>
+      )}
+
+      <section class="author-card">
+        <div class="author-avatar" aria-hidden="true">商</div>
+        <div class="author-copy">
+          <strong>个人商业创造者</strong>
+          <p>18 年 IT 与产业数字化经验，正在用 AI 把专业能力转化为自己的产品与商业资产。</p>
+          <a href="mailto:cronaldo.yang@outlook.com">cronaldo.yang@outlook.com</a>
+        </div>
+      </section>
+
+      {(prevPost || nextPost) && (
+        <nav class="article-nav" aria-label="同栏目文章">
+          {prevPost && (
+            <a class="article-nav-link" href={prevPost.url}>
+              <span class="nav-label">上一篇</span>
+              <span class="nav-title">{prevPost.title}</span>
+            </a>
+          )}
+          {nextPost && (
+            <a class="article-nav-link next" href={nextPost.url}>
+              <span class="nav-label">下一篇</span>
+              <span class="nav-title">{nextPost.title}</span>
+            </a>
+          )}
+        </nav>
+      )}
+
+      <div class="back-insights">
+        <a href="/insights">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          返回洞察
+        </a>
       </div>
-    )}
-
-    <section class="author-card">
-      <div class="author-avatar" aria-hidden="true">商</div>
-      <div class="author-copy">
-        <strong>个人商业创造者</strong>
-        <p>18 年 IT 与产业数字化经验，正在用 AI 把专业能力转化为自己的产品与商业资产。</p>
-        <a href="mailto:cronaldo.yang@outlook.com">cronaldo.yang@outlook.com</a>
-      </div>
-    </section>
-
-    {(prevPost || nextPost) && (
-      <nav class="article-nav" aria-label="同栏目文章">
-        {prevPost && (
-          <a class="article-nav-link" href={prevPost.url}>
-            <span class="nav-label">上一篇</span>
-            <span class="nav-title">{prevPost.title}</span>
-          </a>
-        )}
-        {nextPost && (
-          <a class="article-nav-link next" href={nextPost.url}>
-            <span class="nav-label">下一篇</span>
-            <span class="nav-title">{nextPost.title}</span>
-          </a>
-        )}
-      </nav>
-    )}
-
-    <div class="back-insights">
-      <a href="/insights">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        返回洞察
-      </a>
     </div>
   </div>
 </main>
@@ -378,7 +477,6 @@ const jsonLd = {
       dot.addEventListener('click', function () { go(Number(dot.dataset.index)); });
     });
 
-    // 拖拽 / 滑动切换
     // 拖拽 / 滑动切换：从圆点、链接等可交互元素上按下时不启动拖拽，避免指针捕获吃掉 click
     card.addEventListener('pointerdown', function (event) {
       if (event.pointerType === 'mouse' && event.button !== 0) return;
