@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0C0C0C">
+<meta name="color-scheme" content="dark">
+<title>B 卡片式 — 阅读版式方案</title>
+<link rel="stylesheet" href="/fonts/fonts.css">
+<style>
+  :root{--bg:#0C0C0C;--accent:#D8F26B;--text:#F5F5F4;--body:#D8D8D3;--muted:#75756F;--w:760px;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{background:#0C0C0C;color-scheme:dark;scroll-behavior:smooth;}
+  body{font-family:'Noto Sans SC','Inter',-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;font-feature-settings:"palt" 1,"kern" 1;font-kerning:normal;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden;}
+  a{color:inherit;text-decoration:none;}
+  img{display:block;max-width:100%;}
+  ::selection{background:var(--accent);color:#0C0C0C;}
+  .demo-bar{max-width:var(--w);margin:0 auto;padding:16px 24px 0;display:flex;justify-content:space-between;gap:16px;font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);}
+  .demo-bar a{color:#A8A8A3;} .demo-bar a:hover{color:var(--accent);}
+  .hero{max-width:var(--w);margin:0 auto;padding:30px 24px 0;}
+  .crumb{font-size:12px;color:var(--muted);display:flex;gap:8px;}
+  .crumb a:hover{color:var(--text);}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 12px;font-family:'Inter',sans-serif;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;}
+  .meta i{font-style:normal;color:rgba(255,255,255,.22);}
+  h1{font-size:clamp(30px,4vw,42px);line-height:1.28;font-weight:700;letter-spacing:-.006em;text-wrap:balance;}
+  .tagline{margin-top:14px;max-width:640px;font-size:16px;line-height:1.75;color:#A8A8A3;}
+  .card{margin:30px auto 0;max-width:var(--w);padding:0 24px;}
+  .card-inner{background:var(--accent);color:#0C0C0C;border-radius:14px;padding:24px 28px;min-height:216px;display:flex;flex-direction:column;gap:20px;}
+  .card-top,.card-bottom{display:flex;justify-content:space-between;align-items:center;gap:16px;font-family:'Inter',sans-serif;font-size:12px;letter-spacing:.02em;color:rgba(12,12,12,.72);}
+  .card-text{flex:1;display:flex;align-items:center;font-size:clamp(21px,2.3vw,27px);font-weight:700;line-height:1.45;letter-spacing:.002em;}
+  .dots{display:flex;gap:9px;}
+  .dot{width:7px;height:7px;border-radius:50%;background:rgba(12,12,12,.42);}
+  .dot.on{background:rgba(12,12,12,.92);transform:scale(1.25);}
+  .article{max-width:var(--w);margin:0 auto;padding:0 24px 96px;}
+  .intro{padding-top:36px;}
+  .end-mark{margin-top:44px;padding-top:28px;border-top:1px solid rgba(255,255,255,.10);color:var(--accent);}
+  .end-mark span{display:block;font-size:20px;font-weight:600;line-height:1.8;letter-spacing:.01em;}
+  @media(max-width:720px){
+    .demo-bar{padding:14px 20px 0;}
+    .hero{padding:24px 20px 0;}
+    h1{font-size:30px;line-height:1.32;}
+    .tagline{font-size:14px;margin-top:10px;}
+    .card{margin-top:24px;padding:0 20px;}
+    .card-inner{padding:20px;min-height:200px;border-radius:12px;}
+    .card-text{font-size:20px;line-height:1.5;}
+    .article{padding:0 20px 72px;}
+    .end-mark span{font-size:18px;}
+  }
+
+  .intro{background:#121212;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:30px 34px 18px;margin-top:36px;}
+  .intro p{font-size:18px;line-height:1.9;color:var(--body);margin:0 0 22px;}
+  p.hook{font-size:clamp(40px,5.4vw,54px);line-height:1.1;font-weight:700;color:var(--accent);margin:0 0 24px !important;}
+  .sec{background:#121212;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:28px 34px 12px;margin-top:20px;}
+  .sec-head{display:inline-flex;align-items:center;gap:10px;padding:5px 13px;margin-bottom:20px;border-radius:999px;background:rgba(216,242,107,.10);border:1px solid rgba(216,242,107,.30);}
+  .sec-num{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:var(--accent);}
+  .sec-label{font-size:12px;color:#9C9C96;letter-spacing:.06em;}
+  .sec-title{font-size:19px;font-weight:600;line-height:1.5;margin-bottom:22px;}
+  .sec-body p{font-size:18px;line-height:1.9;color:var(--body);margin:0 0 20px;}
+  .key{background:linear-gradient(135deg,#D8F26B,#CBE85A);color:#0C0C0C;border-radius:14px;padding:22px 24px;margin:24px 0;}
+  .key-tag{display:inline-block;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:.14em;color:rgba(12,12,12,.6);margin-bottom:8px;}
+  .key p{font-size:19px;font-weight:700;line-height:1.65;color:#0C0C0C;}
+  .quote{margin:26px 0;padding:26px 28px;background:#0D0D0D;border:1px solid rgba(216,242,107,.26);border-radius:14px;position:relative;}
+  .quote::before{content:'“';position:absolute;right:22px;top:14px;font-family:Georgia,serif;font-size:30px;color:rgba(216,242,107,.55);line-height:1;}
+  .quote span{display:block;max-width:92%;font-size:18px;line-height:1.85;color:#EDEDEA;}
+  figure{margin:26px 0;}
+  figure img{border-radius:12px;border:1px solid rgba(255,255,255,.10);}
+  figcaption{margin-top:10px;font-size:13px;line-height:1.7;color:var(--muted);}
+  .end-mark{margin:20px 0 0;padding:26px 34px;background:#121212;border:1px solid rgba(255,255,255,.08);border-radius:18px;}
+  @media(max-width:720px){
+    .intro{padding:24px 20px 6px;margin-top:28px;border-radius:16px;}
+    .intro p{font-size:17px;line-height:1.95;margin-bottom:20px;}
+    p.hook{font-size:38px;margin-bottom:20px !important;}
+    .sec{padding:22px 20px 4px;border-radius:16px;}
+    .sec-title{font-size:18px;line-height:1.55;}
+    .sec-body p{font-size:17px;line-height:1.95;margin-bottom:18px;}
+    .key{padding:18px 20px;margin:22px 0;}
+    .key p{font-size:17px;line-height:1.65;color:#0C0C0C;}
+    .quote{padding:22px 20px;margin:22px 0;}
+    .quote span{font-size:17px;line-height:1.9;}
+    figure{margin:22px 0;}
+    .end-mark{padding:22px 20px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <a href="/preview/">← 阅读版式预览</a>
+  <span>方案 B · 卡片式</span>
+</div>
+<header class="hero">
+  <p class="crumb"><a href="/insights/">洞察</a><span>/</span><span>90天实战</span></p>
+  <div class="meta"><span>2026.11.08</span><i>·</i><span>90天实战</span><i>·</i><span>12 分钟</span></div>
+  <h1>工作了18年，我依然没有自己的商业事业</h1>
+  <p class="tagline">最遗憾的不是某一次尝试失败了，而是这些年总是在同一个地方打转</p>
+</header>
+<div class="card">
+  <div class="card-inner">
+    <div class="card-top"><span>— 90天实战</span><span>1 / 4</span></div>
+    <p class="card-text">帮助别人创造了那么多价值，却始终没有建立起属于自己的产品、用户和商业事业</p>
+    <div class="card-bottom"><span>• 个人商业创造者</span><span class="dots"><i class="dot on"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+  </div>
+</div>
+
+<article class="article">
+  <div class="intro"><p class="hook">18年。</p>
+<p>从最初写代码、做底层系统研发，到参与大型互联网产品的建设，再到企业数字化、产业平台的规划与落地。</p>
+<p>这些年，我做过不少产品和系统，也参与创造过一些实实在在的价值。</p>
+<p>有过技术上的突破，有过复杂项目的落地，也曾带领团队解决一个又一个难题。</p>
+<p>如果只看职业履历，这18年似乎并不算虚度。</p>
+<p>但当我真正停下来，认真回顾这段经历时，一个问题始终挥之不去：</p>
+<aside class="key"><span class="key-tag">判断</span><p>这些年，我帮助别人创造了那么多价值，为什么始终没有建立起属于自己的产品、用户和商业事业？</p></aside>
+<p>这个问题，我其实想过很多年。</p>
+<p>只是以前，总有各种理由，让我没有认真面对它。</p></div>
+  
+<section class="sec">
+  <div class="sec-head"><span class="sec-num">01</span><span class="sec-label">起点</span></div>
+  <h2 class="sec-title">不是没有想过，而是一次又一次地放弃了</h2>
+  <div class="sec-body">
+    <p>回头看过去的18年，我并不是从来没有想过自己做点什么。</p>
+<p>恰恰相反，这个念头在很多个不同的阶段都出现过。</p>
+<p>有些时候，我觉得当下的工作还算稳定，收入也能维持生活。</p>
+<p>虽然心里知道，自己应该尝试一些不一样的事情，但总觉得没必要冒险。</p>
+<p>再等等吧。</p>
+<p>等手头的事情做完，等有更多积蓄，等机会更成熟，等自己准备得更充分。</p>
+<p>有些时候，我已经有了想法，也认真考虑过要做什么。但真正要迈出第一步时，却迟迟没有行动。</p>
+<p>我会考虑这个方向有没有前景，会担心自己能不能做好，会想如果投入了时间和精力，最后却没有结果怎么办。</p>
+<p>还有一些时候，我确实开始行动了。</p>
+<p>做过一些尝试，也投入过时间。</p>
+<p>但当最初的新鲜感过去，遇到困难，迟迟看不到结果时，行动就慢慢停了下来。</p>
+<p>然后，又回到原来的生活。</p>
+<p>工作、完成任务、领取收入，再开始下一轮。</p>
+<aside class="key"><span class="key-tag">判断</span><p>现在回头看，最遗憾的不是某一次尝试失败了，而是这些年，我似乎总是在同一个地方打转。</p></aside>
+<p>想过，犹豫过，开始过，放弃过。</p>
+<p>然后在某个时刻，又重新产生相同的念头。</p>
+<p>一次又一次。</p>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><span class="sec-num">02</span><span class="sec-label">恐惧</span></div>
+  <h2 class="sec-title">原来，我也害怕</h2>
+  <div class="sec-body">
+    <p>以前，我总觉得自己是一个有行动力的人。</p>
+<p>毕竟，过去的工作经历中，有那么多复杂的技术问题需要解决，有那么多从零开始的系统需要建设，也有那么多困难的项目需要推动。</p>
+<p>面对工作中的困难，我并不缺少解决问题的勇气。</p>
+<p>但为什么轮到自己的事情，却总是迟迟迈不出那一步？</p>
+<p>后来我才意识到，面对自己的事业，和面对一项工作任务，完全是两回事。</p>
+<p>工作中有明确的目标、团队、资源、职责和评价标准。</p>
+<p>但当你决定为自己做一件事时，很多东西都消失了。</p>
+<p>没有人告诉你应该从哪里开始，没有人保证你做的方向是对的，也没有人承诺你投入的时间一定会有回报。</p>
+<p>你要自己做决定，也要自己承担结果。</p>
+<p>更重要的是，你要面对外界的目光。</p>
+<p>你会不会担心别人觉得你不切实际？</p>
+<p>会不会害怕自己兴致勃勃地宣布要做一件事，最后却不了了之？</p>
+<p>会不会害怕别人看到你的尝试，看到你的失败，甚至拿你的失败开玩笑？</p>
+<p>会不会担心，自己做了这么多年技术和管理，最后拿出来的东西却没有人认可？</p>
+<p>这些顾虑，有些从来没有被我认真说出来过。</p>
+<p>但它们确实存在。</p>
+<aside class="key"><span class="key-tag">判断</span><p>有时候，我们并不是不知道自己想要什么，而是不敢真正走向那个方向。</p></aside>
+<p>我们害怕失去已有的东西，也害怕面对一个不确定的自己。</p>
+<p>于是，稳定成了最容易接受的选择。</p>
+<p>它不一定让你满意，但至少不会让你马上面对未知的风险。</p>
+<p>就这样，我们把一次又一次的犹豫，解释成谨慎；把迟迟不开始，解释成还没准备好；把中途放弃，解释成时机不成熟。</p>
+<p>直到有一天才发现，时间已经过去了很多年。</p>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><span class="sec-num">03</span><span class="sec-label">消耗</span></div>
+  <h2 class="sec-title">最可怕的不是没有成功，而是始终在原地消耗</h2>
+  <div class="sec-body">
+    <p>这18年，我一直在用自己的专业能力、经验和时间，为不同的组织创造价值。</p>
+<p>这本身没有什么问题。</p>
+<p>工作本来就是价值交换，我也从中获得了收入、经验、能力和成长。</p>
+<p>但问题在于，我始终没有真正建立起一套属于自己的商业系统。</p>
+<p>离开某个岗位，很多积累就很难继续转化为自己的收入。</p>
+<p>完成一个项目，价值留在了项目和组织里，却没有自然变成属于自己的产品。</p>
+<p>解决了一个又一个问题，经验在不断增长，却没有形成可以独立销售、反复交付、持续积累的商业资产。</p>
+<p>我仍然需要不断投入自己的时间，才能获得收入。</p>
+<p>这就是我越来越在意的一件事：</p>
+<p>如果一个人工作了十几年，能力越来越强，经验越来越丰富，却始终没有建立属于自己的商业资产，那么这些积累究竟有多少真正掌握在自己手里？</p>
+<p>我不是否定过去的工作，也不是认为出卖时间换收入有什么不对。</p>
+<p>真正让我感到不安的是，随着年龄、家庭责任和现实压力不断增加，我可以选择的路似乎并没有变多。</p>
+<p>反而因为长期依赖同一种收入方式，慢慢变窄了。</p>
+<p>以前总觉得还有时间，可以再等等。</p>
+<p>现在才意识到，时间并不会因为我们犹豫而停下来。</p>
+<p>更不会因为我们一直在准备，就自动给我们一个更好的机会。</p>
+<blockquote class="quote"><span>有些路，不是突然走不通的。而是在一次次妥协中，慢慢变窄的。</span></blockquote>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><span class="sec-num">04</span><span class="sec-label">系统</span></div>
+  <h2 class="sec-title">我真正缺少的，可能不是能力，而是一套能够持续走下去的系统</h2>
+  <div class="sec-body">
+    <p>现在回头看，我不想简单地把过去的失败归结为懒惰或者缺乏行动力。</p>
+<p>那些因素当然存在，恐惧、犹豫、对稳定的依赖，也都是真实的原因。</p>
+<p>但还有一个更深层的问题：</p>
+<aside class="key"><span class="key-tag">判断</span><p>我过去每一次想要建立自己的事业，都没有一套完整、可执行、能够持续反馈的路径。</p></aside>
+<p>我不知道应该从什么方向开始，也不知道怎样判断一个想法是否值得投入。</p>
+<p>不知道怎样找到真正愿意付钱的用户，不知道怎样把自己的能力变成一个可以销售的产品。</p>
+<p>更不知道如何把一个短期尝试，逐步变成可以持续积累的事业。</p>
+<p>没有明确的阶段目标，没有能够验证方向的反馈，也没有一套让每次行动都能留下成果的机制。</p>
+<p>当投入了时间，却迟迟看不到结果时，人就很容易怀疑自己。</p>
+<p>当怀疑不断增加，恐惧就会变得更强。</p>
+<p>最后，熟悉的工作和稳定的收入，又成了最容易回去的地方。</p>
+<p>所以我越来越觉得，一个人想要建立自己的事业，不能只依赖热情，也不能只靠一时的冲动。</p>
+<p>我们需要的是一套系统。</p>
+<p>它应该帮助我们找到方向、识别真实需求、把能力变成产品、获得用户反馈、形成收入，并且让每一次行动都能留下可以继续使用的东西。</p>
+<p>这样，即使一次尝试没有成功，也不至于一切归零。</p>
+<p>经验可以留下，内容可以留下，用户关系可以留下，工具和方法也可以留下。</p>
+<p>下一次行动，不必再从头开始。</p>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><span class="sec-num">05</span><span class="sec-label">机会</span></div>
+  <h2 class="sec-title">AI时代，也许是一个重新开始的机会</h2>
+  <div class="sec-body">
+    <p>我之所以决定在现在重新开始，还有一个重要原因：AI正在改变个人创造产品的方式。</p>
+<p>过去，一个人想要把一个想法变成产品，可能需要开发人员、设计人员、产品经理、运营人员，还需要大量资金和时间。</p>
+<p>现在，AI正在让一个人具备过去需要一个团队才能拥有的部分能力。</p>
+<p>它不能替你找到真实需求，也不能替你承担商业结果。</p>
+<p>但它可以帮助你更快地研究市场、整理经验、设计产品、编写代码、制作内容和搭建工具。</p>
+<p>这意味着，一个有专业经验的人，不必再完全依赖组织提供的资源，才有机会创造自己的产品。</p>
+<p>当然，AI不会自动让一个人获得商业成功。</p>
+<p>它只是让创造的门槛降低了。</p>
+<aside class="key"><span class="key-tag">判断</span><p>真正重要的，仍然是你有没有能力发现问题、创造价值、找到用户，并且持续经营。</p></aside>
+<p>但至少，现在有了一个值得认真尝试的机会。</p>
+<figure><img src="/preview/timeline.svg" width="1200" height="600" alt="18年职业路径示意：写代码、做产品、做产业三个阶段"><figcaption>示意图｜18 年的三个阶段：写代码、做产品、做产业。价值不断产生，却大多留在了组织里。</figcaption></figure>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-head"><span class="sec-num">06</span><span class="sec-label">开始</span></div>
+  <h2 class="sec-title">这一次，我想从自己开始</h2>
+  <div class="sec-body">
+    <p>我不想再把这个念头留在脑海里，也不想再等到所谓的万事俱备。</p>
+<p>我决定用接下来的一段时间，认真建立自己的个人商业系统。</p>
+<p>从个人品牌和内容开始，逐步探索自己的能力能够创造什么产品，什么样的人真正需要这些产品，以及怎样让它们形成持续的收入。</p>
+<p>我会记录整个过程。</p>
+<p>包括想法、选择、尝试、产品开发、用户反馈、销售结果，也包括遇到的困难和失败。</p>
+<p>我并不打算把自己包装成一个已经成功的人。</p>
+<p>事实上，我现在仍然在起点上。</p>
+<p>我也不知道最终会做出什么产品，能不能获得预期的收入，更不知道这条路最后会走到哪里。</p>
+<p>但这一次，我希望自己能够真正建立起一套可以持续走下去的系统，而不是再次依靠一时的热情。</p>
+<p>我也希望把这个过程分享出来。</p>
+<p>如果你和我一样，工作了很多年，有自己的专业能力和经验，也曾经无数次想过做点属于自己的事情，却因为各种原因一直没有开始，或者开始之后又停了下来。</p>
+<p>也许我们可以一起重新思考这个问题。</p>
+<p>我们不一定都要辞职创业，也不一定都要成为所谓的超级个体。</p>
+<p>但我越来越相信：</p>
+<aside class="key"><span class="key-tag">判断</span><p>一个人不应该只拥有谋生的能力，也应该有机会建立属于自己的商业资产。</p></aside>
+<p>我们可以继续工作，但不必让自己永远只出售时间这一种收入方式。</p>
+<p>我们可以利用自己的经验创造产品，积累用户，建立自己的商业系统。</p>
+<p>让过去积累的能力，不只是成为下一份工作的筹码，也能成为未来属于自己的事业基础。</p>
+<p>18年过去了，我不想再只是不断积累替别人创造价值的经验。</p>
+<p>我也想拥有属于自己的产品、用户和商业事业。</p>
+  </div>
+</section>
+  <footer class="end-mark"><span>这一次，不再只是想一想。</span><span>从信息消费者，到商业创造者。</span><span>从自己开始。</span></footer>
+</article>
+</body>
+</html>
