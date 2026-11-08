@@ -59,6 +59,7 @@ const jsonLd = {
 <meta name="twitter:image" content={post.cover}>
 <link rel="stylesheet" href="/fonts/fonts.css">
 <link rel="stylesheet" href="/css/tokens.css">
+<script is:inline>document.documentElement.classList.add('js');</script>
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
 <style is:global>
   :root{
@@ -120,21 +121,36 @@ const jsonLd = {
   .markdown img{border-radius:10px;margin:var(--space-16) 0;}
   .markdown code{font-family:'Inter',monospace;font-size:.92em;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;}
 
-  /* 核心观点轮播：一条观点一张卡，原生横向滚动 + scroll-snap，无 JS、不自动播放 */
-  .opinion-band{max-width:min(1080px,calc(100% - var(--gutter) * 2));margin:0 auto var(--space-24);}
-  .opinion-viewport{overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;border-radius:12px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
-  .opinion-viewport::-webkit-scrollbar{display:none;}
-  .opinion-viewport:focus-visible{outline:2px solid rgba(var(--accent-rgb),.5);outline-offset:-2px;}
-  .opinion-track{display:flex;gap:16px;list-style:none;margin:0;padding:0;}
-  .opinion-card{flex:0 0 calc((100% - 48px) / 3.25);height:260px;scroll-snap-align:start;background:var(--card-bg);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:var(--space-24) var(--space-24) var(--space-16);display:flex;flex-direction:column;gap:var(--space-16);}
+  /* 核心观点单卡轮播：一屏一张，切换时底色与文字一起淡入淡出；无 JS 时各条纵向堆叠 */
+  .opinion-card{position:relative;width:100%;margin:0 0 var(--space-24);background:var(--card-bg);border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden;}
+  .js .opinion-card{height:288px;}
+  .opinion-card:focus-visible{outline:2px solid rgba(var(--accent-rgb),.5);outline-offset:2px;}
+  .opinion-slide{display:flex;flex-direction:column;gap:var(--space-16);padding:var(--space-32);background:var(--card-bg);}
+  .opinion-slide + .opinion-slide{border-top:1px solid rgba(255,255,255,.08);}
+  .js .opinion-slide{position:absolute;inset:0;opacity:0;transition:opacity .45s ease;border-top:0;}
+  .js .opinion-slide.is-active{opacity:1;}
   .oc-meta{display:flex;align-items:center;justify-content:space-between;font-size:12px;letter-spacing:.14em;color:rgba(255,255,255,.6);}
   .oc-category{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.75);}
   .oc-category::before{content:'';width:24px;height:3px;background:var(--card-accent);flex-shrink:0;}
   .oc-index{font-family:'Inter',sans-serif;letter-spacing:.08em;color:rgba(255,255,255,.62);}
-  .oc-text{flex:1;display:flex;align-items:center;font-size:clamp(18px,1.75vw,24px);font-weight:700;line-height:1.4;letter-spacing:.01em;color:#fff;overflow:hidden;text-wrap:pretty;}
-  .oc-brand{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.1em;color:rgba(255,255,255,.64);}
+  .oc-text{flex:1;display:flex;align-items:center;font-size:clamp(24px,2.4vw,34px);font-weight:700;line-height:1.35;letter-spacing:.01em;color:#fff;text-wrap:balance;}
+  .oc-brand{display:flex;align-items:center;gap:8px;padding-right:96px;font-size:12px;letter-spacing:.1em;color:rgba(255,255,255,.64);}
   .oc-brand::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--card-accent);flex-shrink:0;}
-  .opinion-hint{margin-top:var(--space-8);font-size:12px;color:var(--text-muted);letter-spacing:.06em;text-align:right;}
+  .opinion-dots{display:none;}
+  .js .opinion-dots{position:absolute;right:var(--space-24);bottom:var(--space-16);display:flex;gap:2px;z-index:2;}
+  .opinion-dot{width:24px;height:24px;padding:0;border:0;background:transparent;display:grid;place-items:center;cursor:pointer;}
+  .opinion-dot::before{content:'';width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.32);transition:background-color .3s ease,transform .3s ease;}
+  .opinion-dot[aria-current="true"]::before{background:var(--card-accent);transform:scale(1.15);}
+  .opinion-dot:focus-visible{outline:2px solid rgba(255,255,255,.8);outline-offset:-6px;border-radius:50%;}
+
+  /* 文末核心观点整卡：列出全部观点，不轮播 */
+  .takeaway{margin:var(--space-40) 0 0;padding:var(--space-24);border-radius:var(--radius);background:var(--bg-card);border:1px solid rgba(var(--accent-rgb),.18);position:relative;overflow:hidden;}
+  .takeaway::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),rgba(var(--accent-rgb),.15));}
+  .takeaway h3{font-size:16px;font-weight:700;letter-spacing:.1em;color:var(--accent);margin-bottom:var(--space-16);display:flex;align-items:center;gap:var(--space-8);}
+  .takeaway h3 svg{width:20px;height:20px;}
+  .takeaway-list{display:grid;grid-template-columns:1fr;gap:var(--space-12);list-style:none;margin:0;}
+  .takeaway-list li{display:flex;align-items:flex-start;gap:var(--space-12);font-size:14px;color:var(--text-secondary);line-height:1.7;letter-spacing:.02em;margin:0;}
+  .takeaway-list li svg{width:18px;height:18px;color:var(--accent);flex-shrink:0;margin-top:3px;}
 
   .article-tags{display:flex;flex-wrap:wrap;gap:var(--space-8);padding-top:var(--space-24);margin-top:var(--space-40);border-top:1px solid var(--border);}
   .article-tag{padding:var(--space-8) var(--space-12);border-radius:8px;background:var(--accent-dim);border:1px solid rgba(var(--accent-rgb),.2);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.04em;}
@@ -168,11 +184,16 @@ const jsonLd = {
     .markdown > p,.markdown > ul,.markdown > ol{font-size:16px;line-height:1.85;}
     .markdown > p:first-child{font-size:16px;line-height:1.85;}
     .article-cover{margin-bottom:var(--space-24);}
-    .opinion-band{max-width:none;margin:0 0 var(--space-16);padding:0 24px;}
-    .opinion-track{gap:12px;}
-    .opinion-card{flex:0 0 78%;height:212px;padding:20px 20px 14px;gap:var(--space-12);}
-    .oc-text{font-size:18px;line-height:1.45;}
-    .opinion-hint{font-size:11px;margin-top:6px;}
+    .js .opinion-card{height:214px;}
+    .opinion-slide{padding:20px;gap:var(--space-12);}
+    .oc-text{font-size:20px;line-height:1.4;}
+    .oc-brand{padding-right:76px;}
+    .js .opinion-dots{right:12px;bottom:8px;}
+    .takeaway{padding:var(--space-16);margin-top:var(--space-32);}
+    .takeaway h3{font-size:14px;margin-bottom:var(--space-12);}
+    .takeaway-list{gap:var(--space-8);}
+    .takeaway-list li{font-size:13px;line-height:1.6;gap:var(--space-8);}
+    .takeaway-list li svg{width:14px;height:14px;margin-top:2px;}
     .article-nav{grid-template-columns:1fr;}
     .article-nav-link.next{text-align:left;align-items:flex-start;}
     .author-card{padding:var(--space-16);}
@@ -180,7 +201,8 @@ const jsonLd = {
 
   @media(prefers-reduced-motion:reduce){
     html{scroll-behavior:auto;}
-    .opinion-viewport{scroll-behavior:auto;}
+    .js .opinion-slide{transition:none;}
+    .opinion-dot::before{transition:none;}
   }
 </style>
 </head>
@@ -212,23 +234,25 @@ const jsonLd = {
 </header>
 
 {opinionCards.length > 0 && (
-  <section class="opinion-band" aria-label="核心观点">
-    <div class="opinion-viewport" tabindex="0" role="group" aria-label={`核心观点，共 ${post.takeaways.length} 张，可左右滚动或按方向键切换`}>
-      <ol class="opinion-track">
-        {opinionCards.map((card) => (
-          <li class="opinion-card" style={`--card-bg:${card.bg};--card-accent:${card.accent}`}>
-            <div class="oc-meta">
-              <span class="oc-category">{post.category}</span>
-              <span class="oc-index">{card.index} / {card.total}</span>
-            </div>
-            <p class="oc-text">{card.text}</p>
-            <div class="oc-brand">个人商业创造者</div>
-          </li>
+  <div class="read-wrap">
+    <section class="opinion-card" data-opinion tabindex="0" role="group" aria-roledescription="轮播" aria-label={`核心观点，共 ${post.takeaways.length} 条`} style={`--card-bg:${opinionCards[0].bg};--card-accent:${opinionCards[0].accent}`}>
+      {opinionCards.map((card, i) => (
+        <article class={`opinion-slide${i === 0 ? ' is-active' : ''}`} data-slide style={`--card-bg:${card.bg};--card-accent:${card.accent}`} aria-label={`第 ${card.index} 条，共 ${card.total} 条`}>
+          <div class="oc-meta">
+            <span class="oc-category">{post.category}</span>
+            <span class="oc-index">{card.index} / {card.total}</span>
+          </div>
+          <p class="oc-text">{card.text}</p>
+          <div class="oc-brand">个人商业创造者</div>
+        </article>
+      ))}
+      <div class="opinion-dots">
+        {opinionCards.map((card, i) => (
+          <button type="button" class="opinion-dot" data-dot data-index={i} aria-label={`查看第 ${card.index} 条观点`} aria-current={i === 0 ? 'true' : 'false'}></button>
         ))}
-      </ol>
-    </div>
-    <p class="opinion-hint">左右滑动查看，共 {post.takeaways.length} 条核心观点</p>
-  </section>
+      </div>
+    </section>
+  </div>
 )}
 
 <main class="article-body">
@@ -242,6 +266,23 @@ const jsonLd = {
     <div class="markdown">
       <Content />
     </div>
+
+    {post.takeaways.length > 0 && (
+      <section class="takeaway" aria-label="核心观点">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>
+          核心观点
+        </h3>
+        <ul class="takeaway-list">
+          {post.takeaways.map((item) => (
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
 
     {post.tags.length > 0 && (
       <div class="article-tags">
@@ -297,6 +338,72 @@ const jsonLd = {
   window.addEventListener('scroll', update, { passive: true });
   window.addEventListener('resize', update);
   update();
+</script>
+
+<script is:inline>
+  (function () {
+    const card = document.querySelector('[data-opinion]');
+    if (!card) return;
+    const slides = Array.from(card.querySelectorAll('[data-slide]'));
+    const dots = Array.from(card.querySelectorAll('[data-dot]'));
+    const reduceQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const DURATION = 6000;
+    let index = 0;
+    let timer = null;
+    let hovering = false;
+    let focusing = false;
+
+    function paint() {
+      slides.forEach(function (slide, i) {
+        slide.classList.toggle('is-active', i === index);
+        slide.setAttribute('aria-hidden', i === index ? 'false' : 'true');
+      });
+      dots.forEach(function (dot, i) {
+        dot.setAttribute('aria-current', i === index ? 'true' : 'false');
+      });
+      card.style.setProperty('--card-bg', slides[index].style.getPropertyValue('--card-bg'));
+    }
+    function stop() {
+      if (timer) { clearInterval(timer); timer = null; }
+    }
+    function start() {
+      stop();
+      if (reduceQuery.matches || hovering || focusing) return;
+      timer = setInterval(function () {
+        index = (index + 1) % slides.length;
+        paint();
+      }, DURATION);
+    }
+    function go(next) {
+      index = (next + slides.length) % slides.length;
+      paint();
+      start();
+    }
+
+    card.addEventListener('mouseenter', function () { hovering = true; stop(); });
+    card.addEventListener('mouseleave', function () { hovering = false; start(); });
+    card.addEventListener('focusin', function (event) {
+      if (!event.target.matches(':focus-visible')) return;
+      focusing = true;
+      stop();
+    });
+    card.addEventListener('focusout', function (event) {
+      if (card.contains(event.relatedTarget)) return;
+      focusing = false;
+      start();
+    });
+    card.addEventListener('keydown', function (event) {
+      if (event.key === 'ArrowRight') { event.preventDefault(); go(index + 1); }
+      else if (event.key === 'ArrowLeft') { event.preventDefault(); go(index - 1); }
+    });
+    dots.forEach(function (dot) {
+      dot.addEventListener('click', function () { go(Number(dot.dataset.index)); });
+    });
+    reduceQuery.addEventListener('change', function () { start(); });
+
+    paint();
+    start();
+  })();
 </script>
 </body>
 </html>

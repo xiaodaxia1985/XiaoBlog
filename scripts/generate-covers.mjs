@@ -61,13 +61,11 @@ function fontSizeFor(text) {
   return 68;
 }
 
-/** 清理旧的单张封面与多余的编号封面，避免换稿后残留旧图。 */
-function cleanCovers(slug, keep) {
+/** 删除该篇所有旧封面：单卡方案只保留第 1 张（列表缩略图与 og:image）。 */
+function cleanCovers(slug) {
   const pattern = new RegExp(`^${slug}(-\\d+)?\\.webp$`);
   for (const file of fs.readdirSync(coversDir)) {
-    if (!pattern.test(file)) continue;
-    if (file === `${slug}-${keep}.webp`) continue;
-    fs.rmSync(path.join(coversDir, file), { force: true });
+    if (pattern.test(file)) fs.rmSync(path.join(coversDir, file), { force: true });
   }
 }
 
@@ -131,13 +129,10 @@ async function renderPost(slug, meta) {
     console.warn(`跳过 ${slug}：没有 takeaways，将使用默认封面`);
     return [];
   }
-  cleanCovers(slug, total);
-  console.log(`${slug}（${meta.category} · ${total} 张）`);
-  const results = [];
-  for (let i = 0; i < total; i++) {
-    results.push(await renderOne(slug, meta, i, total));
-  }
-  return results;
+  cleanCovers(slug);
+  console.log(`${slug}（${meta.category} · 1 张，共 ${total} 条观点）`);
+  // 页面卡片是 HTML 单卡轮播，不再逐条出图；只保留第 1 张给 og:image 与列表缩略图。
+  return [await renderOne(slug, meta, 0, total)];
 }
 
 const args = process.argv.slice(2);
