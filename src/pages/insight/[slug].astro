@@ -17,6 +17,7 @@ const sameCategory = all.filter((p) => p.category === post.category);
 const index = sameCategory.findIndex((p) => p.slug === post.slug);
 const prevPost = index > 0 ? sameCategory[index - 1] : null;
 const nextPost = sameCategory[index + 1] ?? null;
+const cardTakeaways = post.takeaways.slice(1);
 
 const draftLabel = post.draft ? '草稿 · 未发布' : '';
 const jsonLd = {
@@ -86,7 +87,7 @@ const jsonLd = {
   .nav-back:hover{color:var(--accent);}
   .nav-back svg{width:18px;height:18px;}
 
-  .article-head{padding:calc(66px + var(--space-56)) 0 var(--space-40);}
+  .article-head{padding:calc(66px + var(--space-40)) 0 var(--space-32);}
   .read-wrap{width:100%;max-width:calc(var(--read-w) + 48px);margin:0 auto;padding:0 24px;}
 
   .meta-line{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:13px;color:var(--text-secondary);letter-spacing:.04em;margin-bottom:var(--space-16);}
@@ -96,7 +97,7 @@ const jsonLd = {
   .article-title{font-size:clamp(28px,4vw,40px);font-weight:800;line-height:1.28;letter-spacing:.02em;}
   .article-tagline{margin-top:12px;font-size:15px;font-weight:400;line-height:1.6;color:var(--text-secondary);letter-spacing:.02em;}
 
-  .article-cover{width:100%;aspect-ratio:16/10;max-height:380px;border-radius:12px;overflow:hidden;background:#1a1a1a;border:1px solid var(--border);margin-bottom:var(--space-40);}
+  .article-cover{width:100%;aspect-ratio:16/10;max-height:300px;border-radius:12px;overflow:hidden;background:#1a1a1a;border:1px solid var(--border);margin-bottom:var(--space-24);}
   .article-cover img{width:100%;height:100%;object-fit:cover;}
 
   .article-body{padding-bottom:var(--space-40);}
@@ -194,17 +195,17 @@ const jsonLd = {
 <main class="article-body">
   <div class="read-wrap">
     <div class="article-cover">
-      <img src={post.cover} alt={post.title} width="1600" height="900" loading="eager" decoding="async">
+      <img src={post.cover} alt={post.title} width="1600" height="1000" loading="eager" decoding="async">
     </div>
 
-    {post.takeaways.length > 0 && (
+    {cardTakeaways.length > 0 && (
       <section class="takeaway">
         <h3>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>
           核心观点
         </h3>
         <ul class="takeaway-list">
-          {post.takeaways.map((item) => (
+          {cardTakeaways.map((item) => (
             <li>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               <span>{item}</span>

@@ -7,6 +7,7 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "covers": "node scripts/generate-covers.mjs",
     "astro": "astro"
   },
   "dependencies": {
