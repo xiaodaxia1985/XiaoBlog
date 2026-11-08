@@ -1,119 +1,109 @@
+---
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+---
 <!DOCTYPE html>
-<html lang="zh-CN" style="background:#0A0A0A;">
+<html lang="zh-CN" style="background:#0c0c0c;">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0A0A0A">
+<meta name="theme-color" content="#0c0c0c">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>关于我 — 个人商业创造者</title>
 <meta name="description" content="个人商业创造者的简历：18 年 IT 与产业数字化经验，现正用 AI 把专业能力转化为产品与商业资产，并公开记录 90 天实践。">
 <link rel="stylesheet" href="/fonts/fonts.css">
 <link rel="stylesheet" href="/css/tokens.css">
 <style>
-  :root{--bg:#0A0A0A;--bg-card:#161616;--accent:#39FF14;--accent-rgb:57,255,20;--text:#FFFFFF;--text-secondary:#A1A1AA;--text-muted:#8E8E97;--border:rgba(255,255,255,.08);--radius:16px;}
   *{margin:0;padding:0;box-sizing:border-box;}
   html{scroll-behavior:smooth;}
-  body{background:var(--bg);color:var(--text);font-family:'Noto Sans SC','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:var(--fs-16);line-height:var(--lh-body);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  body{font-family:'Noto Sans SC','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-size:var(--fs-16);line-height:var(--lh-body);background:var(--bg);color:var(--text);overflow-x:hidden;font-feature-settings:"palt" 1;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+  ::selection{background:var(--accent);color:var(--accent-ink);}
   a{text-decoration:none;color:inherit;}
-  .container{max-width:calc(var(--container-w) + var(--gutter) * 2);margin:0 auto;padding:0 var(--gutter);}
-  .nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:var(--space-16) var(--gutter);background:rgba(10,10,10,.85);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);}
-  .nav-inner{max-width:var(--container-w);margin:0 auto;width:100%;min-height:35px;display:flex;align-items:center;justify-content:space-between;gap:var(--space-24);}
-  .nav-logo{font-size:20px;font-weight:800;letter-spacing:-.5px;}
-  .nav-logo span{color:var(--accent);}
-  .nav-links{display:flex;align-items:center;gap:var(--space-32);list-style:none;}
-  .nav-links a{font-size:var(--fs-14);font-weight:500;color:var(--text-secondary);transition:color .2s ease;}
-  .nav-links a:hover,.nav-links a.active{color:var(--accent);}
+  ul,ol{list-style:none;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px;}
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:4px;}
 
-  main{padding:calc(72px + var(--space-32)) 0 0;}
-  .eyebrow{display:flex;align-items:center;gap:var(--space-12);font-family:'Inter',sans-serif;font-size:var(--fs-12);font-weight:600;letter-spacing:.16em;color:var(--accent);margin-bottom:var(--space-16);}
-  .eyebrow::before{content:'';display:block;width:32px;height:2px;background:var(--accent);}
-  h1{font-size:var(--fs-48);font-weight:800;letter-spacing:.02em;line-height:1.2;margin-bottom:var(--space-12);}
+  .container{max-width:var(--container-w);margin:0 auto;padding:0 var(--gutter);}
+
+  main{padding:calc(64px + var(--space-56)) 0 0;}
+  .eyebrow{display:flex;align-items:center;gap:var(--space-8);font-size:var(--fs-12);color:var(--text-muted);margin-bottom:var(--space-16);}
+  .eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+  h1{font-size:var(--fs-48);font-weight:600;line-height:1.18;letter-spacing:0;margin-bottom:var(--space-12);text-wrap:balance;}
   .positioning{font-size:var(--fs-16);color:var(--text-secondary);max-width:640px;margin-bottom:var(--space-16);}
-  .contact-line{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-12);font-size:var(--fs-14);color:var(--text-muted);}
-  .contact-line a{color:var(--text-secondary);border-bottom:1px solid var(--border);}
-  .contact-line a:hover{color:var(--accent);border-color:var(--accent);}
+  .contact-line{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-8);font-size:var(--fs-14);color:var(--text-muted);}
+  .contact-line a{color:var(--text-secondary);border-bottom:1px solid var(--border);transition:border-color .2s ease;}
+  .contact-line a:hover{color:var(--text);border-color:rgba(255,255,255,.3);}
 
-  .resume-section{padding:var(--section-y) 0;border-top:1px solid var(--border);}
+  .resume-section{padding:var(--space-56) 0;border-top:1px solid var(--border);}
   .resume-section:first-of-type{border-top:none;padding-top:var(--space-40);}
-  .section-title{font-size:var(--fs-28);font-weight:800;letter-spacing:.06em;margin-bottom:var(--space-24);}
-  .section-title span{color:var(--accent);}
+  .section-title{font-size:var(--fs-28);font-weight:600;line-height:1.3;letter-spacing:0;margin-bottom:var(--space-24);}
 
   /* 经历时间线：左侧年份列对齐 */
   .timeline{display:flex;flex-direction:column;}
   .timeline-item{display:grid;grid-template-columns:160px minmax(0,1fr);gap:var(--space-24);padding:var(--space-16) 0;border-bottom:1px solid var(--border);}
   .timeline-item:last-child{border-bottom:none;}
-  .timeline-year{font-family:'Inter',sans-serif;font-size:var(--fs-14);font-weight:700;color:var(--accent);letter-spacing:.04em;white-space:nowrap;}
-  .timeline-body h3{font-size:var(--fs-20);font-weight:700;margin-bottom:var(--space-6);letter-spacing:.02em;}
-  .timeline-body .duty{font-size:var(--fs-14);color:var(--text-secondary);line-height:var(--lh-body);}
+  .timeline-year{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-14);color:var(--text-muted);white-space:nowrap;}
+  .timeline-body h3{font-size:var(--fs-16);font-weight:600;margin-bottom:var(--space-4);letter-spacing:0;}
+  .timeline-body .duty{font-size:var(--fs-14);color:var(--text-secondary);}
 
   /* 教育背景与其他 */
   .edu-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-24);}
-  .edu-item{padding:var(--space-24);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);}
-  .edu-item h3{font-size:var(--fs-16);font-weight:700;margin-bottom:var(--space-8);}
-  .edu-item p{font-size:var(--fs-14);color:var(--text-secondary);line-height:var(--lh-tight);}
+  .edu-item{padding:var(--space-24);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
+  .edu-item h3{font-size:var(--fs-16);font-weight:600;margin-bottom:var(--space-8);}
+  .edu-item p{font-size:var(--fs-14);color:var(--text-secondary);}
   .patent-block{margin-top:var(--space-24);padding-top:var(--space-16);border-top:1px solid var(--border);}
-  .patent-block h3{font-size:var(--fs-16);font-weight:700;margin-bottom:var(--space-4);}
-  .patent-block p{font-size:var(--fs-14);color:var(--text-secondary);line-height:var(--lh-body);}
+  .patent-block h3{font-size:var(--fs-16);font-weight:600;margin-bottom:var(--space-4);}
+  .patent-block p{font-size:var(--fs-14);color:var(--text-secondary);}
 
   /* 能力域 */
   .skill-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-24);}
-  .skill-item{padding:var(--space-24);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);}
-  .skill-item h3{font-size:var(--fs-20);font-weight:700;margin-bottom:var(--space-8);}
-  .skill-item p{font-size:var(--fs-14);color:var(--text-secondary);line-height:var(--lh-tight);}
+  .skill-item{padding:var(--space-24);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
+  .skill-item h3{font-size:var(--fs-20);font-weight:600;margin-bottom:var(--space-8);}
+  .skill-item p{font-size:var(--fs-14);color:var(--text-secondary);}
 
   /* 代表成果 */
   .result-list{display:flex;flex-direction:column;gap:var(--space-12);}
-  .result-item{display:flex;align-items:baseline;gap:var(--space-12);font-size:var(--fs-16);color:var(--text-secondary);line-height:var(--lh-body);}
-  .result-item::before{content:'→';color:var(--accent);font-weight:700;flex-shrink:0;}
+  .result-item{display:flex;align-items:baseline;gap:var(--space-12);font-size:var(--fs-16);color:var(--text-secondary);}
+  .result-item::before{content:'→';color:var(--text-muted);flex-shrink:0;}
 
   /* 现状与方向 */
   .now-block{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-32);}
   .now-copy{max-width:640px;}
-  .now-copy p{font-size:var(--fs-16);color:var(--text-secondary);line-height:var(--lh-body);margin-bottom:var(--space-16);}
+  .now-copy p{font-size:var(--fs-16);color:var(--text-secondary);margin-bottom:var(--space-16);}
   .now-copy strong{color:var(--text);font-weight:600;}
   .now-actions{display:flex;gap:var(--space-12);flex-wrap:wrap;margin-top:var(--space-24);}
-  .btn{display:inline-flex;align-items:center;gap:var(--space-8);padding:var(--space-12) var(--space-24);border-radius:10px;font-size:var(--fs-14);font-weight:600;letter-spacing:.04em;transition:all .3s ease;border:1px solid transparent;}
-  .btn-primary{background:var(--accent);color:#0A0A0A;}
-  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(var(--accent-rgb),.25);}
-  .btn-outline{border-color:rgba(var(--accent-rgb),.35);color:var(--accent);}
-  .btn-outline:hover{background:rgba(var(--accent-rgb),.1);transform:translateY(-2px);}
-  .btn svg{width:16px;height:16px;}
-  .now-period{font-family:'Inter',sans-serif;font-size:var(--fs-12);color:var(--text-muted);letter-spacing:.06em;white-space:nowrap;padding-top:var(--space-4);}
-
-  .footer{border-top:1px solid var(--border);padding:var(--space-24) 0;text-align:center;}
-  .footer p{font-size:var(--fs-12);color:var(--text-muted);letter-spacing:.04em;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-8);padding:var(--space-12) var(--space-24);border-radius:var(--radius-sm);font-size:var(--fs-14);font-weight:500;cursor:pointer;border:1px solid transparent;transition:background-color .2s ease,border-color .2s ease,color .2s ease;}
+  .btn-primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+  .btn-primary:hover{background:#E4F98C;border-color:#E4F98C;}
+  .btn-secondary{background:transparent;color:var(--text);border-color:var(--border);}
+  .btn-secondary:hover{background:var(--surface);border-color:rgba(255,255,255,.22);}
+  .btn svg{width:16px;height:16px;stroke-width:1.5;}
+  .now-period{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);white-space:nowrap;padding-top:var(--space-4);}
 
   @media(max-width:768px){
-    main{padding:calc(64px + var(--space-24)) 0 0;}
-    h1{font-size:32px;}
+    main{padding:calc(56px + var(--space-32)) 0 0;}
+    h1{font-size:28px;line-height:1.25;}
     .section-title{font-size:24px;}
-    .nav-links{gap:var(--space-12);}
-    .nav-links a{font-size:var(--fs-12);}
     .timeline-item{grid-template-columns:1fr;gap:var(--space-4);}
     .edu-grid{grid-template-columns:1fr;}
     .skill-grid{grid-template-columns:1fr;}
     .now-block{flex-direction:column;gap:var(--space-16);}
-    .now-actions .btn{flex:1;justify-content:center;}
+  }
+  @media(max-width:480px){
+    .now-actions{flex-direction:column;}
+    .now-actions .btn{width:100%;}
   }
 </style>
 </head>
 <body>
 
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="/" class="nav-logo">个人商业<span>创造者</span></a>
-    <ul class="nav-links">
-      <li><a href="/">首页</a></li>
-      <li><a href="/#focus">我在做什么</a></li>
-      <li><a href="/insights">洞察</a></li>
-      <li><a href="/about" class="active">关于我</a></li>
-    </ul>
-  </div>
-</nav>
+<Nav active="about" />
 
 <main>
   <div class="container">
-    <div class="eyebrow">ABOUT ME</div>
+    <p class="eyebrow">关于我</p>
     <h1>个人商业创造者</h1>
     <p class="positioning">18 年 IT 与产业数字化经验，现在用 AI 把专业能力转化为自己的产品与商业资产。</p>
     <div class="contact-line">
@@ -123,7 +113,7 @@
     </div>
 
     <section class="resume-section">
-      <h2 class="section-title">经历<span>时间线</span></h2>
+      <h2 class="section-title">经历时间线</h2>
       <div class="timeline">
         <div class="timeline-item">
           <div class="timeline-year">2019.06 — 至今</div>
@@ -164,7 +154,7 @@
     </section>
 
     <section class="resume-section">
-      <h2 class="section-title">教育背景与<span>其他</span></h2>
+      <h2 class="section-title">教育背景与其他</h2>
       <div class="edu-grid">
         <div class="edu-item">
           <h3>2004 — 2008 · 南京工业大学</h3>
@@ -182,7 +172,7 @@
     </section>
 
     <section class="resume-section">
-      <h2 class="section-title">能力<span>域</span></h2>
+      <h2 class="section-title">能力域</h2>
       <div class="skill-grid">
         <div class="skill-item">
           <h3>产业数字化</h3>
@@ -204,7 +194,7 @@
     </section>
 
     <section class="resume-section">
-      <h2 class="section-title">代表<span>成果</span></h2>
+      <h2 class="section-title">代表成果</h2>
       <div class="result-list">
         <div class="result-item">把集团级产业数字化平台从规划推进到上线运营</div>
         <div class="result-item">打通饲料、养殖、加工与销售环节的业务数据</div>
@@ -213,16 +203,16 @@
     </section>
 
     <section class="resume-section">
-      <h2 class="section-title">现状与<span>方向</span></h2>
+      <h2 class="section-title">现状与方向</h2>
       <div class="now-block">
         <div class="now-copy">
           <p><strong>2026 年 11 月起，我用 90 天做一次完整的个人商业实践。</strong>从寻找真实需求、做出自己的产品，到建立内容与收入闭环，过程全部公开记录。</p>
           <div class="now-actions">
             <a href="/insights/?category=90天实战" class="btn btn-primary">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
               进入 90天实战
             </a>
-            <a href="/insights" class="btn btn-outline">阅读洞察</a>
+            <a href="/insights" class="btn btn-secondary">阅读洞察</a>
           </div>
         </div>
         <div class="now-period">2026.11.08 — 2027.02.05</div>
@@ -231,9 +221,6 @@
   </div>
 </main>
 
-<footer class="footer">
-  <div class="container"><p>© 2026 个人商业创造者. 保留所有权利.</p></div>
-</footer>
-
+<Footer />
 </body>
 </html>

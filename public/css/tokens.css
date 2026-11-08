@@ -30,6 +30,21 @@
 
   /* 区块纵向间距 */
   --section-y:56px;
+
+  /* 颜色：石墨中性 + 荧光笔绿，只标当前与主行动 */
+  --bg:#0C0C0C;
+  --surface:#141414;
+  --surface-2:#1A1A1A;
+  --text:#F5F5F4;
+  --text-secondary:#A8A8A3;
+  --text-muted:#75756F;
+  --border:rgba(255,255,255,.09);
+  --accent:#D8F26B;
+  --accent-ink:#0C0C0C;
+
+  /* 圆角 */
+  --radius:12px;
+  --radius-sm:8px;
 }
 
 @media(max-width:768px){

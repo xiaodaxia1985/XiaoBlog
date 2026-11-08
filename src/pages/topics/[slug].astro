@@ -1,6 +1,8 @@
 ---
 import { topics } from '../../data/topics.mjs';
 import { getPublishedPosts } from '../../lib/insights';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
 
 export function getStaticPaths() {
   return topics.map((topic) => ({ params: { slug: topic.slug }, props: { topic } }));
@@ -9,202 +11,130 @@ export function getStaticPaths() {
 const { topic } = Astro.props;
 const posts = (await getPublishedPosts()).filter((p) => p.topic === topic.title);
 const siblings = topics.filter((t) => t.slug !== topic.slug);
+const topicNo = topic.num.split('·')[0].trim();
 ---
 <!DOCTYPE html>
-<html lang="zh-CN" style="background:#0A0A0A;">
+<html lang="zh-CN" style="background:#0c0c0c;">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0A0A0A">
+<meta name="theme-color" content="#0c0c0c">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>{topic.title} — 个人商业创造者</title>
-<meta name="description" content={`${topic.definition} ${topic.title}方向的专题页：在写什么、准备写什么，以及已经发布的相关文章。`}>
+<meta name="description" content={`${topic.definition} ${topic.title}方向的专题页：在写什么，以及已经发布的相关文章。`}>
 <link rel="stylesheet" href="/fonts/fonts.css">
 <link rel="stylesheet" href="/css/tokens.css">
 <style is:global>
-  :root{
-    --bg:#0A0A0A;
-    --bg-card:#161616;
-    --accent:#39FF14;
-    --accent-rgb:57,255,20;
-    --accent-dim:rgba(57,255,20,.15);
-    --text:#FFFFFF;
-    --text-secondary:#A1A1AA;
-    --text-muted:#8E8E97;
-    --border:rgba(255,255,255,.08);
-    --radius:16px;
-    --max-width:1000px;
-  }
   *{margin:0;padding:0;box-sizing:border-box;}
   html{scroll-behavior:smooth;}
-  body{font-family:'Noto Sans SC','Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;overflow-x:hidden;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
-  ::selection{background:var(--accent);color:#000;}
+  body{font-family:'Noto Sans SC','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-size:var(--fs-16);line-height:var(--lh-body);background:var(--bg);color:var(--text);overflow-x:hidden;font-feature-settings:"palt" 1;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+  ::selection{background:var(--accent);color:var(--accent-ink);}
   a{text-decoration:none;color:inherit;}
   ul,ol{list-style:none;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px;}
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:4px;}
 
-  /* Nav */
-  .nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:var(--space-16) var(--gutter);display:flex;align-items:center;justify-content:space-between;background:rgba(10,10,10,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
-  .nav-inner{max-width:var(--container-w);margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;gap:var(--space-24);}
-  .nav-logo{font-weight:800;font-size:20px;letter-spacing:-.5px;}
-  .nav-logo span{color:var(--accent);}
-  .nav-links{display:flex;gap:36px;}
-  .nav-links a{font-size:var(--fs-14);font-weight:500;color:var(--text-secondary);position:relative;transition:color .3s ease;letter-spacing:.08em;}
-  .nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:var(--accent);transition:width .3s ease;border-radius:2px;}
-  .nav-links a:hover,.nav-links a.active{color:var(--accent);}
-  .nav-links a.active::after,.nav-links a:hover::after{width:100%;}
-  .nav-toggle{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px;}
-  .nav-toggle span{width:24px;height:2px;background:var(--text);border-radius:2px;transition:.3s;}
+  .wrap{max-width:var(--container-w);margin:0 auto;padding:0 var(--gutter);}
 
-  .wrap{max-width:calc(var(--container-w) + var(--gutter) * 2);margin:0 auto;padding:0 var(--gutter);}
+  /* ===== 页头 ===== */
+  .page-hero{padding:calc(64px + var(--space-40)) 0 var(--space-40);border-bottom:1px solid var(--border);}
+  .crumb{display:flex;align-items:center;gap:var(--space-8);font-size:var(--fs-12);color:var(--text-muted);margin-bottom:var(--space-24);}
+  .crumb a{transition:color .2s ease;}
+  .crumb a:hover{color:var(--text);}
+  .eyebrow{display:flex;align-items:center;gap:var(--space-8);font-size:var(--fs-12);color:var(--text-muted);margin-bottom:var(--space-16);}
+  .eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+  .page-hero h1{font-size:var(--fs-48);font-weight:600;line-height:1.18;letter-spacing:0;margin-bottom:var(--space-12);text-wrap:balance;}
+  .page-hero .definition{max-width:720px;font-size:var(--fs-20);line-height:var(--lh-tight);color:var(--text);}
+  .page-hero .intro{max-width:720px;margin-top:var(--space-16);font-size:var(--fs-16);color:var(--text-secondary);}
+  .page-hero .intro + .intro{margin-top:var(--space-12);}
 
-  /* Header */
-  .page-hero{padding:calc(72px + var(--space-40)) 0 var(--space-40);background:linear-gradient(115deg,#080808 0%,#0a0a0a 45%,#151515 100%);border-bottom:1px solid var(--border);}
-  .crumb{display:flex;align-items:center;gap:var(--space-8);font-size:var(--fs-12);color:var(--text-muted);letter-spacing:.04em;margin-bottom:var(--space-24);}
-  .crumb a:hover{color:var(--accent);}
-  .badge{display:flex;align-items:center;gap:var(--space-12);margin-bottom:var(--space-16);}
-  .badge .line{width:40px;height:2px;background:var(--accent);border-radius:2px;}
-  .badge .label{font-family:'Inter',sans-serif;font-size:var(--fs-12);font-weight:700;letter-spacing:.16em;color:var(--accent);}
-  .page-hero h1{font-size:var(--fs-48);font-weight:800;line-height:1.2;letter-spacing:.02em;margin-bottom:var(--space-12);}
-  .page-hero .definition{font-size:var(--fs-20);color:var(--text-secondary);line-height:var(--lh-tight);max-width:720px;}
-  .page-hero .intro{font-size:var(--fs-16);color:var(--text-secondary);line-height:var(--lh-body);max-width:720px;margin-top:var(--space-24);}
-  .page-hero .intro + .intro{margin-top:var(--space-16);}
-
-  /* Section heading */
-  .section{padding:var(--space-40) 0;}
+  /* ===== 区块 ===== */
+  .section{padding:var(--space-40) 0 var(--space-56);}
   .section + .section{padding-top:0;}
-  .section-head{display:flex;align-items:center;gap:var(--space-12);margin-bottom:var(--space-24);}
-  .section-head .line{width:32px;height:2px;background:var(--accent);border-radius:2px;}
-  .section-head h2{font-size:var(--fs-24);font-weight:800;letter-spacing:.04em;}
+  .section-head{margin-bottom:var(--space-24);}
+  .section-head h2{font-size:var(--fs-28);font-weight:600;line-height:1.3;letter-spacing:0;}
 
-  /* Article list */
-  .article-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-24);}
-  .article-card{display:flex;flex-direction:column;background:#f5f5f5;border:1px solid rgba(0,0,0,.06);border-radius:var(--radius);overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15);transition:transform .3s ease,box-shadow .3s ease;}
-  .article-card:hover{transform:translateY(-4px);box-shadow:0 16px 50px rgba(0,0,0,.3);}
-  .article-img{aspect-ratio:16/9;background:#1a1a1a;overflow:hidden;}
-  .article-img img{width:100%;height:100%;object-fit:cover;display:block;}
-  .article-info{padding:var(--space-16);display:flex;flex-direction:column;gap:var(--space-8);flex:1;}
-  .article-tag{align-self:flex-start;font-size:var(--fs-12);font-weight:600;color:#0f7a00;background:rgba(57,255,20,.14);border:1px solid rgba(15,122,0,.18);border-radius:6px;padding:var(--space-4) var(--space-8);letter-spacing:.02em;}
-  .article-info h3{font-size:var(--fs-20);font-weight:700;color:#111;line-height:1.4;letter-spacing:.02em;}
-  .article-info p{font-size:var(--fs-14);line-height:var(--lh-tight);color:#555;flex:1;}
-  .article-date{font-size:var(--fs-12);color:#666;letter-spacing:.02em;}
+  /* 文章列表 */
+  .post-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-24);}
+  .post-card{display:flex;flex-direction:column;gap:var(--space-8);min-height:200px;padding:var(--space-24);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);transition:background-color .2s ease,border-color .2s ease;}
+  .post-card:hover{background:var(--surface-2);border-color:rgba(255,255,255,.2);}
+  .post-tag{align-self:flex-start;padding:2px 6px;border:1px solid var(--border);border-radius:4px;font-size:var(--fs-12);color:var(--text-muted);}
+  .post-card h3{font-size:var(--fs-20);font-weight:600;line-height:1.4;letter-spacing:0;}
+  .post-excerpt{flex:1;font-size:var(--fs-14);line-height:var(--lh-tight);color:var(--text-secondary);}
+  .post-meta{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);}
 
-  /* Sibling topics */
+  /* 其他方向 */
   .siblings{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-16);}
-  .sibling{display:flex;flex-direction:column;gap:var(--space-8);padding:var(--space-24);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);transition:border-color .25s ease,transform .25s ease;}
-  .sibling:hover{border-color:rgba(var(--accent-rgb),.35);transform:translateY(-2px);}
-  .sibling .sib-num{font-family:'Inter',sans-serif;font-size:var(--fs-12);color:var(--text-muted);letter-spacing:.08em;}
-  .sibling h3{font-size:var(--fs-16);font-weight:700;}
-  .sibling p{font-size:var(--fs-12);color:var(--text-muted);line-height:1.6;}
-  .sibling .arrow{font-size:var(--fs-12);color:var(--accent);margin-top:var(--space-4);}
-
-  .page-footer{padding:var(--space-24) 0 var(--space-40);font-size:var(--fs-12);color:var(--text-muted);border-top:1px solid var(--border);}
-  .page-footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(--space-12);}
-  .page-footer a{color:var(--text-secondary);border-bottom:1px solid var(--border);}
+  .sibling{display:flex;flex-direction:column;gap:var(--space-8);padding:var(--space-24);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);transition:background-color .2s ease,border-color .2s ease;}
+  .sibling:hover{background:var(--surface-2);border-color:rgba(255,255,255,.2);}
+  .sib-num{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);}
+  .sibling h3{font-size:var(--fs-16);font-weight:600;}
+  .sibling p{font-size:var(--fs-14);color:var(--text-muted);line-height:var(--lh-tight);}
+  .sibling .arrow{margin-top:var(--space-4);font-size:var(--fs-14);color:var(--text);}
 
   @media(max-width:768px){
-    .nav{padding:16px 24px;}
-    .nav-links{position:fixed;top:0;right:-100%;width:70%;height:100vh;background:rgba(10,10,10,.98);flex-direction:column;justify-content:center;align-items:center;gap:32px;transition:right .4s ease,visibility .4s ease;visibility:hidden;border-left:1px solid var(--border);}
-    .nav-links.open{right:0;visibility:visible;}
-    .nav-links a{font-size:20px;}
-    .nav-toggle{display:flex;z-index:1001;}
-    .nav-toggle.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}
-    .nav-toggle.open span:nth-child(2){opacity:0;}
-    .nav-toggle.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}
-    .wrap{padding:0 24px;}
-    .page-hero{padding:calc(64px + var(--space-32)) 0 var(--space-32);}
-    .page-hero h1{font-size:var(--fs-32);}
+    .page-hero{padding:calc(56px + var(--space-32)) 0 var(--space-32);}
+    .page-hero h1{font-size:28px;line-height:1.25;}
     .page-hero .definition{font-size:var(--fs-16);}
     .page-hero .intro{font-size:var(--fs-14);}
-    .article-grid{grid-template-columns:1fr;}
+    .post-grid{grid-template-columns:1fr;}
+    .post-card{min-height:0;padding:var(--space-16);}
     .siblings{grid-template-columns:1fr;}
-  }
-  @media(max-width:480px){
-    .page-hero h1{font-size:24px;}
-    .section-head h2{font-size:var(--fs-20);}
   }
 </style>
 </head>
 <body>
 
-<nav class="nav" id="nav">
-  <div class="nav-inner">
-    <a href="/" class="nav-logo">个人商业<span>创造者</span></a>
-    <button class="nav-toggle" id="navToggle" aria-label="菜单" aria-expanded="false" aria-controls="navLinks"><span></span><span></span><span></span></button>
-    <ul class="nav-links" id="navLinks">
-      <li><a href="/">首页</a></li>
-      <li><a href="/#focus" class="active">我在做什么</a></li>
-      <li><a href="/insights">洞察</a></li>
-      <li><a href="/about">关于我</a></li>
-    </ul>
-  </div>
-</nav>
+<Nav active="focus" />
 
 <header class="page-hero">
   <div class="wrap">
     <div class="crumb"><a href="/#focus">我在做什么</a><span aria-hidden="true">/</span><span>{topic.title}</span></div>
-    <div class="badge"><span class="line"></span><span class="label">{topic.num}</span></div>
+    <p class="eyebrow">{topicNo}</p>
     <h1>{topic.title}</h1>
     <p class="definition">{topic.definition}</p>
     {topic.intro.map((para) => <p class="intro">{para}</p>)}
   </div>
 </header>
 
-<main class="wrap">
+<main>
   {posts.length > 0 && (
     <section class="section" aria-labelledby="articlesTitle">
-      <div class="section-head"><span class="line"></span><h2 id="articlesTitle">已经发布</h2></div>
-      <div class="article-grid">
-        {posts.map((post, i) => (
-          <a class="article-card" href={post.url}>
-            <div class="article-img">
-              <img src={post.cover} alt={post.title} width="1600" height="900" loading={i === 0 ? 'eager' : 'lazy'} decoding="async">
-            </div>
-            <div class="article-info">
-              <span class="article-tag">{post.category}</span>
+      <div class="wrap">
+        <div class="section-head"><h2 id="articlesTitle">已经发布</h2></div>
+        <div class="post-grid">
+          {posts.map((post) => (
+            <a class="post-card" href={post.url}>
+              <span class="post-tag">{post.category}</span>
               <h3>{post.title}</h3>
-              <p>{post.excerpt}</p>
-              <span class="article-date">{post.date} · {post.readTime}</span>
-            </div>
-          </a>
-        ))}
+              <p class="post-excerpt">{post.excerpt}</p>
+              <span class="post-meta">{post.date} · {post.readTime}</span>
+            </a>
+          ))}
+        </div>
       </div>
     </section>
   )}
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><h2>切换到其他方向</h2></div>
+      <div class="siblings">
+        {siblings.map((s) => (
+          <a class="sibling" href={`/topics/${s.slug}`}>
+            <span class="sib-num">{s.num.split('·')[0].trim()}</span>
+            <h3>{s.title}</h3>
+            <p>{s.definition}</p>
+            <span class="arrow">进入专题 →</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
 </main>
 
-<section class="section">
-  <div class="wrap">
-    <div class="section-head"><span class="line"></span><h2>切换到其他方向</h2></div>
-    <div class="siblings">
-      {siblings.map((s) => (
-        <a class="sibling" href={`/topics/${s.slug}`}>
-          <span class="sib-num">{s.num}</span>
-          <h3>{s.title}</h3>
-          <p>{s.definition}</p>
-          <span class="arrow">进入专题 →</span>
-        </a>
-      ))}
-    </div>
-  </div>
-</section>
-
-<footer class="page-footer">
-  <div class="wrap">
-    <span>© 2026 个人商业创造者</span>
-    <a href="/insights/">查看全部洞察 →</a>
-  </div>
-</footer>
-
-<script>
-  const navToggle = document.getElementById('navToggle');
-  const navLinks = document.getElementById('navLinks');
-  if (navToggle && navLinks) {
-    navToggle.addEventListener('click', () => {
-      const open = navLinks.classList.toggle('open');
-      navToggle.classList.toggle('open');
-      navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
-  }
-</script>
+<Footer />
 </body>
 </html>
