@@ -4,18 +4,12 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import sharp from 'sharp';
+import { shade } from '../src/lib/cover-palette.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const insightsDir = path.join(root, 'src', 'content', 'insights');
 const coversDir = path.join(root, 'src', 'assets', 'covers');
 const template = fs.readFileSync(path.join(root, 'scripts', 'cover-template.html'), 'utf8');
-
-const palette = {
-  '90天实战': { bg: '#0C1F13', accent: '#39FF14' },
-  '产业数字化': { bg: '#0A1A26', accent: '#4DA6FF' },
-  'AI 与产品': { bg: '#171027', accent: '#B48CFF' },
-  '技术与管理': { bg: '#1B1810', accent: '#F2C14E' },
-};
 
 const edgeCandidates = [
   process.env.EDGE_PATH,
@@ -67,14 +61,20 @@ function fontSizeFor(text) {
   return 68;
 }
 
-async function render(slug, meta) {
-  const color = palette[meta.category];
-  if (!color) throw new Error(`${slug} 的分类「${meta.category}」没有封面配色`);
-  const headline = meta.takeaways[0];
-  if (!headline) {
-    console.warn(`跳过 ${slug}：没有 takeaways，将使用默认封面`);
-    return null;
+/** 清理旧的单张封面与多余的编号封面，避免换稿后残留旧图。 */
+function cleanCovers(slug, keep) {
+  const pattern = new RegExp(`^${slug}(-\\d+)?\\.webp$`);
+  for (const file of fs.readdirSync(coversDir)) {
+    if (!pattern.test(file)) continue;
+    if (file === `${slug}-${keep}.webp`) continue;
+    fs.rmSync(path.join(coversDir, file), { force: true });
   }
+}
+
+async function renderOne(slug, meta, index, total) {
+  const headline = meta.takeaways[index];
+  const color = shade(meta.category, index, total);
+  const tag = `card${index + 1}`;
 
   const html = template
     .replace(/{{FONT_SC}}/g, fontUrl('public/fonts/noto-sans-sc.woff2'))
@@ -82,13 +82,14 @@ async function render(slug, meta) {
     .replace(/{{BG}}/g, color.bg)
     .replace(/{{ACCENT}}/g, color.accent)
     .replace(/{{CATEGORY}}/g, esc(meta.category))
-    .replace(/{{DATE}}/g, esc(meta.date))
+    .replace(/{{INDEX}}/g, String(index + 1))
+    .replace(/{{TOTAL}}/g, String(total))
     .replace(/{{HEADLINE}}/g, esc(headline))
     .replace(/{{FS}}/g, String(fontSizeFor(headline)));
 
-  const tmpHtml = path.join(os.tmpdir(), `cover-${slug}.html`);
-  const tmpPng = path.join(os.tmpdir(), `cover-${slug}.png`);
-  const profile = path.join(os.tmpdir(), `edge-cover-${process.pid}`);
+  const tmpHtml = path.join(os.tmpdir(), `cover-${slug}-${tag}.html`);
+  const tmpPng = path.join(os.tmpdir(), `cover-${slug}-${tag}.png`);
+  const profile = path.join(os.tmpdir(), `edge-cover-${process.pid}-${tag}`);
   fs.writeFileSync(tmpHtml, html, 'utf8');
 
   execFileSync(edge, [
@@ -106,7 +107,7 @@ async function render(slug, meta) {
   ], { stdio: 'ignore' });
 
   if (!fs.existsSync(tmpPng)) throw new Error('截图失败，未生成 PNG');
-  const out = path.join(coversDir, `${slug}.webp`);
+  const out = path.join(coversDir, `${slug}-${index + 1}.webp`);
   let quality = 82;
   let size = 0;
   for (let i = 0; i < 3; i++) {
@@ -119,8 +120,24 @@ async function render(slug, meta) {
   for (const p of [tmpHtml, tmpPng]) fs.rmSync(p, { force: true });
   fs.rmSync(profile, { recursive: true, force: true });
 
-  console.log(`${slug}: ${path.relative(root, out)}  ${(size / 1024).toFixed(1)}KB  q=${quality}  「${headline}」`);
-  return { slug, size, headline };
+  const rel = path.relative(root, out);
+  console.log(`  ${index + 1}/${total}  ${rel}  ${(size / 1024).toFixed(1)}KB  q=${quality}  L=${color.lightness}%  「${headline}」`);
+  return { slug, index: index + 1, size, headline };
+}
+
+async function renderPost(slug, meta) {
+  const total = meta.takeaways.length;
+  if (!total) {
+    console.warn(`跳过 ${slug}：没有 takeaways，将使用默认封面`);
+    return [];
+  }
+  cleanCovers(slug, total);
+  console.log(`${slug}（${meta.category} · ${total} 张）`);
+  const results = [];
+  for (let i = 0; i < total; i++) {
+    results.push(await renderOne(slug, meta, i, total));
+  }
+  return results;
 }
 
 const args = process.argv.slice(2);
@@ -131,8 +148,6 @@ const targets = files
 
 const results = [];
 for (const { slug, file } of targets) {
-  const meta = readFrontmatter(file);
-  const r = await render(slug, meta);
-  if (r) results.push(r);
+  results.push(...await renderPost(slug, readFrontmatter(file)));
 }
-console.log(`完成 ${results.length} 张封面。`);
+console.log(`完成 ${results.length} 张封面，覆盖 ${targets.length} 篇文章。`);

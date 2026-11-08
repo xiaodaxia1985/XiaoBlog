@@ -114,7 +114,8 @@ function resolveCover(slug: string, override?: string): string {
     if (value.startsWith('/')) return value;
     return coversBySlug[value] ?? coversBySlug[value.replace(/\.(webp|jpg|png)$/i, '')] ?? value;
   }
-  return coversBySlug[slug] ?? assetUrl(defaultCover);
+  // 多张观点卡封面：第 1 张同时作为列表缩略图与 og:image。
+  return coversBySlug[`${slug}-1`] ?? coversBySlug[slug] ?? assetUrl(defaultCover);
 }
 
 export function toPost(entry: any): Post {

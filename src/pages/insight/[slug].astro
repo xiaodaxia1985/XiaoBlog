@@ -1,6 +1,7 @@
 ---
 import { getCollection, getEntry, render } from 'astro:content';
 import { getAllPosts, toPost } from '../../lib/insights';
+import { shade } from '../../lib/cover-palette.mjs';
 
 export async function getStaticPaths() {
   const entries = await getCollection('insights');
@@ -17,7 +18,13 @@ const sameCategory = all.filter((p) => p.category === post.category);
 const index = sameCategory.findIndex((p) => p.slug === post.slug);
 const prevPost = index > 0 ? sameCategory[index - 1] : null;
 const nextPost = sameCategory[index + 1] ?? null;
-const cardTakeaways = post.takeaways.slice(1);
+// 一条核心观点一张卡：分类色系内明度递进，第 1 张最深。
+const opinionCards = post.takeaways.map((text, i) => ({
+  text,
+  index: i + 1,
+  total: post.takeaways.length,
+  ...shade(post.category, i, post.takeaways.length),
+}));
 
 const draftLabel = post.draft ? '草稿 · 未发布' : '';
 const jsonLd = {
@@ -113,13 +120,21 @@ const jsonLd = {
   .markdown img{border-radius:10px;margin:var(--space-16) 0;}
   .markdown code{font-family:'Inter',monospace;font-size:.92em;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;}
 
-  .takeaway{margin:0 0 var(--space-32);padding:var(--space-24);border-radius:var(--radius);background:var(--bg-card);border:1px solid rgba(var(--accent-rgb),.18);position:relative;overflow:hidden;}
-  .takeaway::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),rgba(var(--accent-rgb),.15));}
-  .takeaway h3{font-size:16px;font-weight:700;letter-spacing:.1em;color:var(--accent);margin-bottom:var(--space-16);display:flex;align-items:center;gap:var(--space-8);}
-  .takeaway h3 svg{width:20px;height:20px;}
-  .takeaway-list{display:grid;grid-template-columns:1fr;gap:var(--space-12);list-style:none;margin:0;}
-  .takeaway-list li{display:flex;align-items:flex-start;gap:var(--space-12);font-size:14px;color:var(--text-secondary);line-height:1.7;letter-spacing:.02em;margin:0;}
-  .takeaway-list li svg{width:18px;height:18px;color:var(--accent);flex-shrink:0;margin-top:3px;}
+  /* 核心观点轮播：一条观点一张卡，原生横向滚动 + scroll-snap，无 JS、不自动播放 */
+  .opinion-band{max-width:min(1080px,calc(100% - var(--gutter) * 2));margin:0 auto var(--space-24);}
+  .opinion-viewport{overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;border-radius:12px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  .opinion-viewport::-webkit-scrollbar{display:none;}
+  .opinion-viewport:focus-visible{outline:2px solid rgba(var(--accent-rgb),.5);outline-offset:-2px;}
+  .opinion-track{display:flex;gap:16px;list-style:none;margin:0;padding:0;}
+  .opinion-card{flex:0 0 calc((100% - 48px) / 3.25);height:260px;scroll-snap-align:start;background:var(--card-bg);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:var(--space-24) var(--space-24) var(--space-16);display:flex;flex-direction:column;gap:var(--space-16);}
+  .oc-meta{display:flex;align-items:center;justify-content:space-between;font-size:12px;letter-spacing:.14em;color:rgba(255,255,255,.6);}
+  .oc-category{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.75);}
+  .oc-category::before{content:'';width:24px;height:3px;background:var(--card-accent);flex-shrink:0;}
+  .oc-index{font-family:'Inter',sans-serif;letter-spacing:.08em;color:rgba(255,255,255,.5);}
+  .oc-text{flex:1;display:flex;align-items:center;font-size:clamp(18px,1.75vw,24px);font-weight:700;line-height:1.4;letter-spacing:.01em;color:#fff;overflow:hidden;text-wrap:pretty;}
+  .oc-brand{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.1em;color:rgba(255,255,255,.52);}
+  .oc-brand::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--card-accent);flex-shrink:0;}
+  .opinion-hint{margin-top:var(--space-8);font-size:12px;color:var(--text-muted);letter-spacing:.06em;text-align:right;}
 
   .article-tags{display:flex;flex-wrap:wrap;gap:var(--space-8);padding-top:var(--space-24);margin-top:var(--space-40);border-top:1px solid var(--border);}
   .article-tag{padding:var(--space-8) var(--space-12);border-radius:8px;background:var(--accent-dim);border:1px solid rgba(var(--accent-rgb),.2);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:var(--accent);letter-spacing:.04em;}
@@ -153,15 +168,19 @@ const jsonLd = {
     .markdown > p,.markdown > ul,.markdown > ol{font-size:16px;line-height:1.85;}
     .markdown > p:first-child{font-size:16px;line-height:1.85;}
     .article-cover{margin-bottom:var(--space-24);}
-    .takeaway{padding:var(--space-12) var(--space-16);margin-bottom:var(--space-24);}
-    .takeaway h3{font-size:13px;margin-bottom:var(--space-8);letter-spacing:.08em;}
-    .takeaway h3 svg{width:16px;height:16px;}
-    .takeaway-list{gap:var(--space-4);}
-    .takeaway-list li{font-size:13px;line-height:1.45;gap:var(--space-8);}
-    .takeaway-list li svg{width:14px;height:14px;margin-top:2px;}
+    .opinion-band{max-width:none;margin:0 0 var(--space-16);padding:0 24px;}
+    .opinion-track{gap:12px;}
+    .opinion-card{flex:0 0 78%;height:212px;padding:20px 20px 14px;gap:var(--space-12);}
+    .oc-text{font-size:18px;line-height:1.45;}
+    .opinion-hint{font-size:11px;margin-top:6px;}
     .article-nav{grid-template-columns:1fr;}
     .article-nav-link.next{text-align:left;align-items:flex-start;}
     .author-card{padding:var(--space-16);}
+  }
+
+  @media(prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    .opinion-viewport{scroll-behavior:auto;}
   }
 </style>
 </head>
@@ -192,27 +211,32 @@ const jsonLd = {
   </div>
 </header>
 
+{opinionCards.length > 0 && (
+  <section class="opinion-band" aria-label="核心观点">
+    <div class="opinion-viewport" tabindex="0" role="group" aria-label={`核心观点，共 ${post.takeaways.length} 张，可左右滚动或按方向键切换`}>
+      <ol class="opinion-track">
+        {opinionCards.map((card) => (
+          <li class="opinion-card" style={`--card-bg:${card.bg};--card-accent:${card.accent}`}>
+            <div class="oc-meta">
+              <span class="oc-category">{post.category}</span>
+              <span class="oc-index">{card.index} / {card.total}</span>
+            </div>
+            <p class="oc-text">{card.text}</p>
+            <div class="oc-brand">个人商业创造者</div>
+          </li>
+        ))}
+      </ol>
+    </div>
+    <p class="opinion-hint">左右滑动查看，共 {post.takeaways.length} 条核心观点</p>
+  </section>
+)}
+
 <main class="article-body">
   <div class="read-wrap">
-    <div class="article-cover">
-      <img src={post.cover} alt={post.title} width="1600" height="1000" loading="eager" decoding="async">
-    </div>
-
-    {cardTakeaways.length > 0 && (
-      <section class="takeaway">
-        <h3>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>
-          核心观点
-        </h3>
-        <ul class="takeaway-list">
-          {cardTakeaways.map((item) => (
-            <li>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+    {opinionCards.length === 0 && (
+      <div class="article-cover">
+        <img src={post.cover} alt={post.title} width="1600" height="1000" loading="eager" decoding="async">
+      </div>
     )}
 
     <div class="markdown">
