@@ -1,30 +1,39 @@
-// 封面配色：同一 category 内固定色相与饱和度，只提亮明度；第 1 张最深，逐张递进。
-// Astro 页面与 scripts/generate-covers.mjs 共用，保证 HTML 卡片与生成的图片同色。
+// 站点唯一色板：主色 #D8F26B（荧光笔绿）。
+// 封面图片与文章页卡片共用这一份定义；只做明度阶梯，不换色相。
+// 深色文字 4 档透明度，对比度均已按 WCAG 2.x 正文 4.5:1 校验（见 docs 记录）。
 
-export const CATEGORY_THEMES = {
-  '90天实战': { hue: 142, sat: 44, l: 8.4, step: 4.5, accent: '#39FF14' },
-  '产业数字化': { hue: 206, sat: 58, l: 9.4, step: 4.5, accent: '#4DA6FF' },
-  'AI 与产品': { hue: 258, sat: 59, l: 10.8, step: 4.5, accent: '#B48CFF' },
-  '技术与管理': { hue: 44, sat: 41, l: 8.4, step: 4.5, accent: '#F2C14E' },
+export const MAIN = {
+  hex: '#D8F26B',
+  hue: 71.6,
+  sat: 83.9,
+  l: 68.4,
 };
 
-const FALLBACK = CATEGORY_THEMES['90天实战'];
-const MAX_L = 26;
+// 绿色底上一律用近黑文字；strong/body/soft 用于正文、序号、署名，dot 用于圆点普通态。
+export const INK = {
+  strong: 'rgba(12,12,12,.92)',
+  body: 'rgba(12,12,12,.80)',
+  soft: 'rgba(12,12,12,.72)',
+  rule: 'rgba(12,12,12,.24)',
+  dot: 'rgba(12,12,12,.50)',
+  solid: '#0C0C0C',
+};
+
+const STEP = 5;
+const MAX_L = 88;
 
 /**
- * @param {string} category 分类名
- * @param {number} index 0 起的卡片序号
- * @param {number} total 卡片总数
- * @returns {{ bg: string, accent: string, lightness: number }}
+ * 第 index 张卡的底色：以主色为第 1 档，逐张提亮 5%。
+ * @param {number} index 0 起的序号
+ * @param {number} total 卡片总数（仅用于封顶，不改变阶梯）
+ * @returns {{ bg: string, accent: string, lightness: number, ink: object }}
  */
-export function shade(category, index, total) {
-  const theme = CATEGORY_THEMES[category] ?? FALLBACK;
-  const steps = Math.max(total - 1, 1);
-  const rise = Math.min(theme.step * index, MAX_L - theme.l);
-  const lightness = Number((theme.l + rise).toFixed(1));
+export function shade(index, total = 4) {
+  const lightness = Number(Math.min(MAIN.l + STEP * index, MAX_L).toFixed(1));
   return {
-    bg: `hsl(${theme.hue} ${theme.sat}% ${lightness}%)`,
-    accent: theme.accent,
+    bg: `hsl(${MAIN.hue} ${MAIN.sat}% ${lightness}%)`,
+    accent: INK.strong,
     lightness,
+    ink: INK,
   };
 }

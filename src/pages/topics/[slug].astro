@@ -19,11 +19,14 @@ const topicNo = topic.num.split('·')[0].trim();
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0c0c0c">
+<meta name="color-scheme" content="dark">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>{topic.title} — 个人商业创造者</title>
 <meta name="description" content={`${topic.definition} ${topic.title}方向的专题页：在写什么，以及已经发布的相关文章。`}>
 <link rel="stylesheet" href="/fonts/fonts.css">
 <link rel="stylesheet" href="/css/tokens.css">
+<script is:inline>document.documentElement.classList.add('js');</script>
+<script is:inline src="/js/site-shell.js" defer></script>
 <style is:global>
   *{margin:0;padding:0;box-sizing:border-box;}
   html{scroll-behavior:smooth;}

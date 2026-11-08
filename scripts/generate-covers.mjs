@@ -4,7 +4,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import sharp from 'sharp';
-import { shade } from '../src/lib/cover-palette.mjs';
+import { shade, INK } from '../src/lib/cover-palette.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const insightsDir = path.join(root, 'src', 'content', 'insights');
@@ -71,14 +71,15 @@ function cleanCovers(slug) {
 
 async function renderOne(slug, meta, index, total) {
   const headline = meta.takeaways[index];
-  const color = shade(meta.category, index, total);
+  const color = shade(index, total);
   const tag = `card${index + 1}`;
 
   const html = template
     .replace(/{{FONT_SC}}/g, fontUrl('public/fonts/noto-sans-sc.woff2'))
     .replace(/{{FONT_INTER}}/g, fontUrl('public/fonts/inter.woff2'))
     .replace(/{{BG}}/g, color.bg)
-    .replace(/{{ACCENT}}/g, color.accent)
+    .replace(/{{INK_SOFT}}/g, INK.soft)
+    .replace(/{{INK}}/g, INK.strong)
     .replace(/{{CATEGORY}}/g, esc(meta.category))
     .replace(/{{INDEX}}/g, String(index + 1))
     .replace(/{{TOTAL}}/g, String(total))

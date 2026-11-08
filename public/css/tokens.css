@@ -1,5 +1,7 @@
 /* 设计令牌：间距、字号、行高、容器宽度。所有页面在此取用，不再随手写数值。 */
 :root{
+  /* 深色底常驻：文档切换前后都是深色画布，避免白闪 */
+  color-scheme:dark;
   /* 间距只保留 9 档 */
   --space-4:4px;
   --space-8:8px;
@@ -52,4 +54,40 @@
     --gutter:24px;
     --section-y:32px;
   }
+}
+
+/* ===== 深色底与跨文档过渡 ===== */
+/* html 背景在样式表加载时立即生效，配合 color-scheme 让新文档首帧就是深色。 */
+html{background-color:#0A0A0A;}
+
+/* 浏览器原生跨文档视图过渡：Chrome 126+ 生效；不支持时按普通跳转，深色底仍在。 */
+@view-transition{navigation:auto;}
+::view-transition{background-color:#0A0A0A;}
+::view-transition-old(root){animation:vt-fade-out .16s ease both;}
+::view-transition-new(root){animation:vt-fade-in .2s ease .08s both;}
+@keyframes vt-fade-out{to{opacity:0;}}
+@keyframes vt-fade-in{from{opacity:0;}}
+
+/* ===== 跳转进度条：导航开始时出现，新页首帧即消失 ===== */
+.nav-progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--accent,#D8F26B);z-index:1200;opacity:0;pointer-events:none;transition:width .35s ease,opacity .18s ease;}
+.nav-progress.is-active{opacity:1;}
+
+/* ===== 图片占位：尺寸由 width/height 与 aspect-ratio 预留，解码后淡入 ===== */
+.js .markdown img,
+.js .article-cover img,
+.js .project-img img,
+.js .project-preview img{opacity:0;transition:opacity .24s ease;}
+.js .markdown img.img-ready,
+.js .article-cover img.img-ready,
+.js .project-img img.img-ready,
+.js .project-preview img.img-ready{opacity:1;}
+
+@media(prefers-reduced-motion:reduce){
+  ::view-transition-old(root),
+  ::view-transition-new(root){animation:none;}
+  .js .markdown img,
+  .js .article-cover img,
+  .js .project-img img,
+  .js .project-preview img{transition:none;}
+  .nav-progress{transition:none;}
 }

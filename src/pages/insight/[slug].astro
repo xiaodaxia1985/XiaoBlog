@@ -1,7 +1,7 @@
 ---
 import { getCollection, getEntry, render } from 'astro:content';
 import { getAllPosts, toPost } from '../../lib/insights';
-import { shade } from '../../lib/cover-palette.mjs';
+import { shade, INK } from '../../lib/cover-palette.mjs';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
 
@@ -20,13 +20,16 @@ const sameCategory = all.filter((p) => p.category === post.category);
 const index = sameCategory.findIndex((p) => p.slug === post.slug);
 const prevPost = index > 0 ? sameCategory[index - 1] : null;
 const nextPost = sameCategory[index + 1] ?? null;
-// 一条核心观点一张卡：分类色系内明度递进，第 1 张最深。
+// 一条核心观点一张卡：同一主色 #D8F26B，逐张提亮，文字统一深色。
 const opinionCards = post.takeaways.map((text, i) => ({
   text,
   index: i + 1,
   total: post.takeaways.length,
-  ...shade(post.category, i, post.takeaways.length),
+  ...shade(i, post.takeaways.length),
 }));
+
+// 深色文字变量：卡片与封面共用同一组色值（见 cover-palette.mjs）。
+const inkVars = `--oc-ink:${INK.strong};--oc-body:${INK.body};--oc-soft:${INK.soft};--oc-dot:${INK.dot};--oc-rule:${INK.rule}`;
 
 const draftLabel = post.draft ? '草稿 · 未发布' : '';
 const jsonLd = {
@@ -45,6 +48,7 @@ const jsonLd = {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0C0C0C">
+<meta name="color-scheme" content="dark">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>{post.title} — 个人商业创造者</title>
 <meta name="description" content={post.excerpt}>
@@ -62,6 +66,7 @@ const jsonLd = {
 <link rel="stylesheet" href="/fonts/fonts.css">
 <link rel="stylesheet" href="/css/tokens.css">
 <script is:inline>document.documentElement.classList.add('js');</script>
+<script is:inline src="/js/site-shell.js" defer></script>
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
 <style is:global>
   :root{
@@ -91,54 +96,60 @@ const jsonLd = {
 
   .reading-progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--accent);z-index:1100;transition:width .08s linear;}
 
-  .article-head{padding:calc(64px + var(--space-40)) 0 var(--space-32);}
+  /* ===== 阅读版心：桌面约 37 字/行，移动约 20 字/行 ===== */
+  .article-head{padding:calc(64px + 48px) 0 36px;}
   .read-wrap{width:100%;max-width:calc(var(--read-w) + 48px);margin:0 auto;padding:0 24px;}
 
-  .meta-line{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-8);font-family:'Inter',sans-serif;font-size:12px;color:var(--text-muted);margin-bottom:var(--space-16);font-variant-numeric:tabular-nums;}
+  .meta-line{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-8);font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;color:var(--text-muted);margin-bottom:14px;font-variant-numeric:tabular-nums;}
   .meta-line .dot{color:rgba(255,255,255,.22);}
   .article-status{display:inline-flex;align-items:center;padding:2px 8px;border:1px dashed rgba(242,193,78,.45);border-radius:4px;background:rgba(242,193,78,.08);color:#F2C14E;font-size:12px;font-weight:500;letter-spacing:0;}
 
-  .article-title{font-size:clamp(28px,4vw,40px);font-weight:600;line-height:1.3;letter-spacing:0;text-wrap:balance;}
-  .article-tagline{margin-top:var(--space-12);font-size:16px;font-weight:400;line-height:1.7;color:var(--text-secondary);letter-spacing:0;}
+  .article-title{font-size:clamp(30px,3.4vw,42px);font-weight:700;line-height:1.3;letter-spacing:.01em;text-wrap:balance;}
+  .article-tagline{margin-top:14px;font-size:17px;font-weight:400;line-height:1.75;color:var(--text-secondary);letter-spacing:0;}
 
   .article-cover{width:100%;aspect-ratio:16/10;max-height:300px;border-radius:var(--radius);overflow:hidden;background:var(--bg-card);border:1px solid var(--border);margin-bottom:var(--space-24);}
   .article-cover img{width:100%;height:100%;object-fit:cover;}
 
   .article-body{padding-bottom:var(--space-40);}
-  .markdown > p{font-size:16px;color:var(--text-secondary);line-height:1.75;margin:0 0 1.1em;letter-spacing:0;}
-  .markdown > p:first-child{font-size:20px;color:var(--text);line-height:1.65;margin-bottom:1.2em;}
-  .markdown > h2{font-size:20px;font-weight:600;line-height:1.5;margin:40px 0 16px;letter-spacing:0;color:var(--text);}
-  .markdown > h3{font-size:16px;font-weight:600;margin:32px 0 12px;color:var(--text);}
-  .markdown > ul,.markdown > ol{margin:0 0 1.1em 1.3em;color:var(--text-secondary);font-size:16px;line-height:1.75;}
-  .markdown li{margin-bottom:.4em;}
-  .markdown > blockquote{margin:0 0 1.1em;padding:var(--space-8) 0 var(--space-8) var(--space-16);border-left:1px solid rgba(255,255,255,.28);color:var(--text);font-size:16px;}
-  .markdown > blockquote p{margin:0;font-size:16px;}
-  .markdown a{color:var(--accent);border-bottom:1px solid rgba(var(--accent-rgb),.4);}
-  .markdown img{border-radius:var(--radius);margin:var(--space-16) 0;}
-  .markdown code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;}
 
-  /* 核心观点单卡轮播：3 秒自动切换，可横向拖拽/滑动切换；无 JS 时各条纵向堆叠 */
-  .opinion-card{position:relative;width:100%;margin:0 0 var(--space-24);background:var(--card-bg);border:1px solid rgba(255,255,255,.07);border-radius:var(--radius);overflow:hidden;touch-action:pan-y;cursor:grab;}
+  /* 中文长文排版：不缩进、靠段距分层；标题上间距 ≥ 下间距的 2.5 倍。 */
+  .markdown{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-feature-settings:"palt" 1,"kern" 1;font-kerning:normal;}
+  .markdown > p{font-size:18px;line-height:1.9;letter-spacing:.01em;color:var(--text-secondary);margin:0 0 1.35em;}
+  .markdown > p:first-child{font-size:19px;line-height:1.9;letter-spacing:.01em;color:#EDEDEA;margin-bottom:1.6em;}
+  .markdown > h2{font-size:22px;font-weight:700;line-height:1.45;letter-spacing:.02em;margin:2em 0 .7em;color:var(--text);}
+  .markdown > h3{font-size:19px;font-weight:600;line-height:1.5;letter-spacing:.02em;margin:1.8em 0 .55em;color:var(--text);}
+  .markdown > ul,.markdown > ol{margin:0 0 1.35em;padding-left:1.5em;color:var(--text-secondary);font-size:18px;line-height:1.85;}
+  .markdown li{margin-bottom:.45em;}
+  .markdown li::marker{color:var(--text-muted);}
+  .markdown > blockquote{margin:1.6em 0;padding:2px 0 2px 20px;border-left:3px solid rgba(var(--accent-rgb),.55);color:#D6D6D1;font-size:17px;line-height:1.9;}
+  .markdown > blockquote p{margin:0;font-size:17px;line-height:1.9;}
+  .markdown a{color:var(--accent);border-bottom:1px solid rgba(var(--accent-rgb),.4);}
+  .markdown img{border-radius:var(--radius);margin:2em 0;background:var(--bg-card);}
+  .markdown code{font-family:'Inter',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;}
+
+  /* 核心观点单卡轮播：同一主色 #D8F26B，靠明度阶梯区分；深色文字，3 秒自动切换，可拖拽 */
+  .opinion-card{position:relative;width:100%;margin:0 0 var(--space-24);background:var(--card-bg);border:1px solid var(--oc-rule);border-radius:var(--radius);overflow:hidden;touch-action:pan-y;cursor:grab;transition:background-color .3s ease;}
   .opinion-card:active{cursor:grabbing;}
   .js .opinion-card{height:288px;}
-  .opinion-card:focus-visible{outline:2px solid rgba(255,255,255,.55);outline-offset:2px;}
+  .opinion-card:focus-visible{outline:2px solid var(--oc-ink);outline-offset:2px;}
   .opinion-slide{display:flex;flex-direction:column;gap:var(--space-16);padding:var(--space-32);background:var(--card-bg);}
-  .opinion-slide + .opinion-slide{border-top:1px solid rgba(255,255,255,.08);}
+  .opinion-slide + .opinion-slide{border-top:1px solid var(--oc-rule);}
   .js .opinion-slide{position:absolute;inset:0;opacity:0;border-top:0;pointer-events:none;}
   .js .opinion-slide.is-active{opacity:1;pointer-events:auto;animation:oc-fade .3s ease;}
   @keyframes oc-fade{from{opacity:0;}to{opacity:1;}}
-  .oc-meta{display:flex;align-items:center;justify-content:space-between;font-size:12px;letter-spacing:0;color:rgba(255,255,255,.6);}
-  .oc-category{display:flex;align-items:center;gap:var(--space-8);color:rgba(255,255,255,.72);}
-  .oc-index{font-family:'Inter',sans-serif;letter-spacing:0;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums;}
-  .oc-text{flex:1;display:flex;align-items:center;font-size:clamp(22px,2.2vw,32px);font-weight:600;line-height:1.4;letter-spacing:0;color:#fff;text-wrap:balance;}
-  .oc-brand{display:flex;align-items:center;gap:var(--space-8);padding-right:88px;font-size:12px;letter-spacing:0;color:rgba(255,255,255,.6);}
-  .oc-brand::before{content:'';width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.7);flex-shrink:0;}
+  .oc-meta{display:flex;align-items:center;justify-content:space-between;font-size:12px;letter-spacing:.02em;color:var(--oc-soft);}
+  .oc-category{display:flex;align-items:center;gap:var(--space-8);color:var(--oc-soft);}
+  .oc-category::before{content:'';width:24px;height:3px;background:var(--card-accent);flex-shrink:0;}
+  .oc-index{font-family:'Inter',sans-serif;letter-spacing:0;color:var(--oc-soft);font-variant-numeric:tabular-nums;}
+  .oc-text{flex:1;display:flex;align-items:center;font-size:clamp(24px,2.4vw,34px);font-weight:700;line-height:1.35;letter-spacing:.01em;color:var(--oc-ink);text-wrap:balance;}
+  .oc-brand{display:flex;align-items:center;gap:var(--space-8);padding-right:88px;font-size:12px;letter-spacing:.02em;color:var(--oc-soft);}
+  .oc-brand::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--card-accent);flex-shrink:0;}
   .opinion-dots{display:none;}
   .js .opinion-dots{position:absolute;right:var(--space-24);bottom:var(--space-16);display:flex;gap:2px;z-index:2;}
-  .opinion-dot{width:24px;height:24px;padding:0;border:0;background:transparent;display:grid;place-items:center;cursor:pointer;}
-  .opinion-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.32);transition:background-color .2s ease;}
-  .opinion-dot[aria-current="true"]::before{background:var(--text);}
-  .opinion-dot:focus-visible{outline:2px solid rgba(255,255,255,.8);outline-offset:-6px;border-radius:50%;}
+  .opinion-dot{width:32px;height:32px;padding:0;border:0;background:transparent;display:grid;place-items:center;cursor:pointer;}
+  .opinion-dot::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--oc-dot);transition:background-color .2s ease,transform .2s ease;}
+  .opinion-dot[aria-current="true"]::before{background:var(--oc-ink);transform:scale(1.2);}
+  .opinion-dot:focus-visible{outline:2px solid var(--oc-ink);outline-offset:-4px;border-radius:50%;}
 
   .article-tags{display:flex;flex-wrap:wrap;gap:var(--space-8);padding-top:var(--space-24);margin-top:var(--space-40);border-top:1px solid var(--border);}
   .article-tag{padding:4px 8px;border-radius:4px;background:transparent;border:1px solid var(--border);font-size:12px;font-weight:400;color:var(--text-secondary);letter-spacing:0;}
@@ -162,19 +173,28 @@ const jsonLd = {
   .back-insights a:hover{color:var(--text);}
   .back-insights svg{width:16px;height:16px;stroke-width:1.5;}
 
+  /* 移动端：左右留白 20px、正文 17px/1.95，长段落再松一档 */
   @media(max-width:640px){
-    .article-head{padding:calc(56px + var(--space-32)) 0 var(--space-24);}
-    .read-wrap{padding:0 24px;}
-    .article-title{font-size:28px;line-height:1.3;}
-    .article-tagline{font-size:14px;margin-top:var(--space-8);}
-    .markdown > p,.markdown > ul,.markdown > ol{font-size:16px;line-height:1.8;}
-    .markdown > p:first-child{font-size:18px;line-height:1.7;}
+    .article-head{padding:calc(56px + 32px) 0 24px;}
+    .read-wrap{padding:0 20px;}
+    .meta-line{font-size:12px;margin-bottom:12px;}
+    .article-title{font-size:30px;line-height:1.32;}
+    .article-tagline{font-size:16px;line-height:1.75;margin-top:12px;}
+    .markdown > p{font-size:17px;line-height:1.95;margin-bottom:1.45em;}
+    .markdown > p:first-child{font-size:18px;line-height:1.9;margin-bottom:1.7em;}
+    .markdown > h2{font-size:20px;margin:2.2em 0 .8em;}
+    .markdown > h3{font-size:18px;margin:1.9em 0 .6em;}
+    .markdown > ul,.markdown > ol{font-size:17px;line-height:1.9;padding-left:1.4em;}
+    .markdown > blockquote{margin:1.5em 0;padding-left:16px;font-size:16px;}
+    .markdown > blockquote p{font-size:16px;}
+    .markdown img{margin:1.6em 0;}
     .article-cover{margin-bottom:var(--space-24);}
-    .js .opinion-card{height:250px;}
+    .js .opinion-card{height:214px;}
     .opinion-slide{padding:20px;gap:var(--space-12);}
-    .oc-text{font-size:20px;line-height:1.45;}
-    .oc-brand{padding-right:84px;}
-    .js .opinion-dots{right:12px;bottom:8px;}
+    .oc-text{font-size:20px;line-height:1.5;}
+    .oc-brand{padding-right:96px;}
+    .js .opinion-dots{right:10px;bottom:6px;gap:0;}
+    .opinion-dot{width:36px;height:36px;}
     .article-nav{grid-template-columns:1fr;}
     .article-nav-link.next{text-align:left;align-items:flex-start;}
     .author-card{padding:var(--space-16);}
@@ -208,9 +228,9 @@ const jsonLd = {
 
 {opinionCards.length > 0 && (
   <div class="read-wrap">
-    <section class="opinion-card" data-opinion tabindex="0" role="group" aria-roledescription="轮播" aria-label={`核心观点，共 ${post.takeaways.length} 条`} style={`--card-bg:${opinionCards[0].bg};--card-accent:${opinionCards[0].accent}`}>
+    <section class="opinion-card" data-opinion tabindex="0" role="group" aria-roledescription="轮播" aria-label={`核心观点，共 ${post.takeaways.length} 条`} style={`--card-bg:${opinionCards[0].bg};--card-accent:${opinionCards[0].accent};${inkVars}`}>
       {opinionCards.map((card, i) => (
-        <article class={`opinion-slide${i === 0 ? ' is-active' : ''}`} data-slide style={`--card-bg:${card.bg};--card-accent:${card.accent}`} aria-label={`第 ${card.index} 条，共 ${card.total} 条`}>
+        <article class={`opinion-slide${i === 0 ? ' is-active' : ''}`} data-slide style={`--card-bg:${card.bg};--card-accent:${card.accent};${inkVars}`} aria-label={`第 ${card.index} 条，共 ${card.total} 条`}>
           <div class="oc-meta">
             <span class="oc-category">{post.category}</span>
             <span class="oc-index">{card.index} / {card.total}</span>
@@ -359,8 +379,10 @@ const jsonLd = {
     });
 
     // 拖拽 / 滑动切换
+    // 拖拽 / 滑动切换：从圆点、链接等可交互元素上按下时不启动拖拽，避免指针捕获吃掉 click
     card.addEventListener('pointerdown', function (event) {
       if (event.pointerType === 'mouse' && event.button !== 0) return;
+      if (event.target.closest('button, a, input, textarea')) return;
       dragging = true;
       startX = event.clientX;
       startY = event.clientY;

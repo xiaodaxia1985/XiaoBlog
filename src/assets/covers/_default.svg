@@ -6,8 +6,8 @@
       <stop offset="1" stop-color="#1b1b1b"/>
     </linearGradient>
     <radialGradient id="glow" cx="0.82" cy="0.18" r="0.55">
-      <stop offset="0" stop-color="#39FF14" stop-opacity="0.16"/>
-      <stop offset="1" stop-color="#39FF14" stop-opacity="0"/>
+      <stop offset="0" stop-color="#D8F26B" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#D8F26B" stop-opacity="0"/>
     </radialGradient>
     <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
       <path d="M80 0H0V80" fill="none" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="1"/>
@@ -16,11 +16,11 @@
   <rect width="1600" height="900" fill="url(#bg)"/>
   <rect width="1600" height="900" fill="url(#grid)"/>
   <rect width="1600" height="900" fill="url(#glow)"/>
-  <g fill="none" stroke="#39FF14" stroke-opacity="0.5" stroke-width="2">
+  <g fill="none" stroke="#D8F26B" stroke-opacity="0.5" stroke-width="2">
     <path d="M300 620 L520 470 L720 520 L940 350 L1180 400 L1360 250"/>
     <path d="M300 620 L520 700 L760 660 L980 730 L1220 640"/>
   </g>
-  <g fill="#39FF14">
+  <g fill="#D8F26B">
     <circle cx="300" cy="620" r="7" fill-opacity="0.9"/>
     <circle cx="520" cy="470" r="5" fill-opacity="0.7"/>
     <circle cx="720" cy="520" r="5" fill-opacity="0.7"/>
@@ -32,7 +32,7 @@
     <circle cx="980" cy="730" r="4" fill-opacity="0.55"/>
     <circle cx="1220" cy="640" r="4" fill-opacity="0.55"/>
   </g>
-  <g stroke="#39FF14" stroke-opacity="0.85" stroke-linecap="square">
+  <g stroke="#D8F26B" stroke-opacity="0.85" stroke-linecap="square">
     <line x1="96" y1="112" x2="188" y2="112" stroke-width="4"/>
   </g>
   <g fill="#FFFFFF" fill-opacity="0.28">

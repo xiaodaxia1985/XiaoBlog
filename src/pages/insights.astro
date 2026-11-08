@@ -14,11 +14,14 @@ const topicCountOf = (t) => posts.filter((p) => p.topic === t).length;
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0c0c0c">
+<meta name="color-scheme" content="dark">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>洞察 — 个人商业创造者</title>
 <meta name="description" content="记录从信息消费者到商业创造者的真实过程：90 天实战、产业数字化、AI 与产品、技术与管理。">
 <link rel="stylesheet" href="/fonts/fonts.css">
 <link rel="stylesheet" href="/css/tokens.css">
+<script is:inline>document.documentElement.classList.add('js');</script>
+<script is:inline src="/js/site-shell.js" defer></script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   html{scroll-behavior:smooth;}
@@ -49,6 +52,8 @@ const topicCountOf = (t) => posts.filter((p) => p.topic === t).length;
   /* ===== 筛选 ===== */
   main{padding:var(--space-32) 0 var(--space-56);}
   .filter-stack{display:flex;flex-direction:column;gap:var(--space-12);margin-bottom:var(--space-32);}
+  .filter-row{display:flex;align-items:center;gap:var(--space-8);}
+  .filter-scroll{display:block;position:relative;flex:1 1 auto;min-width:0;}
   .filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-8);}
   .filter-label{min-width:2.5em;margin-right:var(--space-4);font-size:var(--fs-12);color:var(--text-muted);letter-spacing:0;}
   .filter-chip{display:inline-flex;align-items:center;gap:var(--space-8);padding:var(--space-4) var(--space-12);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:var(--fs-14);color:var(--text-secondary);transition:color .2s ease,border-color .2s ease,background-color .2s ease;}
@@ -84,6 +89,16 @@ const topicCountOf = (t) => posts.filter((p) => p.topic === t).length;
     .page-hero{padding:calc(56px + var(--space-32)) 0 var(--space-24);}
     .page-hero h1{font-size:30px;line-height:1.25;}
     .page-intro{font-size:var(--fs-14);}
+    /* 筛选：每组固定一行、横向滑动；48px 可点高度 */
+    .filter-stack{gap:10px;margin-bottom:var(--space-24);}
+    .filter-row{flex-wrap:nowrap;gap:var(--space-8);height:44px;}
+    .filter-label{flex:0 0 auto;min-width:auto;margin-right:0;font-size:12px;}
+    .filter-scroll{position:relative;height:44px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;-webkit-mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 26px),transparent 100%);mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 26px),transparent 100%);}
+    .filter-scroll::-webkit-scrollbar{display:none;}
+    .filter-scroll.is-end{-webkit-mask-image:none;mask-image:none;}
+    .filter-bar{flex-wrap:nowrap;width:max-content;min-width:100%;height:44px;gap:var(--space-8);}
+    .filter-chip{flex:0 0 auto;height:44px;padding:0 var(--space-12);white-space:nowrap;}
+    .filter-chip.active{font-weight:500;}
     .post-grid{grid-template-columns:1fr;}
     .post-card{min-height:0;padding:var(--space-16);}
   }
@@ -105,19 +120,27 @@ const topicCountOf = (t) => posts.filter((p) => p.topic === t).length;
 
 <main class="wrap">
   <div class="filter-stack">
-    <div class="filter-bar" role="group" aria-label="按分类筛选">
+    <div class="filter-row">
       <span class="filter-label">分类</span>
-      <a class="filter-chip active" href="/insights/" data-category-filter="all">全部{posts.length > 0 && <span>{posts.length}</span>}</a>
-      {categories.map((c) => (
-        <a class="filter-chip" href={`/insights/?category=${encodeURIComponent(c)}`} data-category-filter={c}>{c}{countOf(c) > 0 && <span>{countOf(c)}</span>}</a>
-      ))}
+      <div class="filter-scroll" tabindex="0" role="group" aria-label="按分类筛选，可横向滚动" data-filter-scroll>
+        <div class="filter-bar">
+          <a class="filter-chip active" href="/insights/" data-category-filter="all">全部{posts.length > 0 && <span>{posts.length}</span>}</a>
+          {categories.map((c) => (
+            <a class="filter-chip" href={`/insights/?category=${encodeURIComponent(c)}`} data-category-filter={c}>{c}{countOf(c) > 0 && <span>{countOf(c)}</span>}</a>
+          ))}
+        </div>
+      </div>
     </div>
-    <div class="filter-bar" role="group" aria-label="按方向筛选">
+    <div class="filter-row">
       <span class="filter-label">方向</span>
-      <a class="filter-chip active" href="/insights/" data-topic-filter="all">全部{posts.length > 0 && <span>{posts.length}</span>}</a>
-      {topics.map((t) => (
-        <a class="filter-chip" href={`/insights/?topic=${encodeURIComponent(t)}`} data-topic-filter={t}>{t}{topicCountOf(t) > 0 && <span>{topicCountOf(t)}</span>}</a>
-      ))}
+      <div class="filter-scroll" tabindex="0" role="group" aria-label="按方向筛选，可横向滚动" data-filter-scroll>
+        <div class="filter-bar">
+          <a class="filter-chip active" href="/insights/" data-topic-filter="all">全部{posts.length > 0 && <span>{posts.length}</span>}</a>
+          {topics.map((t) => (
+            <a class="filter-chip" href={`/insights/?topic=${encodeURIComponent(t)}`} data-topic-filter={t}>{t}{topicCountOf(t) > 0 && <span>{topicCountOf(t)}</span>}</a>
+          ))}
+        </div>
+      </div>
     </div>
   </div>
 
@@ -178,7 +201,11 @@ const topicCountOf = (t) => posts.filter((p) => p.topic === t).length;
     });
     categoryChips.forEach((chip) => chip.classList.toggle('active', chip.dataset.categoryFilter === c));
     topicChips.forEach((chip) => chip.classList.toggle('active', chip.dataset.topicFilter === t));
-    if (countEl) countEl.textContent = shown;
+    if (countEl) {
+      countEl.textContent = shown;
+      const countWrap = countEl.closest('.count');
+      if (countWrap) countWrap.hidden = shown === 0; // 不出现「0 篇」，与空结果提示并存
+    }
     if (emptyEl) {
       emptyEl.hidden = shown > 0 || cards.length === 0;
       if (emptyFilters) {
@@ -201,12 +228,42 @@ const topicCountOf = (t) => posts.filter((p) => p.topic === t).length;
 
   applyFilter(currentCategory, currentTopic);
 
+  // 横向筛选条：选中项居中、两端渐隐、方向键可滚、可聚焦
+  const scrollers = [...document.querySelectorAll('[data-filter-scroll]')];
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+  function centerChip(chip, smooth) {
+    const box = chip.closest('[data-filter-scroll]');
+    if (!box || box.scrollWidth <= box.clientWidth + 1) return;
+    const left = chip.offsetLeft - (box.clientWidth - chip.offsetWidth) / 2;
+    box.scrollTo({ left: Math.max(0, left), behavior: smooth && !reduceMotion.matches ? 'smooth' : 'auto' });
+  }
+
+  function syncEdges(box) {
+    box.classList.toggle('is-end', box.scrollLeft + box.clientWidth >= box.scrollWidth - 2);
+  }
+
+  scrollers.forEach((box) => {
+    syncEdges(box);
+    box.addEventListener('scroll', () => syncEdges(box), { passive: true });
+    box.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+      event.preventDefault();
+      const step = Math.round(box.clientWidth * 0.6) * (event.key === 'ArrowRight' ? 1 : -1);
+      box.scrollBy({ left: step, behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+    });
+    box.querySelectorAll('.filter-chip').forEach((chip) => {
+      chip.addEventListener('focus', () => centerChip(chip, false));
+    });
+  });
+
   categoryChips.forEach((chip) => {
     chip.addEventListener('click', (e) => {
       e.preventDefault();
       currentCategory = chip.dataset.categoryFilter;
       applyFilter(currentCategory, currentTopic);
       syncUrl();
+      centerChip(chip, true);
     });
   });
 
@@ -216,8 +273,12 @@ const topicCountOf = (t) => posts.filter((p) => p.topic === t).length;
       currentTopic = chip.dataset.topicFilter;
       applyFilter(currentCategory, currentTopic);
       syncUrl();
+      centerChip(chip, true);
     });
   });
+
+  // 带 query 打开时，让已选中的 chip 直接可见
+  [...document.querySelectorAll('.filter-chip.active')].forEach((chip) => centerChip(chip, false));
 </script>
 </body>
 </html>
