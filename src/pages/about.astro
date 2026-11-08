@@ -50,11 +50,11 @@ import Footer from '../components/Footer.astro';
   .tl{display:grid;grid-template-columns:30px 132px minmax(0,1fr);column-gap:18px;padding:18px 0;border-top:1px solid var(--border);}
   .tl:first-child{border-top:none;padding-top:2px;}
   .tl-no{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;color:var(--accent);padding-top:2px;}
-  .tl-year{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11.5px;letter-spacing:0;color:var(--text-muted);padding-top:3px;white-space:nowrap;}
+  .tl-year{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:12px;letter-spacing:0;color:var(--text-muted);padding-top:3px;white-space:nowrap;}
   .tl-body{border-left:3px solid rgba(216,242,107,.24);padding-left:16px;}
   .tl:first-child .tl-body{border-left-color:var(--accent);}
   .tl-body h3{font-size:16px;font-weight:600;line-height:1.55;letter-spacing:.006em;color:var(--text);margin-bottom:6px;}
-  .tl-duty{max-width:600px;font-size:13.5px;line-height:1.8;color:var(--text-secondary);}
+  .tl-duty{max-width:600px;font-size:15px;line-height:1.8;color:var(--text-secondary);}
 
   /* 教育 / 技术方向 / 专利：三块 */
   .fact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
@@ -102,7 +102,6 @@ import Footer from '../components/Footer.astro';
     .tl-year{grid-column:2;grid-row:1;padding-top:0;}
     .tl-body{grid-column:2;grid-row:2;padding-left:12px;border-left-width:2px;}
     .tl-body h3{font-size:15px;}
-    .tl-duty{font-size:13px;}
     .fact-grid{grid-template-columns:1fr;}
     .skill-grid{grid-template-columns:1fr;}
     .skill-item:nth-child(2){border-top:1px solid var(--border);padding-top:14px;}
