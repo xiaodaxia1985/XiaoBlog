@@ -7,6 +7,7 @@ const insights = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/insights' }),
   schema: z.object({
     title: z.string().min(1),
+    tagline: z.string().optional(),
     category: z.enum(CATEGORIES),
     topic: z.enum(TOPICS).optional(),
     date: z

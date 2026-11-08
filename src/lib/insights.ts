@@ -23,6 +23,7 @@ export type Post = {
   slug: string;
   url: string;
   title: string;
+  tagline: string;
   category: string;
   topic: string;
   date: string;
@@ -123,6 +124,7 @@ export function toPost(entry: any): Post {
     slug: entry.id,
     url: `/insight/${entry.id}/`,
     title: entry.data.title,
+    tagline: entry.data.tagline ?? '',
     category: entry.data.category,
     topic: entry.data.topic ?? '',
     date,
