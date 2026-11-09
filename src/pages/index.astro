@@ -44,23 +44,25 @@ const countByTopic = (topic) => posts.filter((post) => post.topic === topic.titl
   ::selection{background:var(--accent);color:var(--accent-ink);}
   :focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:3px;}
   .wrap{width:min(var(--max-width),calc(100% - 64px));margin-inline:auto;}
-  .hero{padding:clamp(112px,14vw,176px) 0 76px;border:0;}
+  .hero{padding:clamp(104px,10vw,136px) 0 64px;border:0;}
   .hero-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.7fr);gap:clamp(48px,8vw,112px);align-items:end;}
   .eyebrow{display:flex;align-items:center;gap:10px;color:var(--accent);font-size:11px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:24px;}
   .eyebrow:before{content:'';width:22px;height:1px;background:var(--accent);}
-  h1{max-width:760px;font-size:clamp(42px,6.2vw,76px);line-height:1.16;font-weight:650;letter-spacing:-.045em;text-wrap:balance;}
+  h1{max-width:760px;font-size:clamp(32px,4.4vw,54px);line-height:1.16;font-weight:650;letter-spacing:-.045em;text-wrap:balance;}
   .hero-deck{max-width:650px;margin-top:26px;font-size:clamp(16px,1.7vw,19px);line-height:1.9;color:var(--text-secondary);}
   .hero-deck strong{color:var(--text);font-weight:550;}
   .hero-actions{display:flex;align-items:center;gap:24px;margin-top:34px;}
   .primary-link{display:inline-flex;align-items:center;gap:12px;padding:12px 18px;background:var(--accent);color:var(--accent-ink);font-size:13px;font-weight:650;border-radius:5px;transition:transform .2s ease,background .2s ease;}
   .primary-link:hover{background:#e5f995;transform:translateY(-2px);}
+  .primary-link:focus-visible{box-shadow:0 0 0 4px rgba(216,242,107,.2);}
   .text-link{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);transition:color .2s ease;}
-  .text-link:hover{color:var(--text);}
+  .text-link:hover,.text-link:focus-visible{color:var(--accent);}
   .hero-aside{padding:24px 0 4px 26px;border-left:1px solid var(--border);}
   .aside-label{font-size:11px;color:var(--text-muted);letter-spacing:.12em;margin-bottom:16px;}
   .aside-statement{font-size:17px;line-height:1.75;font-weight:550;color:var(--text);}
   .aside-detail{margin-top:12px;font-size:13px;line-height:1.85;color:var(--text-secondary);}
-  .aside-link{display:inline-flex;align-items:center;gap:8px;margin-top:20px;font-size:12px;color:var(--accent);}
+  .aside-link{display:inline-flex;align-items:center;gap:8px;margin-top:20px;font-size:12px;color:var(--accent);transition:gap .18s ease,color .18s ease;}
+  .aside-link:hover,.aside-link:focus-visible{gap:12px;color:#e5f995;}
   .section{padding:76px 0;border-top:1px solid var(--border);}
   .section-heading{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:30px;}
   .section-kicker{font-size:11px;color:var(--text-muted);letter-spacing:.14em;margin-bottom:9px;}
@@ -69,7 +71,8 @@ const countByTopic = (topic) => posts.filter((post) => post.topic === topic.titl
   .topic-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
   .topic{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-height:258px;padding:26px 28px 26px 0;transition:background .2s ease;}
   .topic+.topic{border-left:1px solid var(--border);padding-left:28px;}
-  .topic:hover h3{color:var(--accent);}
+  .topic:hover h3,.topic:focus-visible h3{color:var(--accent);}
+  .topic:focus-visible{outline-offset:5px;background:rgba(216,242,107,.035);}
   .topic-label{font-size:10px;letter-spacing:.14em;color:var(--accent);margin-bottom:22px;}
   .topic h3{font-size:21px;font-weight:600;line-height:1.5;transition:color .2s ease;}
   .topic p{margin-top:10px;color:var(--text-secondary);font-size:13px;line-height:1.9;}
@@ -90,16 +93,16 @@ const countByTopic = (topic) => posts.filter((post) => post.topic === topic.titl
   .progress-segment.is-current:after{content:'';position:absolute;inset:0;background:var(--accent);border-radius:10px;}
   .practice-bottom{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-top:16px;font-size:11px;color:var(--text-muted);}
   .practice-bottom a{color:var(--text);border-bottom:1px solid rgba(255,255,255,.3);padding-bottom:2px;}
-  .practice-bottom a:hover{color:var(--accent);border-color:var(--accent);}
+  .practice-bottom a:hover,.practice-bottom a:focus-visible{color:var(--accent);border-color:var(--accent);}
   .article-list{border-top:1px solid var(--border);}
   .article{display:grid;grid-template-columns:120px minmax(0,1fr) 24px;gap:24px;align-items:center;padding:23px 8px;border-bottom:1px solid var(--border);transition:background .2s ease,padding .2s ease;}
-  .article:hover{padding-inline:16px;background:rgba(255,255,255,.025);}
+  .article:hover,.article:focus-visible{padding-inline:16px;background:rgba(255,255,255,.035);}
   .article-meta{display:flex;flex-direction:column;gap:6px;font-size:11px;color:var(--text-muted);}
   .article-category{color:var(--accent);}
   .article-body h3{font-size:17px;font-weight:550;line-height:1.55;}
   .article-body p{margin-top:5px;color:var(--text-secondary);font-size:12px;line-height:1.75;}
   .article-arrow{font-size:18px;color:var(--text-muted);transition:transform .2s ease,color .2s ease;}
-  .article:hover .article-arrow{transform:translate(3px,-3px);color:var(--accent);}
+  .article:hover .article-arrow,.article:focus-visible .article-arrow{transform:translate(3px,-3px);color:var(--accent);}
   .all-articles{display:flex;justify-content:flex-end;margin-top:22px;}
   .all-articles a{font-size:12px;color:var(--text-secondary);}
   .all-articles a:hover{color:var(--accent);}
@@ -116,7 +119,7 @@ const countByTopic = (topic) => posts.filter((post) => post.topic === topic.titl
   @media(max-width:600px){
     .wrap{width:calc(100% - 40px);}
     .hero{padding:104px 0 52px;}
-    h1{font-size:clamp(38px,11vw,52px);}
+    h1{font-size:clamp(30px,8vw,38px);line-height:1.25;max-width:600px;}
     .hero-deck{font-size:15px;margin-top:20px;}
     .hero-actions{gap:18px;margin-top:26px;flex-wrap:wrap;}
     .hero-aside{padding:18px 0 0 18px;}
