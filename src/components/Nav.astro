@@ -67,7 +67,21 @@ const { active = '', variant = 'main', backHref = '/insights', backLabel = 'è¿”å
       toggle.classList.toggle('open');
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
-    document.addEventListener('keydown', (event) => {\n      if (event.key === 'Escape' && links.classList.contains('open')) {\n        links.classList.remove('open');\n        toggle.classList.remove('open');\n        toggle.setAttribute('aria-expanded', 'false');\n        toggle.focus();\n      }\n    });\n    document.addEventListener('click', (event) => {\n      if (!links.classList.contains('open')) return;\n      if (links.contains(event.target) || toggle.contains(event.target)) return;\n      links.classList.remove('open');\n      toggle.classList.remove('open');\n      toggle.setAttribute('aria-expanded', 'false');\n    });\n    links.querySelectorAll('a').forEach((link) => {
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && links.classList.contains('open')) {
+        links.classList.remove('open');
+        toggle.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.focus();
+      }
+    });
+    document.addEventListener('click', (event) => {
+      if (!links.classList.contains('open')) return;
+      if (links.contains(event.target) || toggle.contains(event.target)) return;
+      links.classList.remove('open');
+      toggle.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    });
       link.addEventListener('click', () => {
         links.classList.remove('open');
         toggle.classList.remove('open');
