@@ -17,7 +17,7 @@ import Footer from '../components/Footer.astro';
 <meta property="og:locale" content="zh_CN">
 <meta property="og:title" content="项目作品 — 个人商业创造者">
 <meta property="og:description" content="项目记录：产业数字化、AI 与产品创造的实践档案。">
-<meta property="og:url" content={new URL('/projects/', Astro.site).toString()}>
+<meta property="og:url" content={new URL('/projects/', Astro.site ?? 'https://xiaomaker.top').toString()}>
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="项目作品 — 个人商业创造者">
 <meta name="twitter:description" content="项目记录：产业数字化、AI 与产品创造的实践档案。">
