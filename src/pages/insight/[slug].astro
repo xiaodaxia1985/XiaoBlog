@@ -102,7 +102,7 @@ const jsonLd = {
 
   .reading-progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--accent);z-index:1100;transition:width .08s linear;}
 
-  /* ===== 容器：页头、轮播卡、正文共用同一条版心线 ===== */
+  /* ===== 容器：标题、观点卡与正文使用同一阅读版心 ===== */
   .art-inner{width:100%;max-width:1120px;margin:0 auto;padding:0 28px;}
   .col{max-width:var(--art-w);margin-left:calc((100% - var(--toc-w) - var(--content-gap) - var(--art-w))/2 + var(--toc-w) + var(--content-gap));}
   .article-head .art-inner{max-width:1120px;}
@@ -173,7 +173,7 @@ const jsonLd = {
   body.is-focus-mode .reading-content > .col{margin-left:0;}
 
 
-  /* ===== 正文：左编号栏 + 节分割线 + 判断块 + 引用卡 ===== */
+  /* ===== 原生 Markdown 正文排版 ===== */
   .markdown{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-feature-settings:"palt" 1,"kern" 1;font-kerning:normal;}
   .markdown p{font-size:var(--reading-font,17px);line-height:1.82;letter-spacing:.008em;color:var(--body);margin:0 0 26px;}
   .markdown p:last-child{margin-bottom:0;}
@@ -244,27 +244,14 @@ const jsonLd = {
     .art-inner{max-width:100%;padding:0 20px;}
     .col{margin-left:0;max-width:100%;}
     .article-head .col,.card-col{max-width:100%;}
-    .intro{margin-left:0;max-width:100%;}
-    .end-mark{margin-left:0;max-width:100%;}
     .article-head{padding:calc(56px + 28px) 0 22px;}
     .meta-line{font-size:12px;margin-bottom:10px;}
     .article-title{font-size:26px;line-height:1.34;}
     .article-tagline{font-size:14.5px;line-height:1.75;margin-top:10px;}
     .markdown p{font-size:var(--reading-font,16px);line-height:1.85;margin-bottom:22px;}
-    .hook{font-size:32px!important;margin-bottom:14px!important;}
-    .key{margin:24px 0;padding:16px 0;}
-    .key-tag{font-size:9.5px;margin-bottom:6px;}
-    .key p{font-size:18px!important;line-height:1.7!important;}
-    .quote{margin:24px 0;padding:18px 18px;}
-    .quote p{font-size:16px!important;line-height:1.85!important;}
-    .art-list{font-size:16px;line-height:1.85;padding-left:1.25em;margin-bottom:22px;}
-    .art-figure{margin:26px 0;}
-    .art-figure figcaption{font-size:12px;}
     .markdown h2{gap:12px;padding-top:22px;margin:28px 0 16px;font-size:18px;}
     .markdown h2::before{flex-basis:30px;font-size:19px;}
     .markdown h3{font-size:16.5px;margin:22px 0 12px;}
-    .end-mark{margin-top:32px;padding-top:20px;}
-    .end-mark span{font-size:15.5px;}
     .article-cover{max-height:none;}
     .js .opinion-card{min-height:200px;}
     .opinion-slide{padding:20px;gap:var(--space-12);}
