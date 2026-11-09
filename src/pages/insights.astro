@@ -7,6 +7,7 @@ import Footer from '../components/Footer.astro';
 const posts = await getPublishedPosts();
 const countOf = (c) => posts.filter((p) => p.category === c).length;
 const topicCountOf = (t) => posts.filter((p) => p.topic === t).length;
+import { ClientRouter } from 'astro:transitions';
 ---
 <!DOCTYPE html>
 <html lang="zh-CN" style="background:#0c0c0c;">
@@ -112,6 +113,7 @@ const topicCountOf = (t) => posts.filter((p) => p.topic === t).length;
     .post-card{min-height:0;padding:var(--space-16);}
   }
 </style>
+  <ClientRouter fallback="swap" />
 </head>
 <body>
 
