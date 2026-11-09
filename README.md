@@ -133,7 +133,7 @@ category: "90天实战"
 - `/about/` 关于页：01–05 编号时间线，简历与当前在做的事
 - `/projects/`：项目档案列表
 - `/projects/<slug>/`：项目详情静态路由（独立 HTML、canonical 与结构化数据）
-- `/sitemap.xml`：已发布文章、专题页、项目页与主要静态页的站点地图
+- `/sitemap.xml`：已发布文章、专题页、项目页与主要静态页的站点地图；`/robots.txt` 声明 sitemap
 - `/project?id=N`：旧链接兼容跳转到对应静态项目页
 - `/insight/?id=N` 旧链接跳到新地址，映射在 `src/data/legacy-ids.mjs`
 
