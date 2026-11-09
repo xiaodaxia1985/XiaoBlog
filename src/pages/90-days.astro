@@ -1,9 +1,12 @@
 ---
-import { stages } from '../data/stages.mjs';
+import { getPracticeSnapshot } from '../data/stages.mjs';
 import { getPublishedPosts } from '../lib/insights';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 
+const practice = getPracticeSnapshot();
+const stages = practice.stages;
+const currentStage = stages.find((stage) => stage.id === practice.currentStageId) ?? stages[0];
 const published = await getPublishedPosts();
 const postOf = (slug) => published.find((p) => p.slug === slug);
 const archiveCount = published.filter((p) => p.category === '90天实战').length;
@@ -105,11 +108,11 @@ const cnNums = ['一', '二', '三', '四'];
     <h1>我的 90 天创造者实践</h1>
     <p class="intro">从寻找真实需求开始，用 90 天做出一个产品，并公开记录每一步。</p>
     <div class="hero-meta">
-      <span>2026.11.08 — 2027.02.05</span>
+      <span data-practice-period>2026.11.08 — 2027.02.05</span>
       <span class="sep" aria-hidden="true">·</span>
-      <span class="day">Day 01 / 90</span>
+      <span class="day" data-practice-day>Day 01 / 90</span>
       <span class="sep" aria-hidden="true">·</span>
-      <span class="state">当前 · 第一阶段</span>
+      <span class="state" data-practice-state>当前 · 第一阶段</span>
     </div>
     <div class="hero-actions">
       <a class="btn btn-primary" href="/insights/?category=90天实战">查看实战记录{archiveCount > 0 && ` · ${archiveCount} 篇`}</a>
@@ -123,11 +126,11 @@ const cnNums = ['一', '二', '三', '四'];
     {stages.map((s) => {
       const posts = s.postIds.map(postOf).filter(Boolean).slice(0, 2);
       return (
-        <article class={`stage-card${s.status === '当前' ? ' is-current' : ''}`} id={`stage-${s.id}`}>
+        <article class={`stage-card${s.status === '当前' ? ' is-current' : ''}`} id={`stage-${s.id}`} data-practice-stage data-stage-start={s.startDate} data-stage-end={s.endDate}>
           <div class="stage-head">
             <span class="stage-no">第{cnNums[s.id - 1]}阶段</span>
-            <span class="stage-range">{s.range.start} — {s.range.end} · {s.days} 天</span>
-            <span class={`stage-state${s.status === '当前' ? ' is-current' : ''}`}>{s.status}</span>
+            <span class="stage-range" data-stage-range>{s.range.start} — {s.range.end} · {s.days} 天</span>
+            <span class={`stage-state${s.status === '当前' ? ' is-current' : ''}`} data-stage-status>{s.status}</span>
           </div>
           <h2>{s.name}</h2>
           <p class="stage-goal">{s.goal}</p>
@@ -155,5 +158,6 @@ const cnNums = ['一', '二', '三', '四'];
 </main>
 
 <Footer />
+<script is:inline src="/js/practice-clock.js" defer></script>
 </body>
 </html>
