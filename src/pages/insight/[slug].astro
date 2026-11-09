@@ -31,6 +31,8 @@ const opinionCards = post.takeaways.map((text, i) => ({
 const inkVars = `--oc-ink:${INK.strong};--oc-body:${INK.body};--oc-soft:${INK.soft};--oc-dot:${INK.dot};--oc-rule:${INK.rule}`;
 
 const draftLabel = post.draft ? '草稿 · 未发布' : '';
+const canonical = new URL(post.url, Astro.site ?? 'https://xiaomaker.top').toString();
+const coverUrl = new URL(post.cover, Astro.site ?? 'https://xiaomaker.top').toString();
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
@@ -38,7 +40,7 @@ const jsonLd = {
   datePublished: post.date.replace(/\./g, '-'),
   author: { '@type': 'Person', name: '个人商业创造者' },
   description: post.excerpt,
-  image: post.cover,
+  image: coverUrl,
 };
 
 
@@ -54,17 +56,17 @@ const jsonLd = {
 <title>{post.title} — 个人商业创造者</title>
 <meta name="description" content={post.excerpt}>
 {post.draft && <meta name="robots" content="noindex,nofollow">}
-<link rel="canonical" href={post.url}>
+<link rel="canonical" href={canonical}>
 <meta property="og:type" content="article">
 <meta property="og:title" content={post.title}>
 <meta property="og:description" content={post.excerpt}>
-<meta property="og:image" content={post.cover}>
-<meta property="og:url" content={post.url}>
+<meta property="og:image" content={coverUrl}>
+<meta property="og:url" content={canonical}>
 <meta property="article:published_time" content={post.date.replace(/\./g, '-')}>
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content={post.title}>
 <meta name="twitter:description" content={post.excerpt}>
-<meta name="twitter:image" content={post.cover}>
+<meta name="twitter:image" content={coverUrl}>
 <link rel="stylesheet" href="/fonts/fonts.css">
 <link rel="stylesheet" href="/css/tokens.css">
 <script is:inline>document.documentElement.classList.add('js');</script>
