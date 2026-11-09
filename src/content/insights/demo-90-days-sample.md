@@ -2,6 +2,7 @@
 title: "示范稿：90 天里，我先验证一件小事"
 category: "90天实战"
 topic: "个人商业创造"
+date: "2026.11.08"
 draft: true
 ---
 

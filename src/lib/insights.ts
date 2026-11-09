@@ -1,5 +1,4 @@
 import { getCollection } from 'astro:content';
-import fs from 'node:fs';
 import path from 'node:path';
 import defaultCover from '../assets/covers/_default.svg';
 
@@ -87,25 +86,9 @@ function pad(n: number): string {
   return String(n).padStart(2, '0');
 }
 
-function formatDate(date: Date): string {
-  return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}`;
-}
-
-/** frontmatter 不写 date 时，取文件修改时间；读不到就用构建当天。 */
-function resolveDate(entry: { id: string; filePath?: string; data: { date?: string } }): string {
-  if (entry.data.date) {
-    const parts = entry.data.date.match(/\d+/g) || [];
-    if (parts.length >= 3) return `${parts[0]}.${pad(Number(parts[1]))}.${pad(Number(parts[2]))}`;
-    return entry.data.date;
-  }
-  const candidates = [
-    entry.filePath,
-    path.join(process.cwd(), 'src/content/insights', `${entry.id}.md`),
-  ].filter(Boolean) as string[];
-  for (const file of candidates) {
-    if (fs.existsSync(file)) return formatDate(fs.statSync(file).mtime);
-  }
-  return formatDate(new Date());
+function resolveDate(value: string): string {
+  const parts = value.match(/\d+/g) || [];
+  return `${parts[0]}.${pad(Number(parts[1]))}.${pad(Number(parts[2]))}`;
 }
 
 function resolveCover(slug: string, override?: string): string {
@@ -120,7 +103,7 @@ function resolveCover(slug: string, override?: string): string {
 
 export function toPost(entry: any): Post {
   const body: string = entry.body ?? '';
-  const date = resolveDate(entry);
+  const date = resolveDate(entry.data.date);
   return {
     slug: entry.id,
     url: `/insight/${entry.id}/`,
