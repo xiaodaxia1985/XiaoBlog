@@ -517,7 +517,7 @@ const jsonLd = {
     } else tocDetails.open = true;
   };
   syncTocMode();
-  tocDetails?.addEventListener('toggle', () => { tocDetails.dataset.userToggled = 'true'; });
+  tocDetails?.querySelector('summary')?.addEventListener('click', () => { tocDetails.dataset.userToggled = 'true'; });
   window.addEventListener('resize', syncTocMode);
 
   const tocLinks = Array.from(document.querySelectorAll('.toc-link'));
