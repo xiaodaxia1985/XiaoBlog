@@ -8,7 +8,8 @@
   var bar = null;
 
   function ensureBar() {
-    if (bar) return bar;
+    if (bar && bar.isConnected) return bar;
+    if (bar && !bar.isConnected) bar = null;
     bar = document.createElement('div');
     bar.className = 'nav-progress';
     bar.setAttribute('aria-hidden', 'true');
@@ -50,6 +51,13 @@
   // 新页首帧、后退恢复（bfcache）都清除状态。
   window.addEventListener('pageshow', hideBar);
   window.addEventListener('hashchange', hideBar);
+  // Astro ClientRouter keeps the document alive and swaps body content.
+  // Rebind page-scoped visual behavior after each in-app navigation.
+  document.addEventListener('astro:page-load', function () {
+    if (bar && !bar.isConnected) bar = null;
+    hideBar();
+    scan();
+  });
 
   /* ---- 图片占位到淡入：尺寸由 width/height 或 aspect-ratio 预留 ---- */
   var selector = '.markdown img, .article-cover img, .project-img img, .project-preview img';
