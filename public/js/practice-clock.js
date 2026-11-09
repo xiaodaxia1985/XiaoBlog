@@ -1,5 +1,5 @@
 /* 90 天实践时间轴：按访问者本地日期更新静态页面中的日期与阶段。 */
-(function () {
+function updatePracticeClock() {
   function localDate(value) {
     var parts = value.split('-').map(Number);
     return new Date(parts[0], parts[1] - 1, parts[2]);
@@ -101,4 +101,7 @@
       }
     }
   }
-})();
+}
+
+document.addEventListener('astro:page-load', updatePracticeClock);
+updatePracticeClock();
