@@ -11,6 +11,7 @@ const directions = topics;
 const countByTopic = (t) => posts.filter((p) => p.topic === t).length;
 const latestByTopic = (t) => posts.find((p) => p.topic === t);
 const postOf = (slug) => posts.find((p) => p.slug === slug);
+const cnNums = ['一', '二', '三', '四'];
 const practice = getPracticeSnapshot();
 const stages = practice.stages;
 const currentStage = stages.find((s) => s.id === practice.currentStageId) ?? stages[0];
