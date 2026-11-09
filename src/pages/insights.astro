@@ -18,6 +18,15 @@ const topicCountOf = (t) => posts.filter((p) => p.topic === t).length;
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>洞察 — 个人商业创造者</title>
 <meta name="description" content="记录从信息消费者到商业创造者的真实过程：90 天实战、产业数字化、AI 与产品、技术与管理。">
+<link rel="canonical" href={new URL('/insights/', Astro.site).toString()}>
+<meta property="og:type" content="website">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="洞察 — 个人商业创造者">
+<meta property="og:description" content="记录从信息消费者到商业创造者的真实过程：90 天实战、产业数字化、AI 与产品、技术与管理。">
+<meta property="og:url" content={new URL('/insights/', Astro.site).toString()}>
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="洞察 — 个人商业创造者">
+<meta name="twitter:description" content="记录从信息消费者到商业创造者的真实过程：90 天实战、产业数字化、AI 与产品、技术与管理。">
 <link rel="stylesheet" href="/fonts/fonts.css">
 <link rel="stylesheet" href="/css/tokens.css">
 <script is:inline>document.documentElement.classList.add('js');</script>
