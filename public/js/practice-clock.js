@@ -71,6 +71,18 @@
     var phase = document.querySelector('[data-practice-phase]');
     if (phase) phase.textContent = '第' + cn + '阶段 · ' + stageName + (status === '当前' ? '' : ' · ' + status);
     var stageBar = document.querySelector('.stage-bar');
-    if (stageBar) stageBar.dataset.currentStage = stageId;
+    if (stageBar) {
+      stageBar.dataset.currentStage = stageId;
+      if (!/^#stage-[1-4]$/.test(location.hash)) {
+        Array.prototype.forEach.call(stageBar.querySelectorAll('[role="tab"]'), function (tab) {
+          var selected = tab.dataset.stage === stageId;
+          tab.classList.toggle('active', selected);
+          tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+        });
+        Array.prototype.forEach.call(document.querySelectorAll('.stage-panel'), function (panel) {
+          panel.hidden = panel.dataset.stage !== stageId;
+        });
+      }
+    }
   }
 })();
