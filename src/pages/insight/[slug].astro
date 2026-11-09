@@ -103,7 +103,8 @@ const jsonLd = {
   /* ===== 容器：页头、轮播卡、正文共用同一条版心线 ===== */
   .art-inner{width:100%;max-width:1120px;margin:0 auto;padding:0 28px;}
   .col{max-width:var(--art-w);margin-left:calc(var(--toc-w) + var(--content-gap));}
-  .article-head .art-inner,.card-col{max-width:1120px;}
+  .article-head .art-inner{max-width:1120px;}
+  .card-col{max-width:var(--art-w);}
 
   .article-head{padding:calc(64px + 40px) 0 30px;}
   .meta-line{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-8);font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.6;color:var(--text-muted);margin-bottom:12px;font-variant-numeric:tabular-nums;}
