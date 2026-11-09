@@ -208,8 +208,8 @@ const topicCountOf = (t) => posts.filter((p) => p.topic === t).length;
       card.style.display = hit ? '' : 'none';
       if (hit) shown++;
     });
-    categoryChips.forEach((chip) => {\n      const active = chip.dataset.categoryFilter === c;\n      chip.classList.toggle('active', active);\n      if (active) chip.setAttribute('aria-current', 'true'); else chip.removeAttribute('aria-current');\n    });
-    topicChips.forEach((chip) => {\n      const active = chip.dataset.topicFilter === t;\n      chip.classList.toggle('active', active);\n      if (active) chip.setAttribute('aria-current', 'true'); else chip.removeAttribute('aria-current');\n    });
+    categoryChips.forEach((chip) => { const active = chip.dataset.categoryFilter === c; chip.classList.toggle('active', active); if (active) chip.setAttribute('aria-current', 'true'); else chip.removeAttribute('aria-current'); });
+    topicChips.forEach((chip) => { const active = chip.dataset.topicFilter === t; chip.classList.toggle('active', active); if (active) chip.setAttribute('aria-current', 'true'); else chip.removeAttribute('aria-current'); });
     if (countEl) {
       countEl.textContent = shown;
       const countWrap = countEl.closest('.count');
