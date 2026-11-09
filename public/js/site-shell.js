@@ -53,8 +53,14 @@
   window.addEventListener('hashchange', hideBar);
   // Astro ClientRouter keeps the document alive and swaps body content.
   // Rebind page-scoped visual behavior after each in-app navigation.
+  // 客户端导航会用新文档属性重置 <html>，丢掉 class="js"；
+  // head 里补类的内联脚本又被 Astro 去重不再执行，swap 后立即补回，避免样式闪崩一帧。
+  document.addEventListener('astro:after-swap', function () {
+    if (!docEl.classList.contains('js')) docEl.classList.add('js');
+  });
   document.addEventListener('astro:page-load', function () {
     if (bar && !bar.isConnected) bar = null;
+    if (!docEl.classList.contains('js')) docEl.classList.add('js');
     hideBar();
     scan();
   });
