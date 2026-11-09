@@ -105,7 +105,7 @@ const countByTopic = (topic) => posts.filter((post) => post.topic === topic.titl
   .article:hover .article-arrow,.article:focus-visible .article-arrow{transform:translate(3px,-3px);color:var(--accent);}
   .all-articles{display:flex;justify-content:flex-end;margin-top:22px;}
   .all-articles a{font-size:12px;color:var(--text-secondary);}
-  .all-articles a:hover{color:var(--accent);}
+  .all-articles a:hover,.all-articles a:focus-visible{color:var(--accent);text-decoration:underline;text-underline-offset:4px;}
   @media(max-width:850px){
     .hero-grid{grid-template-columns:1fr;gap:42px;}
     .hero-aside{max-width:560px;}
