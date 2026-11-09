@@ -1,9 +1,6 @@
 // 90 天创造者实践 · 四阶段
 // 日期唯一来源：页面首屏由服务端生成，客户端在访问时按本地日期刷新进度。
 
-export const practiceStartDate = '2026-11-08';
-export const practiceEndDate = '2027-02-05';
-
 export const stages = [
   {
     id: 1,
@@ -67,8 +64,15 @@ export const stages = [
   }
 ];
 
+export const practiceStartDate = stages[0].startDate;
+export const practiceEndDate = stages[stages.length - 1].endDate;
+
 function localDateKey(date) {
   return date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+}
+
+function dateOrdinal(date) {
+  return Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000);
 }
 
 function parseLocalDate(value) {
@@ -85,7 +89,7 @@ export function getPracticeSnapshot(now = new Date()) {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const start = parseLocalDate(practiceStartDate);
   const end = parseLocalDate(practiceEndDate);
-  const dayNumber = Math.max(0, Math.min(90, Math.floor((today.getTime() - start.getTime()) / 86400000) + 1));
+  const dayNumber = Math.max(0, Math.min(90, dateOrdinal(today) - dateOrdinal(start) + 1));
   const todayKey = localDateKey(today);
   const currentStageId = stages.find((stage) => {
     const from = localDateKey(parseLocalDate(stage.startDate));
