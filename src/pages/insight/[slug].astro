@@ -150,7 +150,7 @@ const jsonLd = {
   .article-end{max-width:var(--art-w);margin:0 auto;}
   .reading-top{position:fixed;right:24px;bottom:24px;z-index:900;width:42px;height:42px;border:1px solid var(--border);border-radius:50%;background:rgba(20,20,20,.92);color:var(--text-secondary);display:grid;place-items:center;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .2s ease,transform .2s ease,visibility .2s ease;cursor:pointer;backdrop-filter:blur(10px);}
   .reading-top.is-visible{opacity:1;visibility:visible;transform:translateY(0);}
-  .reading-top:hover{color:var(--accent);border-color:rgba(216,242,107,.45);}
+  .reading-top:hover,.reading-top:focus-visible{color:var(--accent);border-color:rgba(216,242,107,.55);}
   .article-start-anchor{height:1px;scroll-margin-top:104px;}
   .markdown{--reading-font:17px;}
   @media(max-width:720px){.markdown{--reading-font:16px;}}
@@ -197,18 +197,18 @@ const jsonLd = {
   .author-copy strong{display:block;font-size:15px;font-weight:600;margin-bottom:var(--space-8);}
   .author-copy p{font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:var(--space-8);}
   .author-copy a{font-size:12.5px;color:var(--text-muted);border-bottom:1px solid var(--border);}
-  .author-copy a:hover{color:var(--text);border-color:rgba(255,255,255,.3);}
+  .author-copy a:hover,.author-copy a:focus-visible{color:var(--accent);border-color:var(--accent);}
 
   .article-nav{margin-top:var(--space-40);display:grid;grid-template-columns:1fr 1fr;gap:var(--space-16);}
   .article-nav-link{padding:var(--space-16) var(--space-24);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);transition:border-color .2s ease,background-color .2s ease;display:flex;flex-direction:column;gap:var(--space-4);}
-  .article-nav-link:hover{border-color:rgba(255,255,255,.2);background:var(--surface-2);}
+  .article-nav-link:hover,.article-nav-link:focus-visible{border-color:rgba(216,242,107,.5);background:var(--surface-2);}
   .article-nav-link.next{text-align:right;align-items:flex-end;}
   .article-nav-link .nav-label{font-size:12px;color:var(--text-muted);letter-spacing:0;}
   .article-nav-link .nav-title{font-size:13.5px;font-weight:500;color:var(--text);line-height:1.6;}
 
   .back-insights{display:flex;justify-content:center;margin-top:var(--space-40);}
   .back-insights a{display:inline-flex;align-items:center;gap:var(--space-8);font-size:13px;color:var(--text-secondary);letter-spacing:0;transition:color .2s ease;}
-  .back-insights a:hover{color:var(--text);}
+  .back-insights a:hover,.back-insights a:focus-visible{color:var(--accent);}
   .back-insights svg{width:16px;height:16px;stroke-width:1.5;}
 
   /* 核心观点卡：手动切换，不自动轮播，避免打断阅读。 */
