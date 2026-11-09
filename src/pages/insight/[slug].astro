@@ -169,6 +169,7 @@ const jsonLd = {
   body.is-focus-mode .article-toc,body.is-focus-mode .opinion-card{display:none;}
   body.is-focus-mode .article-body > .art-inner{max-width:880px;}
   body.is-focus-mode .reading-layout{display:block;}
+  body.is-focus-mode .reading-content,body.is-focus-mode .article-end{max-width:880px;}
   body.is-focus-mode .reading-content > .col{margin-left:0;}
 
 
@@ -307,7 +308,7 @@ const jsonLd = {
 </head>
 <body>
 
-<div class="reading-progress" id="readingProgress"></div>
+<div class="reading-progress" id="readingProgress" role="progressbar" aria-label="文章阅读进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
 
 <Nav variant="article" />
 
@@ -492,6 +493,7 @@ const jsonLd = {
     const max = document.documentElement.scrollHeight - window.innerHeight;
     const progress = max > 0 ? Math.min(1, window.scrollY / max) : 0;
     bar.style.width = (progress * 100) + '%';
+    bar.setAttribute('aria-valuenow', String(Math.round(progress * 100)));
     if (floatingTop) floatingTop.classList.toggle('is-visible', window.scrollY > 520);
   };
   window.addEventListener('scroll', update, { passive: true });
