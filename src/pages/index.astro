@@ -270,7 +270,7 @@ const boardOutputs = currentStage.outputs.slice(0, 3);
     <aside class="board" aria-label="90 天实践进度">
       <div class="board-head">
         <span class="board-label">实践进度</span>
-        <span class="board-day">Day 01<span>/ 90</span></span>
+        <span class="board-day">Day <span data-practice-day-number>{String(practice.dayNumber).padStart(2, '0')}</span><span>/ 90</span></span>
       </div>
       <div class="board-track" aria-hidden="true">
         {stages.map((s) => (
@@ -278,12 +278,12 @@ const boardOutputs = currentStage.outputs.slice(0, 3);
         ))}
       </div>
       <div class="board-scale"><span>11.08</span><span>02.05</span></div>
-      <ul class="board-list">
+      <ul class="board-list" data-practice-board-outputs>
         {boardOutputs.map((output, i) => (
-          <li><span class="board-num">{String(i + 1).padStart(2, '0')}</span><span>{output}</span></li>
+          <li><span class="board-num">{String(i + 1).padStart(2, '0')}</span><span data-board-output>{output}</span></li>
         ))}
       </ul>
-      <div class="board-foot"><span>第一阶段 · {currentStage.name}</span><span>{posts.length} 篇记录</span></div>
+      <div class="board-foot"><span data-practice-board-stage>第{cnNums[currentStage.id - 1]}阶段 · {currentStage.name}</span><span>{posts.length} 篇记录</span></div>
     </aside>
   </div>
 </section>
@@ -350,6 +350,7 @@ const boardOutputs = currentStage.outputs.slice(0, 3);
           data-status={s.status}
           data-stage-start={s.startDate}
           data-stage-end={s.endDate}
+          data-outputs={JSON.stringify(s.outputs.slice(0, 3))}
           data-cn={cnNums[s.id - 1]}
         >
           <span class="stage-name">第{cnNums[s.id - 1]}阶段</span>
