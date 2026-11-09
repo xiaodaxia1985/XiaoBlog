@@ -231,7 +231,7 @@ const jsonLd = {
   .back-insights a:hover{color:var(--text);}
   .back-insights svg{width:16px;height:16px;stroke-width:1.5;}
 
-  /* 核心观点单卡轮播：同一主色 #D8F26B，靠明度阶梯区分；深色文字，3 秒自动切换，可拖拽 */
+  /* 核心观点卡：手动切换，不自动轮播，避免打断阅读。 */
   .opinion-card{position:relative;width:100%;margin:0 0 var(--space-24);background:var(--card-bg);border:1px solid var(--oc-rule);border-radius:var(--radius);overflow:hidden;touch-action:pan-y;cursor:grab;transition:background-color .3s ease;}
   .opinion-card:active{cursor:grabbing;}
   .js .opinion-card{height:272px;}
@@ -519,11 +519,7 @@ const jsonLd = {
     if (!card) return;
     const slides = Array.from(card.querySelectorAll('[data-slide]'));
     const dots = Array.from(card.querySelectorAll('[data-dot]'));
-    const reduceQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     let index = 0;
-    let timer = null;
-    let hovering = false;
-    let focusing = false;
     let dragging = false;
     let startX = 0;
     let startY = 0;
@@ -539,30 +535,11 @@ const jsonLd = {
       });
       card.style.setProperty('--card-bg', slides[index].style.getPropertyValue('--card-bg'));
     }
-    function stop() {
-      if (timer) { clearInterval(timer); timer = null; }
-    }
-    function start() {
-      stop();
-    }
     function go(next) {
       index = (next + slides.length) % slides.length;
       paint();
-      start();
     }
 
-    card.addEventListener('mouseenter', function () { hovering = true; stop(); });
-    card.addEventListener('mouseleave', function () { hovering = false; start(); });
-    card.addEventListener('focusin', function (event) {
-      if (!event.target.matches(':focus-visible')) return;
-      focusing = true;
-      stop();
-    });
-    card.addEventListener('focusout', function (event) {
-      if (card.contains(event.relatedTarget)) return;
-      focusing = false;
-      start();
-    });
     card.addEventListener('keydown', function (event) {
       if (event.key === 'ArrowRight') { event.preventDefault(); go(index + 1); }
       else if (event.key === 'ArrowLeft') { event.preventDefault(); go(index - 1); }
@@ -571,7 +548,6 @@ const jsonLd = {
       dot.addEventListener('click', function () { go(Number(dot.dataset.index)); });
     });
 
-    // 拖拽 / 滑动切换：从圆点、链接等可交互元素上按下时不启动拖拽，避免指针捕获吃掉 click
     card.addEventListener('pointerdown', function (event) {
       if (event.pointerType === 'mouse' && event.button !== 0) return;
       if (event.target.closest('button, a, input, textarea')) return;
@@ -579,7 +555,6 @@ const jsonLd = {
       startX = event.clientX;
       startY = event.clientY;
       deltaX = 0;
-      stop();
       if (card.setPointerCapture) card.setPointerCapture(event.pointerId);
     });
     card.addEventListener('pointermove', function (event) {
@@ -596,21 +571,14 @@ const jsonLd = {
       dragging = false;
       card.style.cursor = '';
       card.style.userSelect = '';
-      if (commit && Math.abs(deltaX) > 40) {
-        go(index + (deltaX < 0 ? 1 : -1));
-      } else {
-        deltaX = 0;
-        start();
-      }
+      if (commit && Math.abs(deltaX) > 40) go(index + (deltaX < 0 ? 1 : -1));
+      deltaX = 0;
     }
     card.addEventListener('pointerup', function () { endDrag(true); });
     card.addEventListener('pointercancel', function () { endDrag(false); });
-    card.addEventListener('pointerleave', function () { endDrag(false); });
-
-    reduceQuery.addEventListener('change', function () { start(); });
+    card.addEventListener('lostpointercapture', function () { endDrag(false); });
 
     paint();
-    start();
   })();
 </script>
 </body>
