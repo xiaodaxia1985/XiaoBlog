@@ -150,7 +150,41 @@ function escapeCaption(value: string): string {
   .card-col{margin-bottom:var(--space-24);}
   .article-cover{width:100%;aspect-ratio:16/10;max-height:300px;border-radius:var(--radius);overflow:hidden;background:var(--bg-card);border:1px solid var(--border);}
 
+
   .article-body{padding-bottom:var(--space-40);}
+  .article-body > .art-inner{max-width:1120px;}
+  .reading-layout{display:grid;grid-template-columns:176px minmax(0,1fr);gap:36px;align-items:start;}
+  .article-toc{position:sticky;top:104px;max-height:calc(100vh - 128px);overflow:auto;padding:12px 0;}
+  .article-toc details{border-left:1px solid rgba(255,255,255,.12);padding-left:16px;}
+  .article-toc summary{list-style:none;cursor:pointer;color:var(--text);font-size:12px;font-weight:600;letter-spacing:.04em;margin-bottom:14px;}
+  .article-toc summary::-webkit-details-marker{display:none;}
+  .article-toc summary span{display:block;margin-top:5px;color:var(--text-muted);font:9px 'Inter',sans-serif;letter-spacing:.16em;}
+  .article-toc nav{display:grid;gap:4px;}
+  .toc-link{display:block;padding:7px 9px;border-radius:6px;color:var(--text-muted);font-size:12px;line-height:1.55;border-left:2px solid transparent;transition:color .18s ease,background .18s ease,border-color .18s ease;}
+  .toc-link:hover,.toc-link.is-active{color:var(--accent);background:rgba(216,242,107,.06);border-left-color:var(--accent);}
+  .reading-content{min-width:0;}
+  .reading-content > .col{margin-left:calc(var(--rail-w) + var(--rail-gap));}
+  .article-tools{display:flex;align-items:center;justify-content:flex-end;gap:10px;min-height:38px;margin:0 0 18px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+  .font-tools{display:flex;align-items:center;gap:5px;margin-right:auto;color:var(--text-muted);font-size:11px;}
+  .article-tools button{min-height:32px;padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text-secondary);font:inherit;font-size:11px;cursor:pointer;}
+  .article-tools button:hover,.article-tools button[aria-pressed="true"]{border-color:rgba(216,242,107,.45);color:var(--accent);background:rgba(216,242,107,.06);}
+  .markdown{--reading-font:17px;}
+  .markdown p{font-size:var(--reading-font);}
+  .markdown .sec{scroll-margin-top:88px;}
+  .markdown h2,.markdown h3{scroll-margin-top:88px;}
+  .markdown h3{font-size:17px;line-height:1.6;color:var(--text);margin:26px 0 14px;}
+  .markdown pre{max-width:100%;overflow:auto;padding:18px 20px;margin:24px 0;background:#111;border:1px solid var(--border);border-radius:8px;line-height:1.65;}
+  .markdown pre code{padding:0;background:transparent;white-space:pre;}
+  .markdown table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse;margin:24px 0;font-size:14px;}
+  .markdown th,.markdown td{padding:10px 12px;border:1px solid var(--border);text-align:left;vertical-align:top;}
+  .markdown th{color:var(--text);background:rgba(255,255,255,.04);}
+  .markdown blockquote{color:var(--text-secondary);}
+  body.is-focus-mode .article-toc,body.is-focus-mode .article-tools,body.is-focus-mode .opinion-card{display:none;}
+  body.is-focus-mode .article-body > .art-inner{max-width:880px;}
+  body.is-focus-mode .reading-layout{display:block;}
+  body.is-focus-mode .reading-content > .col{margin-left:0;}
+  body.is-focus-mode .intro,body.is-focus-mode .end-mark{margin-left:0;}
+
 
   /* ===== 正文：左编号栏 + 节分割线 + 判断块 + 引用卡 ===== */
   .markdown{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-feature-settings:"palt" 1,"kern" 1;font-kerning:normal;}
@@ -234,6 +268,17 @@ function escapeCaption(value: string): string {
   .opinion-dot:focus-visible{outline:2px solid var(--oc-ink);outline-offset:-4px;border-radius:50%;}
 
   /* 移动端：左右留白 20px；正文 16px/1.85，每行约 21 个汉字；编号收进标题行 */
+  @media(max-width:900px){
+    .article-body > .art-inner{max-width:860px;}
+    .reading-layout{display:block;}
+    .article-toc{position:relative;top:auto;max-height:none;margin:0 0 18px;padding:0;}
+    .article-toc details{border:1px solid var(--border);border-radius:8px;padding:10px 14px;}
+    .article-toc summary{display:flex;align-items:center;justify-content:space-between;margin:0;}
+    .article-toc summary span{margin:0;}
+    .article-toc details[open] summary{margin-bottom:10px;}
+    .article-toc nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;}
+    .reading-content > .col{margin-left:0;}
+  }
   @media(max-width:720px){
     .art-inner{max-width:100%;padding:0 20px;}
     .col{margin-left:0;max-width:100%;}
@@ -270,6 +315,10 @@ function escapeCaption(value: string): string {
     .article-nav{grid-template-columns:1fr;}
     .article-nav-link.next{text-align:left;align-items:flex-start;}
     .author-card{padding:var(--space-16);}
+    .article-tools{gap:6px;margin-bottom:14px;}
+    .article-tools button{padding:5px 8px;font-size:10px;}
+    .article-toc nav{grid-template-columns:1fr;}
+    .font-tools{gap:3px;}
   }
 
   @media(prefers-reduced-motion:reduce){
@@ -334,17 +383,40 @@ function escapeCaption(value: string): string {
       </div>
     )}
 
-    <article class="markdown">
-      {layout.intro.length > 0 && <div class="intro" set:html={renderBlocks(layout.intro)} />}
+    <div class="reading-layout">
+      <aside class="article-toc" aria-label="文章目录">
+        <details open>
+          <summary>文章目录 <span>ON THIS PAGE</span></summary>
+          <nav>
+            <a class="toc-link" href="#article-start">开篇</a>
+            {layout.sections.filter((section) => section.title).map((section) => (
+              <a class="toc-link" href={`#section-${section.num}`}>{section.title}</a>
+            ))}
+            <a class="toc-link" href="#article-end">作者与延伸阅读</a>
+          </nav>
+        </details>
+      </aside>
+      <div class="reading-content">
+        <div class="article-tools" aria-label="阅读设置">
+          <div class="font-tools" aria-label="字号设置">
+            <span>字号</span>
+            <button type="button" data-font="down" aria-label="缩小字号">A−</button>
+            <button type="button" data-font="up" aria-label="放大字号">A＋</button>
+          </div>
+          <button type="button" class="focus-toggle" data-focus-toggle aria-pressed="false">专注阅读</button>
+          <button type="button" class="top-toggle" data-back-top>回到顶部 ↑</button>
+        </div>
+        <article class="markdown" id="article-start">
+          {layout.intro.length > 0 && <div class="intro" set:html={renderBlocks(layout.intro)} />}
 
       {layout.sections.map((section) => (
-        <section class="sec">
+        <section class="sec" id={`section-${section.num}`}>
           <header class="sec-head">
             <span class="sec-num">{section.num}</span>
             <span class="sec-label">{section.label}</span>
           </header>
           <div class="sec-body">
-            {section.title && <h2 class="sec-title">{section.title}</h2>}
+            {section.title && <h2 class="sec-title" id={`heading-${section.num}`}>{section.title}</h2>}
             <Fragment set:html={renderBlocks(section.blocks)} />
           </div>
         </section>
@@ -355,10 +427,10 @@ function escapeCaption(value: string): string {
           {layout.end.map((line) => <span set:html={line} />)}
         </footer>
       )}
-    </article>
+        </article>
 
-    <div class="col">
-      {post.tags.length > 0 && (
+        <div class="col" id="article-end">
+          {post.tags.length > 0 && (
         <div class="article-tags">
           {post.tags.map((tag) => <span class="article-tag">{tag}</span>)}
         </div>
@@ -390,11 +462,13 @@ function escapeCaption(value: string): string {
         </nav>
       )}
 
-      <div class="back-insights">
+          <div class="back-insights">
         <a href="/insights">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
           返回洞察
         </a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -404,6 +478,42 @@ function escapeCaption(value: string): string {
 
 <script is:inline>
   const bar = document.getElementById('readingProgress');
+  const article = document.querySelector('.markdown');
+  const fontButtons = document.querySelectorAll('[data-font]');
+  const focusButton = document.querySelector('[data-focus-toggle]');
+  const topButton = document.querySelector('[data-back-top]');
+  let readingFont = 17;
+
+  fontButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      readingFont = Math.max(15, Math.min(21, readingFont + (button.dataset.font === 'up' ? 1 : -1)));
+      if (article) article.style.setProperty('--reading-font', readingFont + 'px');
+    });
+  });
+
+  if (focusButton) {
+    focusButton.addEventListener('click', () => {
+      const enabled = document.body.classList.toggle('is-focus-mode');
+      focusButton.setAttribute('aria-pressed', String(enabled));
+      focusButton.textContent = enabled ? '退出专注' : '专注阅读';
+    });
+  }
+  if (topButton) {
+    topButton.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+
+  const tocLinks = Array.from(document.querySelectorAll('.toc-link'));
+  const tocTargets = tocLinks.map((link) => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+  if ('IntersectionObserver' in window && tocTargets.length) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        tocLinks.forEach((link) => link.classList.toggle('is-active', link.getAttribute('href') === '#' + entry.target.id));
+      });
+    }, { rootMargin: '-18% 0px -68% 0px', threshold: 0 });
+    tocTargets.forEach((target) => observer.observe(target));
+  }
+
   const update = () => {
     const max = document.documentElement.scrollHeight - window.innerHeight;
     bar.style.width = (max > 0 ? Math.min(1, window.scrollY / max) * 100 : 0) + '%';
@@ -420,7 +530,6 @@ function escapeCaption(value: string): string {
     const slides = Array.from(card.querySelectorAll('[data-slide]'));
     const dots = Array.from(card.querySelectorAll('[data-dot]'));
     const reduceQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const DURATION = 3000;
     let index = 0;
     let timer = null;
     let hovering = false;
@@ -445,11 +554,6 @@ function escapeCaption(value: string): string {
     }
     function start() {
       stop();
-      if (reduceQuery.matches || hovering || focusing || dragging) return;
-      timer = setInterval(function () {
-        index = (index + 1) % slides.length;
-        paint();
-      }, DURATION);
     }
     function go(next) {
       index = (next + slides.length) % slides.length;
