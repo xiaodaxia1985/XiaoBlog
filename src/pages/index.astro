@@ -317,14 +317,14 @@ const boardOutputs = currentStage.outputs.slice(0, 3);
         <p class="practice-intro">从寻找真实需求开始，用 90 天做出一个产品，并公开记录每一步。</p>
       </div>
       <aside class="practice-aside">
-        <span class="practice-period" data-practice-period>2026.11.08 — 2027.02.05</span>
+        <span class="practice-period" data-practice-period>{practice.period}</span>
         <a class="practice-more" href="/90-days">进入 90 天实战<span aria-hidden="true">→</span></a>
       </aside>
     </div>
 
     <div class="practice-progress">
-      <div class="practice-day">Day <span data-practice-day-number>01</span><span>/ 90</span></div>
-      <div class="practice-phase" id="practicePhase" data-practice-phase>第一阶段 · 品牌与实践启动</div>
+      <div class="practice-day">Day <span data-practice-day-number>{String(practice.dayNumber).padStart(2, '0')}</span><span>/ 90</span></div>
+      <div class="practice-phase" id="practicePhase" data-practice-phase>第{cnNums[currentStage.id - 1]}阶段 · {currentStage.name}</div>
     </div>
 
     <div class="stage-bar" role="tablist" aria-label="90 天阶段" data-current-stage={practice.currentStageId}>
@@ -344,7 +344,7 @@ const boardOutputs = currentStage.outputs.slice(0, 3);
           data-cn={cnNums[s.id - 1]}
         >
           <span class="stage-name">第{cnNums[s.id - 1]}阶段</span>
-          <span class="stage-dates">{s.range.start}–{s.range.end}</span>
+          <span class="stage-dates" data-stage-range>{s.range.start}–{s.range.end}</span>
         </button>
       ))}
     </div>
