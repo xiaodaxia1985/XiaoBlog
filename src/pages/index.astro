@@ -1,6 +1,6 @@
 ---
 import { getPublishedPosts } from '../lib/insights';
-import { stages } from '../data/stages.mjs';
+import { getPracticeSnapshot } from '../data/stages.mjs';
 import { topics } from '../data/topics.mjs';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
@@ -12,7 +12,9 @@ const countByTopic = (t) => posts.filter((p) => p.topic === t).length;
 const latestByTopic = (t) => posts.find((p) => p.topic === t);
 const postOf = (slug) => posts.find((p) => p.slug === slug);
 const cnNums = ['一', '二', '三', '四'];
-const currentStage = stages.find((s) => s.status === '当前') ?? stages[0];
+const practice = getPracticeSnapshot();
+const stages = practice.stages;
+const currentStage = stages.find((s) => s.id === practice.currentStageId) ?? stages[0];
 const boardOutputs = currentStage.outputs.slice(0, 3);
 ---
 <!DOCTYPE html>
@@ -315,28 +317,30 @@ const boardOutputs = currentStage.outputs.slice(0, 3);
         <p class="practice-intro">从寻找真实需求开始，用 90 天做出一个产品，并公开记录每一步。</p>
       </div>
       <aside class="practice-aside">
-        <span class="practice-period">2026.11.08 — 2027.02.05</span>
+        <span class="practice-period" data-practice-period>2026.11.08 — 2027.02.05</span>
         <a class="practice-more" href="/90-days">进入 90 天实战<span aria-hidden="true">→</span></a>
       </aside>
     </div>
 
     <div class="practice-progress">
-      <div class="practice-day">Day 01<span>/ 90</span></div>
-      <div class="practice-phase" id="practicePhase">第一阶段 · 品牌与实践启动</div>
+      <div class="practice-day">Day <span data-practice-day-number>01</span><span>/ 90</span></div>
+      <div class="practice-phase" id="practicePhase" data-practice-phase>第一阶段 · 品牌与实践启动</div>
     </div>
 
     <div class="stage-bar" role="tablist" aria-label="90 天阶段">
       {stages.map((s) => (
         <button
           type="button"
-          class={`stage stage-${s.id}${s.id === 1 ? ' active' : ''}`}
+          class={`stage stage-${s.id}${s.id === practice.currentStageId ? ' active' : ''}`}
           id={`stage-tab-${s.id}`}
           role="tab"
-          aria-selected={s.id === 1 ? 'true' : 'false'}
+          aria-selected={s.id === practice.currentStageId ? 'true' : 'false'}
           aria-controls={`stage-panel-${s.id}`}
           data-stage={s.id}
           data-name={s.name}
           data-status={s.status}
+          data-stage-start={s.startDate}
+          data-stage-end={s.endDate}
           data-cn={cnNums[s.id - 1]}
         >
           <span class="stage-name">第{cnNums[s.id - 1]}阶段</span>
@@ -355,7 +359,7 @@ const boardOutputs = currentStage.outputs.slice(0, 3);
             role="tabpanel"
             aria-labelledby={`stage-tab-${s.id}`}
             data-stage={s.id}
-            hidden={s.id !== 1}
+            hidden={s.id !== practice.currentStageId}
           >
             <div class="stage-goal">
               <span class="stage-goal-label">阶段目标</span>
@@ -434,6 +438,7 @@ const boardOutputs = currentStage.outputs.slice(0, 3);
 
 <Footer />
 
+<script is:inline src="/js/practice-clock.js" defer></script>
 <script>
   // 90 天阶段 tab：点击/方向键切换，hash 深链接
   const stageTabs = [...document.querySelectorAll('.stage-bar [role="tab"]')];
@@ -461,7 +466,7 @@ const boardOutputs = currentStage.outputs.slice(0, 3);
   }
 
   const hashStage = location.hash.match(/^#stage-([1-4])$/);
-  setStage(hashStage ? hashStage[1] : '1', false);
+  setStage(hashStage ? hashStage[1] : '{practice.currentStageId}', false);
   stageTabs.forEach((tab) => {
     tab.addEventListener('click', () => setStage(tab.dataset.stage, true));
     tab.addEventListener('keydown', (event) => {
