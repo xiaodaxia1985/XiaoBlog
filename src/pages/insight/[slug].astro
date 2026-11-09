@@ -480,7 +480,6 @@ const jsonLd = {
   const floatingTop = document.querySelector('.reading-top');
   const tocDetails = document.querySelector('[data-toc-details]');
   const mobileReading = window.matchMedia('(max-width: 720px)');
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const fontValue = document.querySelector('[data-font-value]');
   const defaultFont = () => mobileReading.matches ? 16 : 17;
   let readingFont = defaultFont();
@@ -550,8 +549,8 @@ const jsonLd = {
       const rect = article?.getBoundingClientRect();
       const articleTop = window.scrollY + (rect?.top ?? 0);
       const articleHeight = article?.offsetHeight ?? document.documentElement.scrollHeight;
-      const track = Math.max(1, articleHeight - window.innerHeight * 0.55);
-      const progress = Math.max(0, Math.min(1, (window.scrollY - articleTop + window.innerHeight * 0.35) / track));
+      const track = Math.max(1, articleHeight - window.innerHeight);
+      const progress = Math.max(0, Math.min(1, (window.scrollY - articleTop) / track));
       bar.style.width = (progress * 100) + '%';
       bar.setAttribute('aria-valuenow', String(Math.round(progress * 100)));
       if (floatingTop) floatingTop.classList.toggle('is-visible', window.scrollY > 520);
