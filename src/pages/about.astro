@@ -12,12 +12,12 @@ import Footer from '../components/Footer.astro';
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>关于我 — 个人商业创造者</title>
 <meta name="description" content="个人商业创造者的简历：18 年 IT 与产业数字化经验，现正用 AI 把专业能力转化为产品与商业资产，并公开记录 90 天实践。">
-<link rel="canonical" href={new URL('/about/', Astro.site).toString()}>
+<link rel="canonical" href={new URL('/about/', Astro.site ?? 'https://xiaomaker.top').toString()}>
 <meta property="og:type" content="website">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:title" content="关于我 — 个人商业创造者">
 <meta property="og:description" content="个人商业创造者的简历：18 年 IT 与产业数字化经验，现正用 AI 把专业能力转化为产品与商业资产，并公开记录 90 天实践。">
-<meta property="og:url" content={new URL('/about/', Astro.site).toString()}>
+<meta property="og:url" content={new URL('/about/', Astro.site ?? 'https://xiaomaker.top').toString()}>
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="关于我 — 个人商业创造者">
 <meta name="twitter:description" content="个人商业创造者的简历：18 年 IT 与产业数字化经验，现正用 AI 把专业能力转化为产品与商业资产，并公开记录 90 天实践。">
