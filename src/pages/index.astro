@@ -11,6 +11,7 @@ const practice = getPracticeSnapshot();
 const stages = practice.stages;
 const currentStage = stages.find((stage) => stage.id === practice.currentStageId) ?? stages[0];
 const countByTopic = (topic) => posts.filter((post) => post.topic === topic.title).length;
+import { ClientRouter } from 'astro:transitions';
 ---
 <!DOCTYPE html>
 <html lang="zh-CN" style="background:#0c0c0c;">
@@ -138,6 +139,7 @@ const countByTopic = (topic) => posts.filter((post) => post.topic === topic.titl
   }
   @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.primary-link,.topic-arrow,.article-arrow,.article,.topic{transition:none}}
 </style>
+  <ClientRouter fallback="swap" />
 </head>
 <body>
 <Nav active="home" />
