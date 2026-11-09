@@ -1,6 +1,6 @@
 ---
 interface Props {
-  active?: 'home' | 'focus' | 'insights' | 'about' | '';
+  active?: 'home' | 'focus' | 'insights' | 'projects' | 'about' | '';
   variant?: 'main' | 'article';
   backHref?: string;
   backLabel?: string;
@@ -25,6 +25,7 @@ const { active = '', variant = 'main', backHref = '/insights', backLabel = '返�
           <li><a href="/" class:list={{ active: active === 'home' }} aria-current={active === 'home' ? 'page' : undefined}>首页</a></li>
           <li><a href="/#focus" class:list={{ active: active === 'focus' }}>我在做什么</a></li>
           <li><a href="/insights" class:list={{ active: active === 'insights' }} aria-current={active === 'insights' ? 'page' : undefined}>洞察</a></li>
+          <li><a href="/projects" class:list={{ active: active === 'projects' }} aria-current={active === 'projects' ? 'page' : undefined}>项目</a></li>
           <li><a href="/about" class:list={{ active: active === 'about' }} aria-current={active === 'about' ? 'page' : undefined}>关于我</a></li>
         </ul>
       </>
