@@ -63,14 +63,20 @@ const { active = '', variant = 'main', backHref = '/insights', backLabel = '返�
 </style>
 
 <script>
-  const toggle = document.getElementById('siteNavToggle');
-  const links = document.getElementById('siteNavLinks');
-  const backdrop = document.getElementById('siteNavBackdrop');
-  if (toggle && links && backdrop) {
-    const menuItems = Array.from(links.querySelectorAll('a[href]'));
-    const isOpen = () => toggle.getAttribute('aria-expanded') === 'true';
+  // 使用事件委托，兼容 Astro ClientRouter 替换页面 body 后的导航 DOM。
+  if (!window.__siteNavDelegationInstalled) {
+    window.__siteNavDelegationInstalled = true;
+
+    const getParts = () => ({
+      toggle: document.getElementById('siteNavToggle'),
+      links: document.getElementById('siteNavLinks'),
+      backdrop: document.getElementById('siteNavBackdrop')
+    });
+    const isOpen = (toggle) => toggle?.getAttribute('aria-expanded') === 'true';
 
     const closeMenu = (restoreFocus = false) => {
+      const { toggle, links, backdrop } = getParts();
+      if (!toggle || !links || !backdrop) return;
       links.classList.remove('open');
       toggle.classList.remove('open');
       toggle.setAttribute('aria-expanded', 'false');
@@ -81,6 +87,9 @@ const { active = '', variant = 'main', backHref = '/insights', backLabel = '返�
     };
 
     const openMenu = () => {
+      const { toggle, links, backdrop } = getParts();
+      if (!toggle || !links || !backdrop) return;
+      const menuItems = Array.from(links.querySelectorAll('a[href]'));
       links.classList.add('open');
       toggle.classList.add('open');
       toggle.setAttribute('aria-expanded', 'true');
@@ -90,18 +99,32 @@ const { active = '', variant = 'main', backHref = '/insights', backLabel = '返�
       requestAnimationFrame(() => menuItems[0]?.focus());
     };
 
-    toggle.addEventListener('click', () => isOpen() ? closeMenu(true) : openMenu());
-    backdrop.addEventListener('click', () => closeMenu(true));
-    menuItems.forEach((link) => link.addEventListener('click', () => closeMenu(false)));
+    document.addEventListener('click', (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target) return;
+      const { toggle, links, backdrop } = getParts();
+      if (toggle && target.closest('#siteNavToggle')) {
+        isOpen(toggle) ? closeMenu(true) : openMenu();
+        return;
+      }
+      if (backdrop && target.closest('#siteNavBackdrop')) {
+        closeMenu(true);
+        return;
+      }
+      if (links && target.closest('#siteNavLinks a[href]')) closeMenu(false);
+    });
 
     document.addEventListener('keydown', (event) => {
-      if (!isOpen()) return;
+      const { toggle, links } = getParts();
+      if (!toggle || !links || !isOpen(toggle)) return;
       if (event.key === 'Escape') {
         event.preventDefault();
         closeMenu(true);
         return;
       }
-      if (event.key !== 'Tab' || !menuItems.length) return;
+      if (event.key !== 'Tab') return;
+      const menuItems = Array.from(links.querySelectorAll('a[href]'));
+      if (!menuItems.length) return;
       const first = menuItems[0];
       const last = menuItems[menuItems.length - 1];
       if (event.shiftKey && (document.activeElement === first || !links.contains(document.activeElement))) {
@@ -114,7 +137,10 @@ const { active = '', variant = 'main', backHref = '/insights', backLabel = '返�
     });
 
     window.addEventListener('resize', () => {
-      if (window.innerWidth > 768 && isOpen()) closeMenu(false);
+      const { toggle } = getParts();
+      if (window.innerWidth > 768 && isOpen(toggle)) closeMenu(false);
     });
+
+    document.addEventListener('astro:before-swap', () => closeMenu(false));
   }
 </script>
