@@ -7,9 +7,10 @@ export function getStaticPaths() {
   return projectEntries.map((project) => ({ params: { slug: project.slug } }));
 }
 
-const { slug } = Astro.params;
+const slug = Astro.params.slug ?? '';
 const index = projectEntries.findIndex((item) => item.slug === slug);
 const project = projectEntries[index];
+if (!project) throw new Error(`Unknown project route: ${slug}`);
 const previous = index > 0 ? projectEntries[index - 1] : null;
 const next = index < projectEntries.length - 1 ? projectEntries[index + 1] : null;
 const images = {
@@ -20,7 +21,7 @@ const images = {
   'precision-feeding': '/images/2fedb07948.jpg',
   'mobile-security': '/images/018e5a8e2f.jpg',
 };
-const image = images[slug];
+const image = images[slug] ?? '/images/108a419a1f.jpg';
 const canonical = `https://xiaomaker.top/projects/${slug}/`;
 const jsonLd = {
   '@context': 'https://schema.org',
