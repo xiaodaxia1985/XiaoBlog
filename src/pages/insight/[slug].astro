@@ -53,6 +53,7 @@ const jsonLd = {
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>{post.title} — 个人商业创造者</title>
 <meta name="description" content={post.excerpt}>
+{post.draft && <meta name="robots" content="noindex,nofollow">}
 <link rel="canonical" href={post.url}>
 <meta property="og:type" content="article">
 <meta property="og:title" content={post.title}>
@@ -141,7 +142,7 @@ const jsonLd = {
   .markdown h2{counter-increment:article-section;display:flex;align-items:baseline;gap:18px;padding-top:28px;margin:38px 0 20px;border-top:1px solid rgba(255,255,255,.10);font-size:21px;line-height:1.5;color:var(--text);font-weight:700;scroll-margin-top:88px;}
   .markdown h2::before{content:counter(article-section,decimal-leading-zero);flex:0 0 38px;color:var(--accent);font:700 22px/1 'Inter',sans-serif;letter-spacing:-.03em;}
   .markdown h3{font-size:17px;line-height:1.6;color:var(--text);margin:26px 0 14px;scroll-margin-top:88px;}
-  .markdown .toc-sub-link{padding-left:20px;font-size:11px;}
+  .article-toc .toc-sub-link{padding-left:20px;font-size:11px;}
   .markdown blockquote{margin:28px 0;padding:20px 24px;border-left:2px solid var(--accent);background:rgba(216,242,107,.06);color:var(--text-secondary);}
   .markdown ul,.markdown ol{margin:0 0 26px;padding-left:1.4em;color:var(--body);font-size:var(--reading-font,17px);line-height:1.85;}
   .markdown li{margin:0 0 8px;}
@@ -455,7 +456,7 @@ const jsonLd = {
     });
   }
   if (topButton) {
-    topButton.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    topButton.addEventListener('click', () => window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }));
   }
 
   const tocLinks = Array.from(document.querySelectorAll('.toc-link'));
