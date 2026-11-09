@@ -4,14 +4,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        accent: 'rgb(var(--accent) / <alpha-value>)',
-        primary: 'rgb(var(--text-primary) / <alpha-value>)',
-        secondary: 'rgb(var(--text-secondary) / <alpha-value>)',
+        accent: 'var(--accent)',
+        primary: 'var(--text)',
+        secondary: 'var(--text-secondary)',
       },
       backgroundColor: {
-        primary: 'rgb(var(--bg-primary) / <alpha-value>)',
-        secondary: 'rgb(var(--bg-secondary) / <alpha-value>)',
-        tertiary: 'rgb(var(--bg-tertiary) / <alpha-value>)',
+        primary: 'var(--bg)',
+        secondary: 'var(--surface)',
+        tertiary: 'var(--surface-2)',
       },
     },
   },
