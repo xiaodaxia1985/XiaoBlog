@@ -8,7 +8,7 @@
 - **内容**：Astro Content Collections（`glob` loader）+ Markdown，一篇文章一个 `.md`
 - **样式**：手写 CSS；颜色、间距、字号、断点集中在 `public/css/tokens.css`。每个页面是独立 `.astro`，样式内联，不依赖共享 layout
 - **字体**：本地托管 `public/fonts/`（Inter + Noto Sans SC，2 个 woff2），不引外部 CDN
-- **脚本**：少量原生 JS（`public/js/site-shell.js`：滚动进度、图片淡入、移动端导航）
+- **脚本**：少量原生 JS（`public/js/site-shell.js`：页面跳转进度、图片淡入、移动端导航；`public/js/practice-clock.js`：90 天日期与阶段状态）
 - **无前端框架**：未接入 React/Vue/Svelte。`astro.config.mjs` 里保留了 Tailwind 集成，只用于基础重置，页面不使用工具类
 
 Node 要求：**20 LTS 及以上**（Astro 5 最低 18.17；当前构建验证用 Node 26）。
@@ -29,6 +29,7 @@ site/XiaoBlog/
 │  │  ├─ projects.astro         项目列表
 │  │  ├─ project.astro          旧 ?id= 项目链接兼容跳转
 │  │  ├─ projects/[slug].astro  项目详情（静态生成）
+│  │  ├─ sitemap.xml.ts        sitemap（只包含已发布文章）
 │  │  └─ 404.astro
 │  ├─ content/insights/         一篇文章一个 .md，文件名即 slug
 │  ├─ content.config.ts         content collection schema（frontmatter 校验）
@@ -98,7 +99,7 @@ category: "90天实战"
 
 **`takeaways` 与顶部观点卡、封面的关系**
 
-- 所有条目进入标题下方的单卡轮播：一条观点一张卡，同一主色 `#D8F26B` 逐张提亮，文字统一深色
+- 所有条目进入标题下方的单卡手动切换区：一条观点一张卡，同一主色 `#D8F26B` 逐张提亮，文字统一深色
 - **第 1 条同时决定封面主文案**：`npm run covers` 用它生成 `<slug>-1.webp`（1600×1000，WebP，≤120KB），作为列表缩略图与 `og:image`
 - 不写 `takeaways` 时，顶部退回封面图；不写封面时用 `src/assets/covers/_default.svg`
 
@@ -118,7 +119,7 @@ category: "90天实战"
 
 - 写稿加 `draft: true`：列表不出现，但 `/insight/<slug>/` 直链可预览，页面带「草稿 · 未发布」角标
 - 发布：删掉 `draft` 或改 `false`，重新构建
-- 草稿直链可访问，不要当保密手段
+- 草稿详情页带 `noindex,nofollow`，但直链仍可访问；不要当保密手段
 - 删除文章：删 md 与同名封面，重新构建，旧地址返回 404
 
 **封面生成步骤**：写好 md 和 `takeaways` → `npm run covers`（默认只处理已发布文章；`npm run covers -- <slug>` 生成单篇）。模板在 `scripts/cover-template.html`，重复运行会先删旧图。
@@ -131,7 +132,8 @@ category: "90天实战"
 - `/90-days/` 90 天实践：四阶段目标、产出、状态与关联文章，数据在 `src/data/stages.mjs`
 - `/about/` 关于页：01–05 编号时间线，简历与当前在做的事
 - `/projects/`：项目档案列表
-- `/projects/<slug>/`：项目详情静态路由（SEO 可索引）
+- `/projects/<slug>/`：项目详情静态路由（独立 HTML、canonical 与结构化数据）
+- `/sitemap.xml`：已发布文章、专题页、项目页与主要静态页的站点地图
 - `/project?id=N`：旧链接兼容跳转到对应静态项目页
 - `/insight/?id=N` 旧链接跳到新地址，映射在 `src/data/legacy-ids.mjs`
 
@@ -139,9 +141,9 @@ category: "90天实战"
 
 - **颜色**：深色底 `#0C0C0C`，主色 `#D8F26B`；正文 `#D2D2CD`，标题 `#F5F5F4`。只用 `tokens.css` 变量，不散落魔法值
 - **文章版式**：桌面左侧 sticky 目录 + 居中阅读栏；移动端折叠目录；阅读进度、字号调节、专注模式与返回顶部；正文使用 Astro 原生 Markdown 渲染，不自动拆段或改写作者结构
-- **字号**：文章正文 17px / 1.82（≤720px 为 16px / 1.85）；判断句 21px / 1.6（手机 18px / 1.7）；节标题 19px（手机 17.5px）；关于页与专题页正文 15px；年份、标签等小字 11.5–12px，与正文保持层级差
-- **版心**：文章 680px + 编号栏 96px + 间距 32px；桌面约 40 字/行，手机约 20–22 字/行
-- **断点**：文章页 720px，全站令牌 768px
+- **字号**：文章正文 17px / 1.82（≤720px 为 16px / 1.85）；H2 21px（手机 18px），H3 17px（手机 16.5px）；阅读工具支持 15–21px 调节
+- **版心**：桌面 TOC 196px + 间距 48px + 正文 760px；≤1060px 改为顶部目录，≤720px 正文留白 20px
+- **断点**：文章布局 1060px、移动正文 720px，全站令牌 768px
 - **配图**：文章图片与图注必须落在正文栏内，左边缘与正文首字对齐，不越栏、不贴视口边缘；跨栏负边距图已废弃
 - **图片**：正文配图放 `public/images/`，文件名小写连字符；封面放 `src/assets/covers/`
 
@@ -166,5 +168,5 @@ EdgeOne Makers（腾讯云 EdgeOne Pages 的现名），连 GitHub 私有仓库 
 
 - 验证产物（截图、长图、`.qa/`、`_verify/`、`preview-shots/`）不入库，放仓库外 `.qa/`
 - 封面原图放 `covers-originals/`（已忽略）
-- 公开页面不出现手机号、公司名、客户名、内部系统名与规模数字
-- 写作细则见 [docs/内容更新说明.md](docs/内容更新说明.md)；其中部署一节按 Cloudflare 时期撰写，以本 README 为准
+- 公开披露边界：可写经本人确认可公开的聚合成果量级；不披露客户名、内部数据、未公开规划、同事姓名及可识别的内部系统架构。产品名、技术栈与组织信息逐项判断可识别性
+- 写作细则见 [docs/内容更新说明.md](docs/内容更新说明.md)；部署配置以本 README 为准
