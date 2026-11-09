@@ -188,7 +188,8 @@ import { ClientRouter } from 'astro:transitions';
 
 <Footer />
 
-<script>
+<script is:inline data-astro-rerun>
+(function () {
   // 双维筛选：category × topic，query 参数驱动，静态页面内过滤
   const categoryChips = [...document.querySelectorAll('[data-category-filter]')];
   const topicChips = [...document.querySelectorAll('[data-topic-filter]')];
@@ -294,6 +295,8 @@ import { ClientRouter } from 'astro:transitions';
 
   // 带 query 打开时，让已选中的 chip 直接可见
   [...document.querySelectorAll('.filter-chip.active')].forEach((chip) => centerChip(chip, false));
+
+})();
 </script>
 </body>
 </html>
