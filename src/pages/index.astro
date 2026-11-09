@@ -11,7 +11,6 @@ const directions = topics;
 const countByTopic = (t) => posts.filter((p) => p.topic === t).length;
 const latestByTopic = (t) => posts.find((p) => p.topic === t);
 const postOf = (slug) => posts.find((p) => p.slug === slug);
-const cnNums = ['一', '二', '三', '四'];
 const practice = getPracticeSnapshot();
 const stages = practice.stages;
 const currentStage = stages.find((s) => s.id === practice.currentStageId) ?? stages[0];
@@ -122,14 +121,16 @@ const boardOutputs = currentStage.outputs.slice(0, 3);
   .section-note{font-size:var(--fs-14);color:var(--text-secondary);margin:-8px 0 var(--space-24);max-width:680px;}
 
   /* 三个方向 */
-  .focus-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-24);}
-  .focus-card{display:flex;flex-direction:column;gap:var(--space-8);padding:var(--space-24);min-height:220px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);transition:background-color .2s ease,border-color .2s ease;}
-  .focus-card:hover{background:var(--surface-2);border-color:rgba(255,255,255,.16);}
-  .focus-num{font-family:'Inter',sans-serif;font-size:var(--fs-12);color:var(--text-muted);}
-  .focus-card h3{font-size:var(--fs-20);font-weight:600;letter-spacing:0;}
-  .focus-card p{font-size:var(--fs-14);line-height:var(--lh-tight);color:var(--text-secondary);}
-  .focus-meta{font-size:var(--fs-12);color:var(--text-muted);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-  .focus-point{margin-top:auto;padding-top:var(--space-12);border-top:1px solid var(--border);display:flex;align-items:center;gap:var(--space-8);font-size:var(--fs-12);color:var(--text-secondary);}
+  .focus-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+  .focus-card{display:flex;flex-direction:column;align-items:flex-start;gap:12px;min-height:220px;padding:28px 28px 26px 0;transition:background-color .2s ease;}
+  .focus-card+.focus-card{border-left:1px solid var(--border);padding-left:28px;}
+  .focus-card:hover h3{color:var(--accent);}
+  .focus-kicker{font-size:11px;letter-spacing:.12em;color:var(--accent);}
+  .focus-card h3{font-size:22px;font-weight:600;letter-spacing:0;transition:color .2s ease;}
+  .focus-card p{font-size:14px;line-height:1.85;color:var(--text-secondary);}
+  .focus-meta{font-size:12px;color:var(--text-muted);line-height:1.6;}
+  .focus-point{margin-top:auto;padding-top:14px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);}
+
 
   /* 90 天实践 */
   .practice-head{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--space-32);margin-bottom:var(--space-32);}
@@ -174,15 +175,16 @@ const boardOutputs = currentStage.outputs.slice(0, 3);
   .stage-posts-empty{font-size:var(--fs-12);color:var(--text-muted);}
 
   /* 最新洞察 */
-  .latest-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--space-24);}
-  .latest-card{display:flex;flex-direction:column;min-height:232px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s ease,background-color .2s ease;}
-  .latest-card:hover{border-color:rgba(255,255,255,.2);background:var(--surface-2);}
-  .latest-info{padding:var(--space-24);display:flex;flex-direction:column;gap:var(--space-8);flex:1;}
-  .latest-tag{align-self:flex-start;font-size:var(--fs-12);color:var(--text-muted);border:1px solid var(--border);border-radius:4px;padding:2px 6px;}
-  .latest-info h3{font-size:var(--fs-20);font-weight:600;color:var(--text);line-height:1.4;letter-spacing:0;}
-  .latest-info p{font-size:var(--fs-14);line-height:var(--lh-tight);color:var(--text-secondary);flex:1;}
-  .latest-date{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);}
-  .latest-view{margin-top:auto;padding-top:var(--space-4);font-size:var(--fs-14);color:var(--text);display:inline-flex;align-items:center;gap:var(--space-8);}
+  .latest-grid{border-top:1px solid var(--border);}
+  .latest-card{display:grid;grid-template-columns:112px minmax(0,1fr) 24px;align-items:center;gap:8px 24px;padding:24px 4px;border-bottom:1px solid var(--border);transition:padding .2s ease,background .2s ease;}
+  .latest-card:hover{padding-left:12px;padding-right:12px;background:rgba(255,255,255,.018);}
+  .latest-info{padding:0;display:contents;}
+  .latest-tag{grid-column:1;grid-row:1;font-size:12px;color:var(--text-muted);border:0;padding:0;}
+  .latest-info h3{grid-column:2;grid-row:1;font-size:18px;font-weight:600;color:var(--text);line-height:1.5;letter-spacing:0;}
+  .latest-info p{grid-column:2;grid-row:2;font-size:13px;line-height:1.75;color:var(--text-secondary);}
+  .latest-date{grid-column:1;grid-row:2;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11px;color:var(--text-muted);}
+  .latest-view{grid-column:3;grid-row:1 / span 2;font-size:18px;color:var(--text-muted);display:inline-flex;align-items:center;justify-content:center;}
+
   .latest-more{display:flex;justify-content:flex-end;margin-top:var(--space-16);}
   .latest-more a{display:inline-flex;align-items:center;gap:var(--space-8);font-size:var(--fs-14);color:var(--text-secondary);}
   .latest-more a:hover{color:var(--text);}
@@ -205,9 +207,10 @@ const boardOutputs = currentStage.outputs.slice(0, 3);
     .hero-container{grid-template-columns:1fr;gap:var(--space-32);}
     .board{max-width:480px;}
     .focus-grid{grid-template-columns:1fr;}
+    .focus-card{min-height:0;padding:22px 0;}
+    .focus-card+.focus-card{border-left:0;border-top:1px solid var(--border);padding-left:0;}
     .practice-head{flex-direction:column;align-items:flex-start;gap:var(--space-16);}
     .practice-aside{flex-direction:row;align-items:center;gap:var(--space-24);}
-    .latest-grid{grid-template-columns:repeat(2,1fr);}
     .closing-band{flex-direction:column;align-items:flex-start;gap:var(--space-24);}
   }
   @media(max-width:768px){
@@ -229,7 +232,12 @@ const boardOutputs = currentStage.outputs.slice(0, 3);
     .stage-goal{flex-direction:column;gap:var(--space-4);}
     .stage-outputs{grid-template-columns:1fr;gap:var(--space-8);}
     .stage-outputs li{min-height:0;}
-    .latest-grid{grid-template-columns:1fr;}
+    .latest-card{grid-template-columns:1fr 24px;gap:8px 14px;padding:20px 0;}
+    .latest-tag{grid-column:1;grid-row:1;}
+    .latest-info h3{grid-column:1;grid-row:2;font-size:16px;}
+    .latest-info p{grid-column:1;grid-row:3;}
+    .latest-date{grid-column:1;grid-row:4;}
+    .latest-view{grid-column:2;grid-row:1 / span 4;}
     .closing-band{padding:var(--space-24);}
     .closing-actions{width:100%;flex-direction:column;}
     .closing-actions .btn{width:100%;}
@@ -301,7 +309,7 @@ const boardOutputs = currentStage.outputs.slice(0, 3);
         const post = latestByTopic(d.title);
         return (
           <a class="focus-card" href={`/topics/${d.slug}`}>
-            <span class="focus-num">{d.num.split('·')[0].trim()}</span>
+            <span class="focus-kicker">主题专题</span>
             <h3>{d.title}</h3>
             <p>{d.definition}</p>
             {count > 0 && (
@@ -415,7 +423,7 @@ const boardOutputs = currentStage.outputs.slice(0, 3);
             <h3>{post.title}</h3>
             <p>{post.excerpt}</p>
             <span class="latest-date">{post.date} · {post.readTime}</span>
-            <span class="latest-view">阅读全文<span aria-hidden="true">→</span></span>
+            <span class="latest-view" aria-hidden="true">↗</span>
           </div>
         </a>
       ))}
