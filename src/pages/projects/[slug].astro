@@ -1,0 +1,145 @@
+---
+import { projectEntries } from '../../data/projects.mjs';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+
+export function getStaticPaths() {
+  return projectEntries.map((project) => ({ params: { slug: project.slug } }));
+}
+
+const { slug } = Astro.params;
+const index = projectEntries.findIndex((item) => item.slug === slug);
+const project = projectEntries[index];
+const previous = index > 0 ? projectEntries[index - 1] : null;
+const next = index < projectEntries.length - 1 ? projectEntries[index + 1] : null;
+const images = {
+  'smart-livestock': '/images/108a419a1f.jpg',
+  'cold-chain-logistics': '/images/59d16544d3.jpg',
+  'food-traceability': '/images/28730ee9fc.jpg',
+  'digital-data-capture': '/images/88f4353f46.jpg',
+  'precision-feeding': '/images/2fedb07948.jpg',
+  'mobile-security': '/images/018e5a8e2f.jpg',
+};
+const image = images[slug];
+const canonical = `https://xiaomaker.top/projects/${slug}/`;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: project.title,
+  description: project.tagline,
+  image: `https://xiaomaker.top${image}`,
+  url: canonical,
+  author: { '@type': 'Person', name: '个人商业创造者' },
+};
+---
+<!DOCTYPE html>
+<html lang="zh-CN" style="background:#0c0c0c;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0c0c0c">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>{project.title} — 项目档案 · 个人商业创造者</title>
+<meta name="description" content={project.tagline}>
+<link rel="canonical" href={canonical}>
+<meta property="og:type" content="article">
+<meta property="og:title" content={project.title}>
+<meta property="og:description" content={project.tagline}>
+<meta property="og:image" content={`https://xiaomaker.top${image}`}>
+<meta property="og:url" content={canonical}>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content={project.title}>
+<meta name="twitter:description" content={project.tagline}>
+<meta name="twitter:image" content={`https://xiaomaker.top${image}`}>
+<link rel="stylesheet" href="/fonts/fonts.css">
+<link rel="stylesheet" href="/css/tokens.css">
+<script is:inline>document.documentElement.classList.add('js');</script>
+<script is:inline src="/js/site-shell.js" defer></script>
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
+<style is:global>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Noto Sans SC','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-size:var(--fs-16);line-height:var(--lh-body);background:var(--bg);color:var(--text);overflow-x:hidden;font-feature-settings:"palt" 1;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+  ::selection{background:var(--accent);color:var(--accent-ink);}
+  a{text-decoration:none;color:inherit;}
+  img{display:block;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px;}
+  .project-hero{padding:calc(64px + var(--space-56)) var(--gutter) var(--space-40);}
+  .project-hero-content{max-width:var(--article-w);margin:0 auto;}
+  .project-badge{display:flex;align-items:center;gap:var(--space-8);margin-bottom:var(--space-16);}
+  .project-badge .line{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+  .project-badge .label{font-size:var(--fs-12);color:var(--text-muted);}
+  .project-title{font-size:var(--fs-48);font-weight:600;line-height:1.18;margin-bottom:var(--space-12);text-wrap:balance;}
+  .project-tagline{max-width:680px;margin-bottom:var(--space-24);font-size:var(--fs-16);color:var(--text-secondary);}
+  .project-meta{display:flex;flex-wrap:wrap;gap:var(--space-12) var(--space-32);margin-bottom:var(--space-24);}
+  .meta-item h2{font-size:var(--fs-12);font-weight:400;color:var(--text-muted);margin-bottom:var(--space-4);}
+  .meta-item p{font-size:var(--fs-14);color:var(--text);}
+  .project-body{max-width:var(--article-w);margin:0 auto;padding:0 var(--gutter) var(--space-40);}
+  .project-preview{width:100%;aspect-ratio:16/9;border-radius:var(--radius);overflow:hidden;background:var(--surface);border:1px solid var(--border);margin-bottom:var(--space-40);}
+  .project-preview img{width:100%;height:100%;object-fit:cover;}
+  .project-section{margin-bottom:var(--space-40);}
+  .project-section h2{display:flex;align-items:center;gap:var(--space-8);font-size:var(--fs-20);font-weight:600;margin-bottom:var(--space-16);}
+  .project-section h2::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);}
+  .project-section p{font-size:var(--fs-16);color:var(--text-secondary);line-height:1.85;margin-bottom:1.1em;}
+  .project-section p:first-child{font-size:var(--fs-18,18px);color:var(--text);}
+  .tech-tags{display:flex;flex-wrap:wrap;gap:var(--space-8);}
+  .tech-tag{padding:4px 10px;border:1px solid var(--border);border-radius:4px;font-size:var(--fs-14);color:var(--text-secondary);}
+  .features-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-12);}
+  .feature-item{display:flex;align-items:flex-start;gap:var(--space-12);padding:var(--space-16);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:var(--fs-14);color:var(--text-secondary);line-height:var(--lh-tight);}
+  .feature-item::before{content:'✓';color:var(--accent);font-weight:700;}
+  .project-nav{max-width:var(--article-w);margin:0 auto;padding:0 var(--gutter) var(--space-56);display:grid;grid-template-columns:1fr 1fr;gap:var(--space-16);}
+  .project-nav-link{display:flex;flex-direction:column;gap:var(--space-4);padding:var(--space-20,20px);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
+  .project-nav-link:hover{border-color:rgba(255,255,255,.22);background:var(--surface-2);}
+  .project-nav-link.next{text-align:right;}
+  .nav-label{font-size:var(--fs-12);color:var(--text-muted);}
+  .nav-title{font-size:var(--fs-14);font-weight:600;}
+  @media(max-width:768px){
+    .project-hero{padding:calc(56px + var(--space-32)) var(--gutter) var(--space-32);}
+    .project-title{font-size:28px;line-height:1.25;}
+    .project-tagline{font-size:var(--fs-14);}
+    .project-body{padding:0 var(--gutter) var(--space-32);}
+    .features-list{grid-template-columns:1fr;}
+    .project-nav{grid-template-columns:1fr;padding:0 var(--gutter) var(--space-40);}
+    .project-nav-link.next{text-align:left;}
+  }
+</style>
+</head>
+<body>
+<Nav variant="article" backHref="/projects" backLabel="返回项目" />
+<header class="project-hero">
+  <div class="project-hero-content">
+    <div class="project-badge"><span class="line"></span><span class="label">{project.category}</span></div>
+    <h1 class="project-title">{project.title}</h1>
+    <p class="project-tagline">{project.tagline}</p>
+    <div class="project-meta">
+      {project.meta.map((item) => (
+        <div class="meta-item"><h2>{item.label}</h2><p>{item.value}</p></div>
+      ))}
+    </div>
+  </div>
+</header>
+<main class="project-body">
+  <figure class="project-preview">
+    <img src={image} alt={project.title} width="1600" height="900" loading="eager" decoding="async">
+  </figure>
+  <section class="project-section">
+    <h2>项目概述</h2>
+    {project.overview.map((paragraph) => <p>{paragraph}</p>)}
+  </section>
+  <section class="project-section">
+    <h2>技术栈</h2>
+    <div class="tech-tags">{project.tech.map((item) => <span class="tech-tag">{item}</span>)}</div>
+  </section>
+  <section class="project-section">
+    <h2>核心功能</h2>
+    <ul class="features-list">{project.features.map((feature) => <li class="feature-item">{feature}</li>)}</ul>
+  </section>
+</main>
+<nav class="project-nav" aria-label="其他项目">
+  {previous && <a class="project-nav-link" href={`/projects/${previous.slug}/`}><span class="nav-label">上一个项目</span><span class="nav-title">{previous.title}</span></a>}
+  {next && <a class="project-nav-link next" href={`/projects/${next.slug}/`}><span class="nav-label">下一个项目</span><span class="nav-title">{next.title}</span></a>}
+</nav>
+<Footer />
+</body>
+</html>
