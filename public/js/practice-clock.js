@@ -50,7 +50,8 @@
     var rangeLabel = node.querySelector('[data-stage-range]');
     if (rangeLabel) {
       var stageDays = Math.round((localDate(item.end).getTime() - localDate(item.start).getTime()) / 86400000) + 1;
-      rangeLabel.textContent = format(item.start) + ' — ' + format(item.end) + ' · ' + stageDays + ' 天';
+      var separator = node.hasAttribute('data-practice-stage') ? ' — ' : '–';
+      rangeLabel.textContent = format(item.start) + separator + format(item.end) + (node.hasAttribute('data-practice-stage') ? ' · ' + stageDays + ' 天' : '');
     }
     var statusLabel = node.querySelector('[data-stage-status]');
     if (statusLabel) {
