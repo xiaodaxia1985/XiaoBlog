@@ -1,6 +1,6 @@
 ---
 import { getCollection, getEntry, render } from 'astro:content';
-import { getAllPosts, toPost } from '../../lib/insights';
+import { getPublishedPosts, toPost } from '../../lib/insights';
 import { shade, INK } from '../../lib/cover-palette.mjs';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
@@ -15,7 +15,7 @@ const entry = await getEntry('insights', slug);
 const post = toPost(entry);
 const { Content, headings } = await render(entry);
 
-const all = await getAllPosts();
+const all = await getPublishedPosts();
 const sameCategory = all.filter((p) => p.category === post.category);
 const index = sameCategory.findIndex((p) => p.slug === post.slug);
 const prevPost = index > 0 ? sameCategory[index - 1] : null;
@@ -145,8 +145,8 @@ const jsonLd = {
   .reading-top.is-visible{opacity:1;visibility:visible;transform:translateY(0);}
   .reading-top:hover{color:var(--accent);border-color:rgba(216,242,107,.45);}
   .markdown{--reading-font:17px;}
+  @media(max-width:720px){.markdown{--reading-font:16px;}}
   .markdown p{font-size:var(--reading-font);}
-  .markdown .sec{scroll-margin-top:88px;}
   .markdown h2,.markdown h3{scroll-margin-top:88px;}
   .markdown{counter-reset:article-section;}
   .markdown h2{counter-increment:article-section;display:flex;align-items:baseline;gap:18px;padding-top:28px;margin:38px 0 20px;border-top:1px solid rgba(255,255,255,.10);font-size:21px;line-height:1.5;color:var(--text);font-weight:700;scroll-margin-top:88px;}
@@ -166,12 +166,10 @@ const jsonLd = {
   .markdown table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse;margin:24px 0;font-size:14px;}
   .markdown th,.markdown td{padding:10px 12px;border:1px solid var(--border);text-align:left;vertical-align:top;}
   .markdown th{color:var(--text);background:rgba(255,255,255,.04);}
-  .markdown blockquote{color:var(--text-secondary);}
   body.is-focus-mode .article-toc,body.is-focus-mode .opinion-card{display:none;}
   body.is-focus-mode .article-body > .art-inner{max-width:880px;}
   body.is-focus-mode .reading-layout{display:block;}
   body.is-focus-mode .reading-content > .col{margin-left:0;}
-  body.is-focus-mode .intro,body.is-focus-mode .end-mark{margin-left:0;}
 
 
   /* ===== 正文：左编号栏 + 节分割线 + 判断块 + 引用卡 ===== */
@@ -181,33 +179,6 @@ const jsonLd = {
   .markdown strong{color:var(--text);font-weight:600;}
   .markdown code{font-family:'Inter',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;}
   .markdown a{color:var(--accent);border-bottom:1px solid rgba(var(--accent-rgb),.4);}
-
-  .intro{padding-top:6px;max-width:var(--art-w);margin-left:calc(var(--rail-w) + var(--rail-gap));}
-  .hook{font-size:clamp(34px,4vw,46px)!important;line-height:1.08!important;font-weight:700;color:var(--accent)!important;letter-spacing:-.032em;margin:0 0 18px!important;}
-
-  .key{margin:30px 0;padding:20px 0;border-top:1px solid rgba(var(--accent-rgb),.34);border-bottom:1px solid rgba(var(--accent-rgb),.34);}
-  .key-tag{display:inline-block;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:.16em;color:var(--text-muted);margin-bottom:8px;}
-  .key p{font-size:21px!important;font-weight:600;line-height:1.6!important;color:var(--accent)!important;letter-spacing:.004em;margin:0;}
-
-  .quote{margin:30px 0;padding:24px 26px;background:rgba(var(--accent-rgb),.06);border:1px solid rgba(var(--accent-rgb),.24);border-radius:2px;}
-  .quote p{font-size:17.5px!important;line-height:1.85!important;color:#F0F0EC!important;margin:0;}
-
-  .art-list{margin:0 0 26px;padding-left:1.4em;color:var(--body);font-size:17px;line-height:1.82;}
-  .art-list li{margin-bottom:8px;}
-  .art-list li::marker{color:var(--accent);}
-
-  .art-figure{margin:36px 0;}
-  .art-figure img{width:100%;height:auto;border-radius:2px;border:1px solid rgba(255,255,255,.08);background:var(--bg-card);}
-  .art-figure figcaption{margin-top:10px;font-size:12.5px;line-height:1.7;color:var(--text-muted);}
-
-  .sec{display:grid;grid-template-columns:var(--rail-w) minmax(0,var(--art-w));column-gap:var(--rail-gap);padding-top:32px;margin-top:36px;border-top:1px solid rgba(255,255,255,.10);}
-  .sec-head{position:sticky;top:88px;align-self:start;padding-top:2px;}
-  .sec-num{display:block;font-family:'Inter',sans-serif;font-size:30px;font-weight:700;line-height:1;letter-spacing:-.03em;color:var(--accent);font-variant-numeric:tabular-nums;}
-  .sec-label{display:block;margin-top:8px;font-size:10px;letter-spacing:.14em;color:var(--text-muted);line-height:1.5;}
-  .sec-title{font-size:19px;font-weight:700;line-height:1.5;letter-spacing:.012em;margin:0 0 20px;color:var(--text);text-wrap:balance;}
-
-  .end-mark{max-width:var(--art-w);margin:44px 0 0 calc(var(--rail-w) + var(--rail-gap));padding-top:24px;border-top:1px solid rgba(255,255,255,.10);color:var(--accent);}
-  .end-mark span{display:block;font-size:17px;font-weight:600;line-height:1.8;letter-spacing:.01em;}
 
   .article-tags{display:flex;flex-wrap:wrap;gap:var(--space-8);padding-top:var(--space-24);margin-top:var(--space-40);border-top:1px solid var(--border);}
   .article-tag{padding:4px 8px;border-radius:4px;background:transparent;border:1px solid var(--border);font-size:12px;font-weight:400;color:var(--text-secondary);letter-spacing:0;}
@@ -472,7 +443,7 @@ const jsonLd = {
   const topButtons = document.querySelectorAll('[data-back-top]');
   const floatingTop = document.querySelector('.reading-top');
   const tocDetails = document.querySelector('[data-toc-details]');
-  let readingFont = 17;
+  let readingFont = window.matchMedia('(max-width: 720px)').matches ? 16 : 17;
 
   fontButtons.forEach((button) => {
     button.addEventListener('click', () => {
