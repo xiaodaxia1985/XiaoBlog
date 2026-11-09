@@ -6,7 +6,6 @@ import Footer from '../components/Footer.astro';
 
 const practice = getPracticeSnapshot();
 const stages = practice.stages;
-const currentStage = stages.find((stage) => stage.id === practice.currentStageId) ?? stages[0];
 const published = await getPublishedPosts();
 const postOf = (slug) => published.find((p) => p.slug === slug);
 const archiveCount = published.filter((p) => p.category === '90天实战').length;
@@ -108,11 +107,11 @@ const cnNums = ['一', '二', '三', '四'];
     <h1>我的 90 天创造者实践</h1>
     <p class="intro">从寻找真实需求开始，用 90 天做出一个产品，并公开记录每一步。</p>
     <div class="hero-meta">
-      <span data-practice-period>2026.11.08 — 2027.02.05</span>
+      <span data-practice-period>{practice.period}</span>
       <span class="sep" aria-hidden="true">·</span>
-      <span class="day" data-practice-day>Day 01 / 90</span>
+      <span class="day" data-practice-day>{`Day ${String(practice.dayNumber).padStart(2, '0')} / 90`}</span>
       <span class="sep" aria-hidden="true">·</span>
-      <span class="state" data-practice-state>当前 · 第一阶段</span>
+      <span class="state" data-practice-state>{(stages.find((stage) => stage.id === practice.currentStageId)?.status ?? '当前') + ' · 第' + cnNums[practice.currentStageId - 1] + '阶段'}</span>
     </div>
     <div class="hero-actions">
       <a class="btn btn-primary" href="/insights/?category=90天实战">查看实战记录{archiveCount > 0 && ` · ${archiveCount} 篇`}</a>
