@@ -1,6 +1,7 @@
 ---
 import { getPracticeSnapshot } from '../data/stages.mjs';
 import { getPublishedPosts } from '../lib/insights';
+import { tracking } from '../data/practice-tracking.mjs';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 
@@ -69,6 +70,26 @@ import { ClientRouter } from 'astro:transitions';
 
   /* ===== 阶段列表 ===== */
   .stage-list{display:flex;flex-direction:column;gap:var(--space-24);padding:var(--space-40) 0 var(--space-56);}
+  .tracking-board{display:flex;flex-direction:column;gap:var(--space-24);padding:var(--space-32);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-top:var(--space-40);}
+  .tracking-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:var(--space-12);}
+  .tracking-head h2{font-size:var(--fs-20);font-weight:600;margin:0;}
+  .tracking-updated{font-size:var(--fs-12);color:var(--text-muted);font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;}
+  .tracking-rule{margin:var(--space-8) 0 0;font-size:var(--fs-13);color:var(--text-secondary);}
+  .tracking-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:var(--space-24);margin-top:var(--space-24);}
+  .tracking-col{display:flex;flex-direction:column;gap:var(--space-16);}
+  .tracking-step{display:grid;grid-template-columns:auto 1fr auto;gap:var(--space-12);padding:var(--space-14) var(--space-16);background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--radius-sm);}
+  .tracking-step.is-done{border-color:rgba(216,242,107,.28);}
+  .tracking-step-date{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);white-space:nowrap;}
+  .tracking-step-body h3{font-size:var(--fs-14);font-weight:500;color:var(--text);margin:0 0 4px;}
+  .tracking-step-body p{margin:0;font-size:var(--fs-12);color:var(--text-secondary);line-height:1.7;}
+  .tracking-step-body .tracking-deliverables{margin-top:4px;font-size:var(--fs-11);color:var(--text-muted);}
+  .tracking-step-status{margin-left:auto;font-size:var(--fs-11);color:var(--text-muted);white-space:nowrap;}
+  .tracking-step.is-done .tracking-step-status{color:var(--accent);}
+  .acceptance-metrics{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-12);}
+  .acceptance-metric{padding:var(--space-14) var(--space-16);background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--radius-sm);}
+  .acceptance-metric strong{display:block;font-size:var(--fs-16);font-weight:550;letter-spacing:0;}
+  .acceptance-metric span{display:block;margin-top:4px;font-size:var(--fs-12);color:var(--text-muted);line-height:1.6;}
+  .disclosure{font-size:var(--fs-13);color:var(--text-secondary);line-height:1.8;}
   .stage-card{padding:var(--space-32);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
   .stage-card.is-current{border-color:rgba(216,242,107,.35);}
   .stage-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-12);margin-bottom:var(--space-12);}
@@ -96,6 +117,9 @@ import { ClientRouter } from 'astro:transitions';
     .page-hero .intro{font-size:var(--fs-14);}
     .hero-meta{flex-direction:column;align-items:flex-start;gap:var(--space-4);}
     .hero-meta .sep{display:none;}
+    .tracking-board{padding:var(--space-20);}
+    .tracking-grid{grid-template-columns:1fr;}
+    .acceptance-metrics{grid-template-columns:1fr;}
     .stage-card{padding:var(--space-24);}
     .outputs{grid-template-columns:1fr;}
   }
@@ -134,7 +158,7 @@ import { ClientRouter } from 'astro:transitions';
 <main class="wrap">
   <div class="stage-list">
     {stages.map((s) => {
-      const posts = s.postIds.map(postOf).filter(Boolean).slice(0, 2);
+      const posts = s.postIds.map(postOf).filter(Boolean).slice(0, 3);
       return (
         <article class={`stage-card${s.status === '当前' ? ' is-current' : ''}`} id={`stage-${s.id}`} data-practice-stage data-stage-start={s.startDate} data-stage-end={s.endDate}>
           <div class="stage-head">
@@ -165,6 +189,43 @@ import { ClientRouter } from 'astro:transitions';
       );
     })}
   </div>
+
+  <section class="tracking-board" aria-label="90 天实践追踪看板">
+    <div class="tracking-head">
+      <h2>追踪看板</h2>
+      <span class="tracking-updated">更新于 {tracking.updatedAt}</span>
+    </div>
+    <p class="tracking-rule">{tracking.incomeDisclosure}</p>
+    <div class="tracking-grid">
+      <div class="tracking-col">
+        <h3 class="stage-label">最近记录</h3>
+        {tracking.steps.map((step) => (
+          <article class={`tracking-step${step.status === 'done' ? ' is-done' : ''}`}>
+            <span class="tracking-step-date">{step.date}</span>
+            <div class="tracking-step-body">
+              <h3>{step.title}</h3>
+              <p>{step.summary}</p>
+              {step.deliverables?.length > 0 && (
+                <p class="tracking-deliverables">{step.deliverables.join(' · ')}</p>
+              )}
+            </div>
+            <span class="tracking-step-status">{step.status === 'done' ? '已完成' : '待办'}</span>
+          </article>
+        ))}
+      </div>
+      <div class="tracking-col">
+        <h3 class="stage-label">验收指标</h3>
+        <div class="acceptance-metrics">
+          <div class="acceptance-metric"><strong>{tracking.acceptance.content.value}</strong><span>{tracking.acceptance.content.label}</span></div>
+          <div class="acceptance-metric"><strong>{tracking.acceptance.feedback.value}</strong><span>{tracking.acceptance.feedback.label}</span></div>
+          <div class="acceptance-metric"><strong>{tracking.acceptance.paidUsers.value}</strong><span>{tracking.acceptance.paidUsers.label}</span></div>
+          <div class="acceptance-metric"><strong>{tracking.acceptance.monthlyIncome.value}</strong><span>{tracking.acceptance.monthlyIncome.label}</span></div>
+        </div>
+        <h3 class="stage-label">披露规则</h3>
+        <p class="disclosure">{tracking.incomeDisclosure}</p>
+      </div>
+    </div>
+  </section>
 </main>
 
 <Footer />

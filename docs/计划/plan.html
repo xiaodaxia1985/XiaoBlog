@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101827">
+<title>个人商业系统｜90天创造者实践</title>
+<style>
+:root{
+ --bg:#f4f6f8;--paper:#fff;--ink:#182230;--muted:#697586;--line:#e7ebf0;
+ --navy:#101827;--navy2:#1c2a3d;--blue:#4169e1;--blue2:#eaf0ff;
+ --mint:#dff5ec;--green:#17845d;--amber:#f2b84b;--soft:#f8fafc;
+ --shadow:0 12px 34px rgba(18,31,49,.07);--radius:18px;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.55}
+button{font:inherit;cursor:pointer}
+.shell{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
+.sidebar{background:var(--navy);color:#fff;padding:28px 20px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:11px;padding:0 8px 34px}
+.brand-mark{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,#8ba7ff,#526de0);display:grid;place-items:center;font-weight:800;color:white}
+.brand strong{font-size:14px;letter-spacing:.04em}.brand small{display:block;color:#9ba8bb;font-size:10px;letter-spacing:.14em;margin-top:2px}
+.nav-label{font-size:10px;letter-spacing:.16em;color:#7f8da2;padding:0 10px;margin:12px 0}
+.nav{display:grid;gap:6px}
+.nav a{color:#b9c4d2;text-decoration:none;padding:11px 12px;border-radius:10px;font-size:13px;display:flex;align-items:center;gap:10px}
+.nav a:hover,.nav a.active{background:#25334a;color:#fff}
+.nav .ico{width:18px;text-align:center;font-size:15px}
+.side-bottom{margin-top:auto;border-top:1px solid #2a374b;padding:18px 9px 0;color:#9ba8bb;font-size:11px;line-height:1.7}
+.side-bottom b{color:#fff;font-weight:600}
+.main{min-width:0;padding:34px clamp(20px,4vw,62px) 70px;max-width:1500px;width:100%;margin:auto}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:28px}
+.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--blue);font-weight:750}
+.top-actions{display:flex;gap:8px;align-items:center}
+.pill{border:1px solid var(--line);background:white;border-radius:999px;padding:8px 13px;color:#526071;font-size:11px}
+.hero{background:linear-gradient(120deg,#111d30 0%,#1d3150 58%,#304c78 100%);color:#fff;border-radius:24px;padding:clamp(26px,4vw,48px);position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.hero:after{content:"";position:absolute;width:360px;height:360px;border:1px solid rgba(255,255,255,.10);border-radius:50%;right:-90px;top:-170px;box-shadow:0 0 0 35px rgba(255,255,255,.025),0 0 0 75px rgba(255,255,255,.02)}
+.hero-content{position:relative;z-index:1;max-width:760px}
+.hero-kicker{color:#a9c0ff;font-size:11px;letter-spacing:.17em;font-weight:700}
+h1{font-size:clamp(30px,4vw,48px);line-height:1.18;letter-spacing:-.04em;margin:14px 0 14px}
+.hero p{color:#c5d0df;font-size:14px;max-width:650px;margin:0;line-height:1.85}
+.hero-bottom{display:flex;align-items:center;gap:18px;margin-top:30px;flex-wrap:wrap}
+.primary{border:0;border-radius:10px;background:#fff;color:#17243a;padding:11px 17px;font-weight:700;font-size:12px}
+.primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px #08142655}
+.hero-note{font-size:11px;color:#aab8ca}
+.section{margin-top:36px;scroll-margin-top:24px}
+.section-head{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:16px}
+.section-head h2{font-size:19px;letter-spacing:-.025em;margin:4px 0 0}
+.section-head p{font-size:12px;color:var(--muted);margin:0}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:17px 18px;box-shadow:0 4px 14px #17243a05}
+.stat-label{font-size:11px;color:var(--muted)}.stat-value{font-size:25px;font-weight:750;letter-spacing:-.04em;margin:6px 0 1px}.stat-sub{font-size:10px;color:#8a96a5}
+.progress-card{background:white;border:1px solid var(--line);border-radius:16px;padding:20px;margin-top:13px}
+.status-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.status-col{background:white;border:1px solid var(--line);border-radius:15px;padding:18px}
+.status-col h3{font-size:12px;margin:0 0 12px;font-weight:750;letter-spacing:.02em}
+.status-col.is-done h3{color:var(--green)}
+.status-list{display:grid;gap:10px}
+.status-item{display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;align-items:flex-start;padding:10px 11px;border:1px solid var(--line);border-radius:11px;background:var(--soft)}
+.status-item.is-todo{opacity:.86}
+.status-date{font-size:10px;color:#7b8794;font-variant-numeric:tabular-nums;padding-top:2px}
+.status-item h4{font-size:12px;margin:0 0 3px;font-weight:700}
+.status-item p{font-size:10px;color:var(--muted);margin:0;line-height:1.65}
+.status-item .tag{display:inline-block;margin-top:6px;font-size:9px;color:#8a96a5;background:#eef1f5;border-radius:99px;padding:3px 7px}
+.status-item.is-todo .tag{color:var(--amber);background:#fff5dd}
+.status-item.is-done .tag{color:var(--green);background:var(--mint)}
+.gates{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.gate{background:white;border:1px solid var(--line);border-radius:15px;padding:18px}
+.gate-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.gate-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);flex:none}
+.gate h3{font-size:12px;margin:0;font-weight:750}
+.gate p{font-size:11px;color:var(--muted);margin:8px 0 0;line-height:1.7}
+.sources{background:white;border:1px solid var(--line);border-radius:15px;padding:18px 20px;margin-top:13px}
+.sources h3{font-size:12px;margin:0 0 12px;font-weight:750}
+.sources code{font-size:10px;background:#eef1f5;border-radius:5px;padding:2px 5px;color:#455264}
+.source-list{display:grid;gap:8px}
+.source-item{display:flex;gap:10px;align-items:baseline;font-size:11px;color:#455264}
+.source-item b{color:var(--ink);font-weight:700;flex:none}
+.source-item a{color:var(--blue);text-decoration:underline}
+.source-item span{color:var(--muted)}
+.progress-top{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;font-weight:650}
+.progress-track{height:8px;background:#edf0f4;border-radius:99px;overflow:hidden;margin-top:13px}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,#5d7ee8,#57b99b);border-radius:99px;transition:width .35s}
+.progress-foot{display:flex;justify-content:space-between;color:var(--muted);font-size:10px;margin-top:9px}
+.principles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.principle{background:white;border:1px solid var(--line);border-radius:15px;padding:19px}
+.principle .num{font-size:10px;color:var(--blue);font-weight:800;letter-spacing:.12em}
+.principle h3{font-size:14px;margin:8px 0 5px}.principle p{font-size:11px;color:var(--muted);margin:0;line-height:1.75}
+.phase-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.phase{background:white;border:1px solid var(--line);border-radius:14px;padding:15px;position:relative;overflow:hidden}
+.phase.active{border-color:#a9baff;box-shadow:0 0 0 3px #eaf0ff}
+.phase .phase-no{font-size:10px;color:var(--blue);font-weight:800;letter-spacing:.12em}
+.phase h3{font-size:13px;margin:7px 0 5px}.phase p{font-size:10px;color:var(--muted);margin:0;line-height:1.65}
+.phase time{display:block;font-size:10px;color:#8a96a5;margin-top:11px}
+.phase-tag{display:inline-block;margin-top:9px;font-size:9px;color:#4169e1;background:#edf2ff;padding:4px 7px;border-radius:99px}
+.plan-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filter{border:1px solid var(--line);background:white;border-radius:9px;padding:8px 11px;font-size:11px;color:#647184}
+.filter.active{background:var(--navy);color:white;border-color:var(--navy)}
+.days{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.day{background:white;border:1px solid var(--line);border-radius:15px;overflow:hidden;transition:.2s}
+.day.done{border-color:#b9e4d3}
+.day-head{display:flex;gap:13px;align-items:flex-start;padding:16px 17px 12px}
+.day-date{width:43px;height:46px;flex:none;border-radius:11px;background:#f0f3f8;display:grid;place-items:center;text-align:center}
+.day-date b{font-size:17px;line-height:1}.day-date span{font-size:9px;color:#7d8999;margin-top:-6px}
+.day.done .day-date{background:#e3f6ed;color:var(--green)}
+.day-title{flex:1;min-width:0}.day-title strong{display:block;font-size:13px}.day-title small{font-size:10px;color:var(--muted)}
+.day-status{font-size:9px;color:#8490a0;white-space:nowrap;padding-top:2px}
+.day-body{padding:0 17px 15px 73px}
+.taskline{display:flex;align-items:flex-start;gap:9px;margin:7px 0;font-size:11px;color:#455264;line-height:1.55}
+.taskline input{appearance:none;width:15px;height:15px;border:1.5px solid #c7d0dc;border-radius:4px;margin:1px 0 0;flex:none;cursor:pointer;background:white}
+.taskline input:checked{background:var(--green);border-color:var(--green);position:relative}
+.taskline input:checked:after{content:"✓";position:absolute;color:white;font-size:11px;left:2px;top:-1px}
+.taskline:has(input:checked) span{text-decoration:line-through;color:#9aa5b2}
+.deliverable{margin-top:11px;padding:9px 10px;background:#f7f9fc;border-radius:8px;font-size:10px;color:#697586}
+.deliverable b{color:#344257}
+.callout{border:1px solid #dce6fb;background:#f2f6ff;border-radius:15px;padding:18px 20px;display:flex;gap:14px;align-items:flex-start}
+.callout-icon{width:30px;height:30px;border-radius:9px;background:#dce7ff;color:#4169e1;display:grid;place-items:center;flex:none}
+.callout h3{font-size:13px;margin:1px 0 5px}.callout p{font-size:11px;color:#5e6d83;margin:0;line-height:1.75}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.metric{background:white;border:1px solid var(--line);border-radius:13px;padding:15px}
+.metric b{font-size:20px;display:block;letter-spacing:-.04em}.metric span{font-size:10px;color:var(--muted)}
+.footer{margin-top:42px;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;color:#8994a2;font-size:10px}
+.reset{border:0;background:transparent;color:#8994a2;text-decoration:underline;font-size:10px}
+.mobile-menu{display:none}
+@media(max-width:1000px){.shell{grid-template-columns:210px minmax(0,1fr)}.stats{grid-template-columns:repeat(2,1fr)}.phase-grid{grid-template-columns:repeat(2,1fr)}.gates{grid-template-columns:1fr}}
+@media(max-width:720px){
+ .shell{display:block}.sidebar{position:relative;height:auto;padding:14px 17px;display:block}.brand{padding:0}.brand-mark{width:32px;height:32px}.nav-label,.side-bottom{display:none}.nav{display:flex;overflow:auto;margin-top:13px;padding-bottom:2px}.nav a{white-space:nowrap;padding:8px 10px;font-size:11px}.nav .ico{display:none}
+ .main{padding:20px 15px 45px}.topline{margin-bottom:17px}.top-actions .pill:nth-child(2){display:none}
+ .hero{border-radius:18px;padding:25px 21px}.hero:after{right:-230px}.hero p{font-size:12px}.hero-bottom{margin-top:23px}
+ .stats{gap:8px}.stat{padding:13px}.stat-value{font-size:22px}
+ .section{margin-top:28px}.section-head{align-items:flex-start;flex-direction:column;gap:8px}
+ .principles{grid-template-columns:1fr}.principle{padding:15px}
+ .phase-grid{grid-template-columns:repeat(2,1fr);gap:8px}.phase{padding:12px}
+ .days{grid-template-columns:1fr;gap:9px}.day-head{padding:14px 13px 10px}.day-body{padding:0 13px 13px 69px}
+ .metrics{grid-template-columns:repeat(2,1fr)}.footer{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <div class="brand"><div class="brand-mark">PB</div><div><strong>PERSONAL BUSINESS</strong><small>90-DAY CREATOR JOURNEY</small></div></div>
+  <div class="nav-label">WORKSPACE</div>
+  <nav class="nav">
+    <a class="active" href="#overview"><span class="ico">◈</span>总览</a>
+    <a href="#tracking"><span class="ico">◷</span>进度追踪</a>
+    <a href="#belief"><span class="ico">✳</span>核心理念</a>
+    <a href="#roadmap"><span class="ico">▤</span>90天路线图</a>
+    <a href="#sprint"><span class="ico">☷</span>前14天行动</a>
+    <a href="#success"><span class="ico">↗</span>阶段验收</a>
+  </nav>
+  <div class="side-bottom"><b>从信息消费者</b><br>到商业创造者。<br><br>把能力变成资产，把创造变成系统。</div>
+</aside>
+<main class="main">
+  <div class="topline">
+    <div><div class="eyebrow">YOUR PERSONAL BUSINESS SYSTEM</div><div style="font-size:12px;color:#788494;margin-top:4px">90天创造者实践 · 2026.11.08 — 2027.02.05</div></div>
+    <div class="top-actions"><span class="pill">个人事业启动计划</span><span class="pill">V1.0 · 2026.11</span></div>
+  </div>
+
+  <section class="hero" id="overview">
+    <div class="hero-content">
+      <div class="hero-kicker">A 90-DAY CREATOR JOURNEY</div>
+      <h1>从信息消费者，<br>到商业创造者。</h1>
+      <p>用90天，从零开始建立自己的个人商业系统。以真实实践为起点，把专业能力转化为产品与商业资产，逐步建立不依赖单一工资的收入来源与商业选择权。</p>
+      <div class="hero-bottom">
+        <button class="primary" onclick="document.querySelector('#sprint').scrollIntoView({behavior:'smooth'})">开始执行 <span aria-hidden="true">→</span></button>
+        <span class="hero-note">不追求一次成功，追求每一天都留下可积累的资产。</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats" aria-label="计划关键指标">
+    <div class="stat"><div class="stat-label">实践周期</div><div class="stat-value">90<span style="font-size:13px"> 天</span></div><div class="stat-sub">2026.11.08 — 2027.02.05</div></div>
+    <div class="stat"><div class="stat-label">第一阶段</div><div class="stat-value">14<span style="font-size:13px"> 天</span></div><div class="stat-sub">品牌启动与产品实验</div></div>
+    <div class="stat"><div class="stat-label">每日投入</div><div class="stat-value">8<span style="font-size:13px"> 小时+</span></div><div class="stat-sub">全职推进，按产出复盘</div></div>
+    <div class="stat"><div class="stat-label">首笔收入目标</div><div class="stat-value">12<span style="font-size:13px"> 月中旬前</span></div><div class="stat-sub">目标节点，不是收入承诺</div></div>
+  </section>
+
+  <section class="progress-card">
+    <div class="progress-top"><span>整体执行进度</span><span id="progressText">0% · 0 / 14 天完成</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-foot"><span>勾选每日任务，自动保存本机进度</span><span id="taskCount">0 / 42 项任务</span></div>
+  </section>
+
+  <section class="section" id="tracking">
+    <div class="section-head"><div><div class="eyebrow">TRACKING</div><h2>进度追踪</h2></div><p>后续更新统一从这里开始</p></div>
+    <div class="status-grid">
+      <article class="status-col is-done">
+        <h3>已落地</h3>
+        <div class="status-list">
+          <div class="status-item is-done"><span class="status-date">11.08</span><div><h4>确定 90 天实践框架并公开承诺</h4><p>品牌表达系统 V1、品牌宣言 V1 冻结，四阶段路线确定。</p><span class="tag">品牌启动</span></div></div>
+          <div class="status-item is-done"><span class="status-date">11.09</span><div><h4>上线个人网站与 90 天追踪入口</h4><p>静态站部署到自购域名，90 天页接入追踪看板。</p><span class="tag">网站上线</span></div></div>
+        </div>
+      </article>
+      <article class="status-col">
+        <h3>进行中 / 待办</h3>
+        <div class="status-list">
+          <div class="status-item is-todo"><span class="status-date">11.10</span><div><h4>内容系统与用户触达开闸</h4><p>确定栏目与选题、建立内容日历，准备候选名单并发出首批触达。</p><span class="tag">内容系统</span></div></div>
+          <div class="status-item is-todo"><span class="status-date">11.11</span><div><h4>发布品牌宣言</h4><p>博客、小红书、公众号三渠道首发，并记录首小时数据。</p><span class="tag">品牌宣言</span></div></div>
+          <div class="status-item is-todo"><span class="status-date">11.12</span><div><h4>公开 90 天实践计划</h4><p>整理为可对外公开的计划与进度记录，补齐日志与数据表。</p><span class="tag">90 天公开页</span></div></div>
+          <div class="status-item is-todo"><span class="status-date">11.13</span><div><h4>目标用户研究收口</h4><p>完成 10 个真实案例与问题矩阵，为 Day 07 方向对比留证据。</p><span class="tag">用户研究</span></div></div>
+        </div>
+      </article>
+    </div>
+    <div class="gates">
+      <div class="gate"><div class="gate-head"><span class="gate-dot"></span><h3>收入公开口径</h3></div><p>已定：只写「是否产生收入 / 是否接近目标」，不公开具体金额与成本。</p></div>
+      <div class="gate"><div class="gate-head"><span class="gate-dot"></span><h3>站点代码硬门槛</h3></div><p>已通过：使用本项目仓库与 Astro 静态站，自购域名已上线。</p></div>
+      <div class="gate"><div class="gate-head"><span class="gate-dot"></span><h3>内容发布与网站解耦</h3></div><p>即使站点不顺，小红书与公众号按节奏照发，不让网站阻塞内容。</p></div>
+    </div>
+    <div class="sources">
+      <h3>更新入口与同步口径</h3>
+      <div class="source-list">
+        <div class="source-item"><b>本地计划</b><span>本文件 <code>docs/计划/plan.html</code> 保留 14 天勾选清单与本地看板，提醒自己每日执行。</span></div>
+        <div class="source-item"><b>执行细节</b><span><code>docs/计划/下一步执行计划_Day01-06.md</code> 记录每天动作、产出和完成标准，是执行层面的主文档。</span></div>
+        <div class="source-item"><b>公共追踪</b><span><code>src/data/practice-tracking.mjs</code> 是网站 <code>/90-days/</code> 追踪看板的数据源，公开页显示最近记录与验收指标。</span></div>
+        <div class="source-item"><b>更新规则</b><span>每天完成后再同步：先在本文件勾选任务，再更新 <code>practice-tracking.mjs</code> 的 <code>steps</code> 与 <code>updatedAt</code>，最后推送并部署网站。</span></div>
+        <div class="source-item"><b>验收口径</b><span>先验证，再开发；先有交易，再扩大投入。免费点赞和口头认可不能替代付费验证。</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="belief">
+    <div class="section-head"><div><div class="eyebrow">THE CORE BELIEF</div><h2>这不是一个短期副业项目</h2></div><p>建立一套属于自己的商业系统</p></div>
+    <div class="principles">
+      <article class="principle"><div class="num">01 / ASSET</div><h3>每个人都应该拥有自己的商业资产</h3><p>专业能力、产品、内容、用户关系与流程，都可以成为长期积累、持续创造价值的资产。</p></article>
+      <article class="principle"><div class="num">02 / LEVERAGE</div><h3>AI 是创造者的杠杆</h3><p>AI不是最终目的。它放大个人的研究、创造、开发和交付能力，让一个人也能完成过去需要团队协作的工作。</p></article>
+      <article class="principle"><div class="num">03 / INDEPENDENCE</div><h3>逐步获得个人商业独立</h3><p>不是要求每个人辞职，而是让核心资产、商业方向和收入来源逐渐掌握在自己手中，拥有更多选择权。</p></article>
+    </div>
+  </section>
+
+  <section class="section" id="roadmap">
+    <div class="section-head"><div><div class="eyebrow">THE ROADMAP</div><h2>90天，分四个阶段推进</h2></div><p>先建立表达，再验证需求，最后沉淀系统</p></div>
+    <div class="phase-grid">
+      <article class="phase active"><div class="phase-no">PHASE 01</div><h3>品牌与实践启动</h3><p>明确品牌表达，发布第一批内容，启动首个产品实验，获得真实反馈。</p><time>11.08 — 11.21</time><span class="phase-tag">当前阶段 · 14天</span></article>
+      <article class="phase"><div class="phase-no">PHASE 02</div><h3>产品验证与首次销售</h3><p>展示产品雏形，开放试用或预售，争取首批付费用户，以购买行为验证需求。</p><time>11.22 — 12.07</time></article>
+      <article class="phase"><div class="phase-no">PHASE 03</div><h3>交付与产品化</h3><p>完成首批交付，收集反馈，把重复流程沉淀为工具、标准化产品和转化路径。</p><time>12.08 — 01.06</time></article>
+      <article class="phase"><div class="phase-no">PHASE 04</div><h3>收入与系统优化</h3><p>优化产品和定价，建立可重复销售、反馈与复购机制，评估软件化方向。</p><time>01.07 — 02.05</time></article>
+    </div>
+  </section>
+
+  <section class="section" id="sprint">
+    <div class="section-head"><div><div class="eyebrow">FIRST 14 DAYS · EXECUTION SPRINT</div><h2>前14天行动清单</h2></div><p>每天至少留下一个可展示产出</p></div>
+    <div class="plan-toolbar" style="margin-bottom:13px">
+      <button class="filter active" data-filter="all">全部任务</button>
+      <button class="filter" data-filter="brand">品牌与内容</button>
+      <button class="filter" data-filter="product">产品实验</button>
+      <button class="filter" data-filter="validation">用户验证</button>
+      <button class="filter" data-filter="done">已完成</button>
+    </div>
+    <div class="days" id="days">
+      <article class="day" data-day="1" data-category="brand"><div class="day-head"><div class="day-date"><b>08</b><span>11月</span></div><div class="day-title"><strong>确立品牌表达</strong><small>定位、理念、使命与个人介绍</small></div><span class="day-status">DAY 01</span></div><div class="day-body"><label class="taskline"><input type="checkbox"><span>确定品牌名称与一句话定位</span></label><label class="taskline"><input type="checkbox"><span>写出品牌理念、使命与愿景</span></label><label class="taskline"><input type="checkbox"><span>完成个人介绍初稿</span></label><div class="deliverable"><b>今日产出：</b>一份可对外使用的个人品牌表达 V1</div></div></article>
+      <article class="day" data-day="2" data-category="brand"><div class="day-head"><div class="day-date"><b>09</b><span>11月</span></div><div class="day-title"><strong>整理个人网站</strong><small>让访客快速理解你做什么</small></div><span class="day-status">DAY 02</span></div><div class="day-body"><label class="taskline"><input type="checkbox"><span>首页突出我是谁、我创造什么</span></label><label class="taskline"><input type="checkbox"><span>优化博客入口与90天实践入口</span></label><label class="taskline"><input type="checkbox"><span>检查移动端阅读与交互体验</span></label><div class="deliverable"><b>今日产出：</b>清晰、轻量、可访问的个人主页</div></div></article>
+      <article class="day" data-day="3" data-category="brand"><div class="day-head"><div class="day-date"><b>10</b><span>11月</span></div><div class="day-title"><strong>建立内容系统</strong><small>形成持续输出的结构</small></div><span class="day-status">DAY 03</span></div><div class="day-body"><label class="taskline"><input type="checkbox"><span>确定四个长期内容栏目</span></label><label class="taskline"><input type="checkbox"><span>整理首批12个内容选题</span></label><label class="taskline"><input type="checkbox"><span>建立内容记录与发布表</span></label><div class="deliverable"><b>今日产出：</b>内容选题库与发布节奏</div></div></article>
+      <article class="day" data-day="4" data-category="brand"><div class="day-head"><div class="day-date"><b>11</b><span>11月</span></div><div class="day-title"><strong>发布品牌宣言</strong><small>讲清楚为什么要做这件事</small></div><span class="day-status">DAY 04</span></div><div class="day-body"><label class="taskline"><input type="checkbox"><span>完成《我为什么要建立个人商业系统》</span></label><label class="taskline"><input type="checkbox"><span>发布小红书首篇内容</span></label><label class="taskline"><input type="checkbox"><span>同步发布公众号</span></label><div class="deliverable"><b>今日产出：</b>第一篇公开品牌内容</div></div></article>
+      <article class="day" data-day="5" data-category="brand"><div class="day-head"><div class="day-date"><b>12</b><span>11月</span></div><div class="day-title"><strong>公开90天实践计划</strong><small>把过程变成长期内容资产</small></div><span class="day-status">DAY 05</span></div><div class="day-body"><label class="taskline"><input type="checkbox"><span>发布90天创造者实践计划</span></label><label class="taskline"><input type="checkbox"><span>建立实践进度日志</span></label><label class="taskline"><input type="checkbox"><span>说明阶段目标与复盘方式</span></label><div class="deliverable"><b>今日产出：</b>公开实践承诺与进度记录页</div></div></article>
+      <article class="day" data-day="6" data-category="validation"><div class="day-head"><div class="day-date"><b>13</b><span>11月</span></div><div class="day-title"><strong>研究目标用户</strong><small>从真实问题而不是想象出发</small></div><span class="day-status">DAY 06</span></div><div class="day-body"><label class="taskline"><input type="checkbox"><span>整理10个目标用户案例或公开讨论</span></label><label class="taskline"><input type="checkbox"><span>归纳高频问题与现有替代方案</span></label><label class="taskline"><input type="checkbox"><span>区分事实证据与个人推断</span></label><div class="deliverable"><b>今日产出：</b>目标用户问题清单与证据记录</div></div></article>
+      <article class="day" data-day="7" data-category="product"><div class="day-head"><div class="day-date"><b>14</b><span>11月</span></div><div class="day-title"><strong>建立产品机会清单</strong><small>比较方向，不急着写代码</small></div><span class="day-status">DAY 07</span></div><div class="day-body"><label class="taskline"><input type="checkbox"><span>比较个人商业启动包、一页识君等方向</span></label><label class="taskline"><input type="checkbox"><span>记录购买理由、替代方案与价格证据</span></label><label class="taskline"><input type="checkbox"><span>选出2个值得做原型的方向</span></label><div class="deliverable"><b>今日产出：</b>产品机会对比表与原型候选</div></div></article>
+      <article class="day" data-day="8" data-category="product"><div class="day-head"><div class="day-date"><b>15</b><span>11月</span></div><div class="day-title"><strong>制作第一个产品原型</strong><small>先验证交付价值，不开发完整软件</small></div><span class="day-status">DAY 08</span></div><div class="day-body"><label class="taskline"><input type="checkbox"><span>设计个人能力商业化启动流程</span></label><label class="taskline"><input type="checkbox"><span>制作评估表与交付样例</span></label><label class="taskline"><input type="checkbox"><span>走通一次完整的用户使用过程</span></label><div class="deliverable"><b>今日产出：</b>可演示、可体验的产品原型</div></div></article>
+      <article class="day" data-day="9" data-category="product"><div class="day-head"><div class="day-date"><b>16</b><span>11月</span></div><div class="day-title"><strong>完成产品演示</strong><small>让别人看得懂产品价值</small></div><span class="day-status">DAY 09</span></div><div class="day-body"><label class="taskline"><input type="checkbox"><span>准备一个完整演示案例</span></label><label class="taskline"><input type="checkbox"><span>展示输入、分析过程与最终输出</span></label><label class="taskline"><input type="checkbox"><span>录制简短演示视频</span></label><div class="deliverable"><b>今日产出：</b>产品演示材料与视频</div></div></article>
+      <article class="day" data-day="10" data-category="brand"><div class="day-head"><div class="day-date"><b>17</b><span>11月</span></div><div class="day-title"><strong>发布产品创造过程</strong><small>让内容与产品实验形成连接</small></div><span class="day-status">DAY 10</span></div><div class="day-body"><label class="taskline"><input type="checkbox"><span>分享为什么选择这个产品方向</span></label><label class="taskline"><input type="checkbox"><span>展示原型和真实使用场景</span></label><label class="taskline"><input type="checkbox"><span>公开征集目标用户反馈</span></label><div class="deliverable"><b>今日产出：</b>一篇产品过程内容与反馈入口</div></div></article>
+      <article class="day" data-day="11" data-category="product"><div class="day-head"><div class="day-date"><b>18</b><span>11月</span></div><div class="day-title"><strong>设计购买方案</strong><small>把价值变成清晰的交易</small></div><span class="day-status">DAY 11</span></div><div class="day-body"><label class="taskline"><input type="checkbox"><span>明确目标用户与交付边界</span></label><label class="taskline"><input type="checkbox"><span>设计自助版与增强版方案</span></label><label class="taskline"><input type="checkbox"><span>提出测试价格与购买理由</span></label><div class="deliverable"><b>今日产出：</b>产品套餐、价格假设与交付说明</div></div></article>
+      <article class="day" data-day="12" data-category="product"><div class="day-head"><div class="day-date"><b>19</b><span>11月</span></div><div class="day-title"><strong>建立线上销售入口</strong><small>让感兴趣的人可以采取行动</small></div><span class="day-status">DAY 12</span></div><div class="day-body"><label class="taskline"><input type="checkbox"><span>制作产品介绍页</span></label><label class="taskline"><input type="checkbox"><span>设置咨询、试用或购买入口</span></label><label class="taskline"><input type="checkbox"><span>明确付款、交付与退款规则</span></label><div class="deliverable"><b>今日产出：</b>可以承接真实购买的销售页面</div></div></article>
+      <article class="day" data-day="13" data-category="validation"><div class="day-head"><div class="day-date"><b>20</b><span>11月</span></div><div class="day-title"><strong>首轮用户验证</strong><small>用真实反馈判断购买意愿</small></div><span class="day-status">DAY 13</span></div><div class="day-body"><label class="taskline"><input type="checkbox"><span>向目标用户展示产品</span></label><label class="taskline"><input type="checkbox"><span>争取5次有效反馈交流</span></label><label class="taskline"><input type="checkbox"><span>记录购买异议与真实付费意愿</span></label><div class="deliverable"><b>今日产出：</b>用户反馈记录与验证结论</div></div></article>
+      <article class="day" data-day="14" data-category="validation"><div class="day-head"><div class="day-date"><b>21</b><span>11月</span></div><div class="day-title"><strong>第一阶段复盘</strong><small>根据证据决定下一步</small></div><span class="day-status">DAY 14</span></div><div class="day-body"><label class="taskline"><input type="checkbox"><span>复盘内容数据与用户反馈</span></label><label class="taskline"><input type="checkbox"><span>判断产品方向是否继续或调整</span></label><label class="taskline"><input type="checkbox"><span>确定下一阶段14天行动计划</span></label><div class="deliverable"><b>今日产出：</b>阶段复盘报告与下一阶段计划</div></div></article>
+    </div>
+  </section>
+
+  <section class="section" id="success">
+    <div class="section-head"><div><div class="eyebrow">SUCCESS CRITERIA</div><h2>用真实结果验收，而不是用忙碌感验收</h2></div><p>以下是阶段目标，不是保证值</p></div>
+    <div class="metrics">
+      <div class="metric"><b>6篇</b><span>前14天公开内容目标</span></div>
+      <div class="metric"><b>5条</b><span>前14天有效用户反馈目标</span></div>
+      <div class="metric"><b>1–3位</b><span>30天累计付费用户目标</span></div>
+      <div class="metric"><b>¥4,000/月</b><span>90天争取达到的月收入目标</span></div>
+    </div>
+    <div class="callout" style="margin-top:13px">
+      <div class="callout-icon">↗</div><div><h3>执行纪律：先验证，再开发；先有交易，再扩大投入。</h3><p>至少获得3个真实付费用户前，不进行大规模软件开发。连续两轮验证没有购买信号，就调整用户、问题或产品方案。免费点赞和口头认可不能替代付费验证。每次工作尽量沉淀为内容、工具、产品、用户关系或可复用流程。</p></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><div><div class="eyebrow">DAILY OPERATING RHYTHM</div><h2>每天的时间分配</h2></div><p>保持创造、表达与市场反馈的平衡</p></div>
+    <div class="metrics">
+      <div class="metric"><b>3h</b><span>产品创造与交付</span></div>
+      <div class="metric"><b>2h</b><span>内容创作与发布</span></div>
+      <div class="metric"><b>1.5h</b><span>用户研究与反馈</span></div>
+      <div class="metric"><b>1.5h</b><span>品牌渠道与复盘</span></div>
+    </div>
+  </section>
+  <footer class="footer"><span>PERSONAL BUSINESS SYSTEM · BUILD YOUR OWN ASSETS</span><span>进度仅保存在当前浏览器。<button class="reset" id="reset">重置全部勾选</button></span></footer>
+</main>
+</div>
+<script>
+const storageKey='pbs-90day-checklist-v1';
+const checks=[...document.querySelectorAll('.taskline input')];
+let saved={};try{saved=JSON.parse(localStorage.getItem(storageKey)||'{}')}catch(e){saved={}}
+checks.forEach((c,i)=>{c.checked=!!saved[i];c.addEventListener('change',()=>{saved[i]=c.checked;persist();update()})});
+function persist(){localStorage.setItem(storageKey,JSON.stringify(saved))}
+function update(){
+ const done=checks.filter(c=>c.checked).length;
+ const days=[...document.querySelectorAll('.day')];
+ let completeDays=0;
+ days.forEach(d=>{const all=[...d.querySelectorAll('input')];const isDone=all.every(c=>c.checked);d.classList.toggle('done',isDone);if(isDone)completeDays++;d.querySelector('.day-status').textContent=isDone?'✓ 已完成':`DAY ${String(d.dataset.day).padStart(2,'0')}`});
+ const pct=Math.round(done/checks.length*100);
+ document.getElementById('progressFill').style.width=pct+'%';
+ document.getElementById('progressText').textContent=`${pct}% · ${completeDays} / 14 天完成`;
+ document.getElementById('taskCount').textContent=`${done} / ${checks.length} 项任务`;
+}
+update();
+document.querySelectorAll('[data-filter]').forEach(btn=>btn.addEventListener('click',()=>{
+ document.querySelectorAll('[data-filter]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+ const f=btn.dataset.filter;
+ document.querySelectorAll('.day').forEach(d=>{
+  const show=f==='all'||(f==='done'&&[...d.querySelectorAll('input')].every(c=>c.checked))||d.dataset.category===f;
+  d.style.display=show?'':'none';
+ });
+}));
+document.getElementById('reset').addEventListener('click',()=>{
+ if(!confirm('确定清除全部14天任务勾选记录？'))return;
+ saved={};checks.forEach(c=>c.checked=false);persist();update();
+});
+</script>
+</body>
+</html>
