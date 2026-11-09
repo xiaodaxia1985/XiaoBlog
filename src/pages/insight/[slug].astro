@@ -144,6 +144,7 @@ const jsonLd = {
   .reading-top{position:fixed;right:24px;bottom:24px;z-index:900;width:42px;height:42px;border:1px solid var(--border);border-radius:50%;background:rgba(20,20,20,.92);color:var(--text-secondary);display:grid;place-items:center;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .2s ease,transform .2s ease,visibility .2s ease;cursor:pointer;backdrop-filter:blur(10px);}
   .reading-top.is-visible{opacity:1;visibility:visible;transform:translateY(0);}
   .reading-top:hover{color:var(--accent);border-color:rgba(216,242,107,.45);}
+  .article-start-anchor{height:1px;scroll-margin-top:104px;}
   .markdown{--reading-font:17px;}
   @media(max-width:720px){.markdown{--reading-font:16px;}}
   .markdown p{font-size:var(--reading-font);}
@@ -416,7 +417,8 @@ const jsonLd = {
           <button type="button" class="focus-toggle" data-focus-toggle aria-pressed="false">专注阅读</button>
           <button type="button" class="top-toggle" data-back-top>回到顶部 ↑</button>
         </div>
-        <article class="markdown" id="article-start">
+        <div class="article-start-anchor" id="article-start" aria-hidden="true"></div>
+        <article class="markdown">
           <Content />
         </article>
 
@@ -520,22 +522,25 @@ const jsonLd = {
   tocDetails?.querySelector('summary')?.addEventListener('click', () => { tocDetails.dataset.userToggled = 'true'; });
   window.addEventListener('resize', syncTocMode);
 
-  const tocLinks = Array.from(document.querySelectorAll('.toc-link'));
-  const tocTargets = tocLinks.map((link) => document.querySelector(link.getAttribute('href'))).filter(Boolean);
-  if ('IntersectionObserver' in window && tocTargets.length) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        tocLinks.forEach((link) => {
-          const active = link.getAttribute('href') === '#' + entry.target.id;
-          link.classList.toggle('is-active', active);
-          if (active) link.setAttribute('aria-current', 'location');
-          else link.removeAttribute('aria-current');
-        });
-      });
-    }, { rootMargin: '-18% 0px -68% 0px', threshold: 0 });
-    tocTargets.forEach((target) => observer.observe(target));
-  }
+  const tocItems = Array.from(document.querySelectorAll('.toc-link')).map((link) => ({
+    link,
+    target: document.getElementById(decodeURIComponent(link.hash.slice(1))),
+  })).filter((item) => item.target);
+
+  const updateActiveToc = () => {
+    if (!tocItems.length) return;
+    const activationLine = Math.min(180, Math.max(96, window.innerHeight * 0.22));
+    let activeItem = tocItems[0];
+    tocItems.forEach((item) => {
+      if (item.target.getBoundingClientRect().top <= activationLine) activeItem = item;
+    });
+    tocItems.forEach(({ link }) => {
+      const active = link === activeItem.link;
+      link.classList.toggle('is-active', active);
+      if (active) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+  };
 
   let ticking = false;
   const update = () => {
@@ -550,12 +555,14 @@ const jsonLd = {
       bar.style.width = (progress * 100) + '%';
       bar.setAttribute('aria-valuenow', String(Math.round(progress * 100)));
       if (floatingTop) floatingTop.classList.toggle('is-visible', window.scrollY > 520);
+      updateActiveToc();
       ticking = false;
     });
   };
   window.addEventListener('scroll', update, { passive: true });
   window.addEventListener('resize', update);
   if (article && 'ResizeObserver' in window) new ResizeObserver(update).observe(article);
+  updateActiveToc();
   update();
 </script>
 
