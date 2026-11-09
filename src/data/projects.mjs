@@ -30,10 +30,10 @@ export const projects = {
     },
     'cold-chain-logistics': {
       title: '智慧冷链物流平台',
-      category: 'TMS+WMS+OMS',
+      category: '冷链物流数字化平台',
       tagline: '运输效率提升约40%，接入200+车辆、50+冷库，支持运输协同、温控可视化、智能调度与异常预警。',
       meta: [
-        { label: '项目类型', value: '冷链物流平台（TMS+WMS+OMS）' },
+        { label: '项目类型', value: '冷链物流数字化平台' },
         { label: '合作模式', value: '多方协同建设' },
         { label: '角色', value: '数字化平台负责人 & 产品设计' },
         { label: '成果', value: '运输效率提升约40%' }
@@ -46,7 +46,7 @@ export const projects = {
       ],
       tech: ['Vue.js', 'SpringCloud', 'IoT 传感器', 'GPS 定位', 'ECharts', 'WebSocket', 'MySQL', 'Redis'],
       features: [
-        '运输效率提升40%，年运输量+300%（6.25万吨→25万吨）',
+        '运输效率提升约40%，运输规模提升约3倍',
         '单位冷链成本下降12%（行业同期上升5%）',
         '支持运输与仓储多节点协同',
         '接入车辆200+台、冷库50+座',
