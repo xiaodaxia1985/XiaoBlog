@@ -188,7 +188,7 @@ function escapeCaption(value: string): string {
 
   /* ===== 正文：左编号栏 + 节分割线 + 判断块 + 引用卡 ===== */
   .markdown{font-family:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-feature-settings:"palt" 1,"kern" 1;font-kerning:normal;}
-  .markdown p{font-size:17px;line-height:1.82;letter-spacing:.008em;color:var(--body);margin:0 0 26px;}
+  .markdown p{font-size:var(--reading-font,17px);line-height:1.82;letter-spacing:.008em;color:var(--body);margin:0 0 26px;}
   .markdown p:last-child{margin-bottom:0;}
   .markdown strong{color:var(--text);font-weight:600;}
   .markdown code{font-family:'Inter',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;}
@@ -288,7 +288,7 @@ function escapeCaption(value: string): string {
     .meta-line{font-size:12px;margin-bottom:10px;}
     .article-title{font-size:26px;line-height:1.34;}
     .article-tagline{font-size:14.5px;line-height:1.75;margin-top:10px;}
-    .markdown p{font-size:16px;line-height:1.85;margin-bottom:22px;}
+    .markdown p{font-size:var(--reading-font,16px);line-height:1.85;margin-bottom:22px;}
     .hook{font-size:32px!important;margin-bottom:14px!important;}
     .key{margin:24px 0;padding:16px 0;}
     .key-tag{font-size:9.5px;margin-bottom:6px;}
