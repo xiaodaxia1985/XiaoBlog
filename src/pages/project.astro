@@ -1,15 +1,5 @@
 ---
-const slugs = [
-  'smart-livestock',
-  'cold-chain-logistics',
-  'food-traceability',
-  'digital-data-capture',
-  'precision-feeding',
-  'mobile-security',
-];
-const id = Number(Astro.url.searchParams.get('id') ?? 1);
-const slug = slugs[id - 1];
-const destination = slug ? `/projects/${slug}/` : '/projects/';
+const destination = '/about/#results';
 ---
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -18,10 +8,10 @@ const destination = slug ? `/projects/${slug}/` : '/projects/';
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,follow">
 <meta http-equiv="refresh" content={`0;url=${destination}`}>
-<link rel="canonical" href={new URL(destination, Astro.site ?? 'https://xiaomaker.top').toString()}>
-<title>项目页面迁移中 — 个人商业创造者</title>
+<link rel="canonical" href={new URL('/about/#results', Astro.site ?? 'https://xiaomaker.top').toString()}>
+<title>项目经历已整合 — 个人商业创造者</title>
 </head>
 <body>
-<p>项目页面已更新。如果没有自动跳转，请<a href={destination}>点击这里继续查看</a>。</p>
+<p>项目经历已整合到关于我页面的代表成果中。如果没有自动跳转，请<a href={destination}>查看代表成果</a>。</p>
 </body>
 </html>
