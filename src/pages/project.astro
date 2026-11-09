@@ -20,7 +20,6 @@ const destination = slug ? `/projects/${slug}/` : '/projects/';
 <meta http-equiv="refresh" content={`0;url=${destination}`}>
 <link rel="canonical" href={new URL(destination, Astro.site ?? 'https://xiaomaker.top').toString()}>
 <title>项目页面迁移中 — 个人商业创造者</title>
-<script is:inline define:vars={{ destination }}>window.location.replace(destination);</script>
 </head>
 <body>
 <p>项目页面已更新。如果没有自动跳转，请<a href={destination}>点击这里继续查看</a>。</p>
