@@ -104,7 +104,7 @@ const jsonLd = {
 
   /* ===== 容器：页头、轮播卡、正文共用同一条版心线 ===== */
   .art-inner{width:100%;max-width:1120px;margin:0 auto;padding:0 28px;}
-  .col{max-width:var(--art-w);margin-left:calc(var(--toc-w) + var(--content-gap));}
+  .col{max-width:var(--art-w);margin-left:calc((100% - var(--toc-w) - var(--content-gap) - var(--art-w))/2 + var(--toc-w) + var(--content-gap));}
   .article-head .art-inner{max-width:1120px;}
   .card-col{max-width:var(--art-w);}
 
@@ -227,8 +227,9 @@ const jsonLd = {
   .opinion-dot:focus-visible{outline:2px solid var(--oc-ink);outline-offset:-4px;border-radius:50%;}
 
   /* 移动端：左右留白 20px；正文 16px/1.85，每行约 21 个汉字；编号收进标题行 */
-  @media(max-width:900px){
+  @media(max-width:1060px){
     .article-body > .art-inner{max-width:820px;}
+    .article-head .col,.card-col{margin-left:auto;margin-right:auto;}
     .reading-layout{display:block;}
     .article-toc{position:relative;top:auto;max-height:none;margin:0 0 22px;padding:0;}
     .article-toc details{border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
