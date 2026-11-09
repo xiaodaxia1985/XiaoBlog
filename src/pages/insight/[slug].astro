@@ -48,6 +48,7 @@ const jsonLd = {
 };
 
 
+import { ClientRouter } from 'astro:transitions';
 ---
 <!DOCTYPE html>
 <html lang="zh-CN" style="background:#0C0C0C;">
@@ -341,6 +342,7 @@ const jsonLd = {
     .reading-progress,.reading-top,.toc-link{transition:none!important;}
   }
 </style>
+  <ClientRouter fallback="swap" />
 </head>
 <body>
 
