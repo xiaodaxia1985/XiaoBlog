@@ -1,6 +1,7 @@
 ---
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import { projectEntries } from '../data/projects.mjs';
 ---
 <!DOCTYPE html>
 <html lang="zh-CN" style="background:#0c0c0c;">
@@ -62,9 +63,13 @@ import Footer from '../components/Footer.astro';
   .education-line{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:22px;}
   .education-line strong{font-size:15px;font-weight:600;color:var(--text);}
   .education-line span{font-size:13px;color:var(--text-secondary);}
-  .results{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-  .result{padding:18px 18px 16px;border:1px solid var(--border);background:rgba(255,255,255,.018);}
-  .result p{font-size:14px;line-height:1.8;color:var(--text-secondary);}
+  .results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px;border-top:1px solid var(--border);}
+  .result{padding:20px 0;border-bottom:1px solid var(--border);}
+  .result-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;}
+  .result h3{font-size:16px;font-weight:600;line-height:1.55;color:var(--text);}
+  .result-tag{font-size:11px;color:var(--accent);white-space:nowrap;}
+  .result p{font-size:13px;line-height:1.8;color:var(--text-secondary);}
+  .result-role{margin-top:8px;font-size:11px;color:var(--text-muted);}
   .now-block{display:flex;align-items:flex-start;justify-content:space-between;gap:32px;}
   .now-copy{max-width:700px;}
   .now-copy p{font-size:14.5px;line-height:1.9;color:var(--text-secondary);margin-bottom:12px;}
@@ -93,8 +98,7 @@ import Footer from '../components/Footer.astro';
     .tl-body h3{font-size:15px;}
     .tl-duty{font-size:13px;}
     .profile-grid{grid-template-columns:1fr;gap:16px;}
-    .results{grid-template-columns:1fr;gap:10px;}
-    .result{padding:14px 16px;}
+    .results{grid-template-columns:1fr;}
     .now-block{flex-direction:column;gap:12px;}
     .now-actions{flex-direction:column;}
     .now-actions .btn{width:100%;}
@@ -212,9 +216,19 @@ import Footer from '../components/Footer.astro';
     <section class="resume-section" aria-labelledby="resultsTitle">
       <div class="section-head"><h2 id="resultsTitle">代表成果</h2></div>
       <div class="results">
-        <div class="result"><p>把集团级产业数字化平台从规划推进到上线运营。</p></div>
-        <div class="result"><p>打通饲料、养殖、加工与销售环节的业务数据。</p></div>
-        <div class="result"><p>长期负责移动端产品的架构、性能与稳定运行。</p></div>
+        {projectEntries.map((project) => {
+          const role = project.meta.find((item) => item.label === '角色')?.value;
+          return (
+            <article class="result">
+              <div class="result-head">
+                <h3>{project.title}</h3>
+                <span class="result-tag">{project.category}</span>
+              </div>
+              <p>{project.tagline}</p>
+              {role && <p class="result-role">{role}</p>}
+            </article>
+          );
+        })}
       </div>
     </section>
 
