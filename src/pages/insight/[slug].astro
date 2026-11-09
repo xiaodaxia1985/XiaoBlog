@@ -1,7 +1,6 @@
 ---
-import { getCollection, getEntry } from 'astro:content';
+import { getCollection, getEntry, render } from 'astro:content';
 import { getAllPosts, toPost } from '../../lib/insights';
-import { layoutArticle, type Block } from '../../lib/article-layout';
 import { shade, INK } from '../../lib/cover-palette.mjs';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
@@ -14,7 +13,7 @@ export async function getStaticPaths() {
 const { slug } = Astro.params;
 const entry = await getEntry('insights', slug);
 const post = toPost(entry);
-const layout = layoutArticle(entry.body ?? '', post.category);
+const { Content, headings } = await render(entry);
 
 const all = await getAllPosts();
 const sameCategory = all.filter((p) => p.category === post.category);
@@ -42,41 +41,7 @@ const jsonLd = {
   image: post.cover,
 };
 
-const attr = (value: string) => value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
-function renderBlocks(blocks: Block[]): string {
-  return blocks
-    .map((block) => {
-      switch (block.type) {
-        case 'p':
-          return `<p>${block.html}</p>`;
-        case 'hook':
-          return `<p class="hook">${block.html}</p>`;
-        case 'key':
-          return `<aside class="key"><span class="key-tag">判断</span><p>${block.html}</p></aside>`;
-        case 'quote':
-          return `<blockquote class="quote"><p>${block.html}</p></blockquote>`;
-        case 'h3':
-          return `<h3>${block.html}</h3>`;
-        case 'list': {
-          const tag = block.ordered ? 'ol' : 'ul';
-          return `<${tag} class="art-list">${block.items.map((item) => `<li>${item}</li>`).join('')}</${tag}>`;
-        }
-        case 'figure': {
-          const size = block.width && block.height ? ` width="${attr(block.width)}" height="${attr(block.height)}"` : '';
-          const caption = block.alt ? `<figcaption>${escapeCaption(block.alt)}</figcaption>` : '';
-          return `<figure class="art-figure"><img src="${attr(block.src)}" alt="${attr(block.alt)}"${size} loading="lazy" decoding="async">${caption}</figure>`;
-        }
-        default:
-          return '';
-      }
-    })
-    .join('');
-}
-
-function escapeCaption(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
 ---
 <!DOCTYPE html>
 <html lang="zh-CN" style="background:#0C0C0C;">
@@ -172,7 +137,19 @@ function escapeCaption(value: string): string {
   .markdown p{font-size:var(--reading-font);}
   .markdown .sec{scroll-margin-top:88px;}
   .markdown h2,.markdown h3{scroll-margin-top:88px;}
-  .markdown h3{font-size:17px;line-height:1.6;color:var(--text);margin:26px 0 14px;}
+  .markdown{counter-reset:article-section;}
+  .markdown h2{counter-increment:article-section;display:flex;align-items:baseline;gap:18px;padding-top:28px;margin:38px 0 20px;border-top:1px solid rgba(255,255,255,.10);font-size:21px;line-height:1.5;color:var(--text);font-weight:700;scroll-margin-top:88px;}
+  .markdown h2::before{content:counter(article-section,decimal-leading-zero);flex:0 0 38px;color:var(--accent);font:700 22px/1 'Inter',sans-serif;letter-spacing:-.03em;}
+  .markdown h3{font-size:17px;line-height:1.6;color:var(--text);margin:26px 0 14px;scroll-margin-top:88px;}
+  .markdown .toc-sub-link{padding-left:20px;font-size:11px;}
+  .markdown blockquote{margin:28px 0;padding:20px 24px;border-left:2px solid var(--accent);background:rgba(216,242,107,.06);color:var(--text-secondary);}
+  .markdown ul,.markdown ol{margin:0 0 26px;padding-left:1.4em;color:var(--body);font-size:var(--reading-font,17px);line-height:1.85;}
+  .markdown li{margin:0 0 8px;}
+  .markdown li::marker{color:var(--accent);}
+  .markdown img{max-width:100%;height:auto;border-radius:6px;border:1px solid var(--border);}
+  .markdown figure{margin:32px 0;}
+  .markdown figcaption{margin-top:8px;color:var(--text-muted);font-size:12px;line-height:1.7;}
+
   .markdown pre{max-width:100%;overflow:auto;padding:18px 20px;margin:24px 0;background:#111;border:1px solid var(--border);border-radius:8px;line-height:1.65;}
   .markdown pre code{padding:0;background:transparent;white-space:pre;}
   .markdown table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse;margin:24px 0;font-size:14px;}
@@ -298,11 +275,9 @@ function escapeCaption(value: string): string {
     .art-list{font-size:16px;line-height:1.85;padding-left:1.25em;margin-bottom:22px;}
     .art-figure{margin:26px 0;}
     .art-figure figcaption{font-size:12px;}
-    .sec{grid-template-columns:1fr;column-gap:0;padding-top:24px;margin-top:26px;}
-    .sec-head{position:static;display:flex;align-items:baseline;gap:10px;}
-    .sec-num{font-size:22px;display:inline-block;}
-    .sec-label{display:inline-block;margin-top:0;font-size:9.5px;letter-spacing:.12em;}
-    .sec-title{font-size:17.5px;line-height:1.5;margin:10px 0 16px;}
+    .markdown h2{gap:12px;padding-top:22px;margin:28px 0 16px;font-size:18px;}
+    .markdown h2::before{flex-basis:30px;font-size:19px;}
+    .markdown h3{font-size:16.5px;margin:22px 0 12px;}
     .end-mark{margin-top:32px;padding-top:20px;}
     .end-mark span{font-size:15.5px;}
     .article-cover{max-height:none;}
@@ -389,8 +364,8 @@ function escapeCaption(value: string): string {
           <summary>文章目录 <span>ON THIS PAGE</span></summary>
           <nav>
             <a class="toc-link" href="#article-start">开篇</a>
-            {layout.sections.filter((section) => section.title).map((section) => (
-              <a class="toc-link" href={`#section-${section.num}`}>{section.title}</a>
+            {headings.filter((heading) => heading.depth === 2 || heading.depth === 3).map((heading) => (
+              <a class:list={['toc-link', { 'toc-sub-link': heading.depth === 3 }]} href={`#${heading.slug}`}>{heading.text}</a>
             ))}
             <a class="toc-link" href="#article-end">作者与延伸阅读</a>
           </nav>
@@ -407,26 +382,7 @@ function escapeCaption(value: string): string {
           <button type="button" class="top-toggle" data-back-top>回到顶部 ↑</button>
         </div>
         <article class="markdown" id="article-start">
-          {layout.intro.length > 0 && <div class="intro" set:html={renderBlocks(layout.intro)} />}
-
-      {layout.sections.map((section) => (
-        <section class="sec" id={`section-${section.num}`}>
-          <header class="sec-head">
-            <span class="sec-num">{section.num}</span>
-            <span class="sec-label">{section.label}</span>
-          </header>
-          <div class="sec-body">
-            {section.title && <h2 class="sec-title" id={`heading-${section.num}`}>{section.title}</h2>}
-            <Fragment set:html={renderBlocks(section.blocks)} />
-          </div>
-        </section>
-      ))}
-
-      {layout.end.length > 0 && (
-        <footer class="end-mark">
-          {layout.end.map((line) => <span set:html={line} />)}
-        </footer>
-      )}
+          <Content />
         </article>
 
         <div class="col" id="article-end">
