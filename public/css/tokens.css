@@ -82,6 +82,14 @@ html{background-color:#0A0A0A;}
 .js .project-img img.img-ready,
 .js .project-preview img.img-ready{opacity:1;}
 
+/* 移动端：避免旧页面淡出、新页面延迟淡入期间露出浏览器白色画布。
+   桌面端保留原有过渡；移动端采用即时切换，优先保证深色背景连续。 */
+@media(max-width:768px){
+  ::view-transition{background-color:#0C0C0C;}
+  ::view-transition-old(root),
+  ::view-transition-new(root){animation:none!important;}
+}
+
 @media(prefers-reduced-motion:reduce){
   ::view-transition-old(root),
   ::view-transition-new(root){animation:none;}
