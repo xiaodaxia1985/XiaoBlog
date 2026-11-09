@@ -77,7 +77,8 @@ import { ClientRouter } from 'astro:transitions';
 <meta name="twitter:image" content={coverUrl}>
 <link rel="stylesheet" href="/fonts/fonts.css">
 <link rel="stylesheet" href="/css/tokens.css">
-<script is:inline>document.documentElement.classList.add('js');</script>
+<script is:inline data-astro-rerun>
+(function () {document.documentElement.classList.add('js');</script>
 <script is:inline src="/js/site-shell.js" defer></script>
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
 <style is:global>
@@ -572,9 +573,11 @@ import { ClientRouter } from 'astro:transitions';
   if (article && 'ResizeObserver' in window) new ResizeObserver(update).observe(article);
   updateActiveToc();
   update();
+
+})();
 </script>
 
-<script is:inline>
+<script is:inline data-astro-rerun>
   (function () {
     const card = document.querySelector('[data-opinion]');
     if (!card) return;
