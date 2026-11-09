@@ -27,7 +27,6 @@ export const projects = {
         '多牧场数据隔离与多角色权限体系',
         '数据可视化大屏，关键指标实时监控'
       ],
-      codeUrl: 'https://github.com'
     },
     'cold-chain-logistics': {
       title: '智慧冷链物流平台',
@@ -56,7 +55,6 @@ export const projects = {
         '智能调度与路线优化',
         '全链条温控数据可视化大屏'
       ],
-      codeUrl: 'https://github.com'
     },
     'food-traceability': {
       title: '农产品质量安全追溯平台',
@@ -85,7 +83,6 @@ export const projects = {
         '监管驾驶舱大屏，省级数据汇总',
         '批量处理流程优化，监管效率大幅提升'
       ],
-      codeUrl: 'https://github.com'
     },
     'digital-data-capture': {
       title: '智能数据采集与表单系统',
@@ -114,7 +111,6 @@ export const projects = {
         '配套实用新型专利保护',
         '养殖数据自动汇总与统计分析'
       ],
-      codeUrl: 'https://github.com'
     },
     'precision-feeding': {
       title: '精准饲喂智能控制系统',
@@ -143,7 +139,6 @@ export const projects = {
         '配套实用新型与发明专利保护',
         '精细化财务管理，自动成本分摊'
       ],
-      codeUrl: 'https://github.com'
     },
     'mobile-security': {
       title: '移动端安全产品',
@@ -170,7 +165,6 @@ export const projects = {
         '流量监控：独立数据库设计',
         '多语言与多地区适配'
       ],
-      codeUrl: 'https://github.com'
     }
   };
 
