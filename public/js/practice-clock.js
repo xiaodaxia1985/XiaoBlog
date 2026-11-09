@@ -1,7 +1,5 @@
 /* 90 天实践时间轴：按访问者本地日期更新静态页面中的日期与阶段。 */
 (function () {
-  var startText = '2026-11-08';
-  var endText = '2027-02-05';
   function localDate(value) {
     var parts = value.split('-').map(Number);
     return new Date(parts[0], parts[1] - 1, parts[2]);
@@ -19,16 +17,22 @@
   function dateKey(date) {
     return date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
   }
+  function dateOrdinal(date) {
+    return Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000);
+  }
   var ranges = Array.prototype.map.call(document.querySelectorAll('[data-stage-start][data-stage-end]'), function (node) {
     var start = node.dataset.stageStart;
     var end = node.dataset.stageEnd;
     return { node: node, start: start, end: end, startKey: dateKey(localDate(start)), endKey: dateKey(localDate(end)) };
   });
+  if (!ranges.length) return;
+  var startText = ranges[0].start;
+  var endText = ranges[ranges.length - 1].end;
   var now = dayStart(new Date());
   var todayKey = dateKey(now);
   var startDate = localDate(startText);
   var endDate = localDate(endText);
-  var day = Math.max(0, Math.min(90, Math.floor((now.getTime() - startDate.getTime()) / 86400000) + 1));
+  var day = Math.max(0, Math.min(90, dateOrdinal(now) - dateOrdinal(startDate) + 1));
   var current = ranges.find(function (item) { return todayKey >= item.startKey && todayKey <= item.endKey; });
   if (!current) current = todayKey < dateKey(startDate) ? ranges[0] : ranges[ranges.length - 1];
 
@@ -49,7 +53,7 @@
     node.classList.toggle('is-current', status === '当前');
     var rangeLabel = node.querySelector('[data-stage-range]');
     if (rangeLabel) {
-      var stageDays = Math.round((localDate(item.end).getTime() - localDate(item.start).getTime()) / 86400000) + 1;
+      var stageDays = dateOrdinal(localDate(item.end)) - dateOrdinal(localDate(item.start)) + 1;
       var separator = node.hasAttribute('data-practice-stage') ? ' — ' : '–';
       rangeLabel.textContent = format(item.start) + separator + format(item.end) + (node.hasAttribute('data-practice-stage') ? ' · ' + stageDays + ' 天' : '');
     }
@@ -70,6 +74,18 @@
     Array.prototype.forEach.call(document.querySelectorAll('[data-practice-state]'), function (node) { node.textContent = stateText; });
     var phase = document.querySelector('[data-practice-phase]');
     if (phase) phase.textContent = '第' + cn + '阶段 · ' + stageName + (status === '当前' ? '' : ' · ' + status);
+    var boardStage = document.querySelector('[data-practice-board-stage]');
+    if (boardStage) {
+      boardStage.textContent = status === '已完成' ? '90 天实践已完成' : (status === '未开始' ? '即将开始 · ' : '') + '第' + cn + '阶段 · ' + stageName;
+    }
+    var boardTab = document.querySelector('.stage-bar [data-stage="' + stageId + '"]');
+    if (boardTab) {
+      var boardOutputs = [];
+      try { boardOutputs = JSON.parse(boardTab.dataset.outputs || '[]'); } catch (error) {}
+      Array.prototype.forEach.call(document.querySelectorAll('[data-board-output]'), function (node, index) {
+        if (boardOutputs[index]) node.textContent = boardOutputs[index];
+      });
+    }
     var stageBar = document.querySelector('.stage-bar');
     if (stageBar) {
       stageBar.dataset.currentStage = stageId;
