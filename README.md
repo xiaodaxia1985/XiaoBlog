@@ -27,18 +27,20 @@ site/XiaoBlog/
 │  │  ├─ 90-days.astro          90 天实践与四阶段
 │  │  ├─ about.astro            关于页
 │  │  ├─ projects.astro         项目列表
-│  │  ├─ project.astro          项目详情（客户端渲染）
+│  │  ├─ project.astro          旧 ?id= 项目链接兼容跳转
+│  │  ├─ projects/[slug].astro  项目详情（静态生成）
 │  │  └─ 404.astro
 │  ├─ content/insights/         一篇文章一个 .md，文件名即 slug
 │  ├─ content.config.ts         content collection schema（frontmatter 校验）
 │  ├─ lib/
 │  │  ├─ insights.ts            摘要、阅读时长、日期、封面、排序等推导
-│  │  ├─ article-layout.ts      文章版式解析（分节、判断句、引用卡、拆段）
+│  │  ├─ article-layout.ts      旧版文章布局辅助（当前详情页使用 Astro 原生 Markdown）
 │  │  ├─ taxonomy.ts            分类与方向唯一清单
 │  │  └─ cover-palette.mjs      封面与观点卡的配色阶梯
 │  ├─ data/
 │  │  ├─ topics.mjs             三个专题页的定位、理论、方法、实践
-│  │  ├─ stages.mjs             90 天四阶段
+│  │  ├─ stages.mjs             90 天四阶段与日期计算
+│  │  ├─ projects.mjs           项目档案数据
 │  │  └─ legacy-ids.mjs         旧文章 id → slug 映射
 │  ├─ assets/covers/            生成的封面 `<slug>-1.webp` + 默认封面
 │  └─ components/               Nav、Footer
@@ -128,13 +130,15 @@ category: "90天实战"
 - `/topics/<slug>/` 三个专题页：`personal-business`、`ai-product`、`business-system`，每页「方向 / 理论 / 方法 / 实践 / 已发布 / 切换到其他方向」六块，文案在 `src/data/topics.mjs`
 - `/90-days/` 90 天实践：四阶段目标、产出、状态与关联文章，数据在 `src/data/stages.mjs`
 - `/about/` 关于页：01–05 编号时间线，简历与当前在做的事
-- `/projects/` 与 `/project?id=N`：项目档案列表与详情
+- `/projects/`：项目档案列表
+- `/projects/<slug>/`：项目详情静态路由（SEO 可索引）
+- `/project?id=N`：旧链接兼容跳转到对应静态项目页
 - `/insight/?id=N` 旧链接跳到新地址，映射在 `src/data/legacy-ids.mjs`
 
 ## 设计约定
 
 - **颜色**：深色底 `#0C0C0C`，主色 `#D8F26B`；正文 `#D2D2CD`，标题 `#F5F5F4`。只用 `tokens.css` 变量，不散落魔法值
-- **文章版式（C 杂志式）**：左侧编号栏（桌面 sticky 96px，手机改行内小号）、节顶细线、主色上下细线的判断块、低透明度主色引用卡、首屏 hook、结尾三行
+- **文章版式**：桌面左侧 sticky 目录 + 居中阅读栏；移动端折叠目录；阅读进度、字号调节、专注模式与返回顶部；正文使用 Astro 原生 Markdown 渲染，不自动拆段或改写作者结构
 - **字号**：文章正文 17px / 1.82（≤720px 为 16px / 1.85）；判断句 21px / 1.6（手机 18px / 1.7）；节标题 19px（手机 17.5px）；关于页与专题页正文 15px；年份、标签等小字 11.5–12px，与正文保持层级差
 - **版心**：文章 680px + 编号栏 96px + 间距 32px；桌面约 40 字/行，手机约 20–22 字/行
 - **断点**：文章页 720px，全站令牌 768px
@@ -153,7 +157,7 @@ EdgeOne Makers（腾讯云 EdgeOne Pages 的现名），连 GitHub 私有仓库 
 
 ## 已知限制
 
-- `/project?id=N` 详情页仍是客户端渲染：读取 URL 里的 id 再拼内容，不是静态路由，分享链接依赖 JS
+- 旧 `/project?id=N` 链接由客户端脚本跳转；新项目详情使用静态路由。
 - 尾斜杠行为以 EdgeOne 实测为准；站内链接统一带 `/`
 - 没有自动化测试，验证靠 `npm run build` + 页面实测
 - 草稿不进列表但直链可访问，不能当保密手段
