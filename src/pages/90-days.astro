@@ -62,9 +62,9 @@ const cnNums = ['一', '二', '三', '四'];
   .hero-actions{display:flex;flex-wrap:wrap;gap:var(--space-12);margin-top:var(--space-24);}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-8);padding:var(--space-12) var(--space-24);border-radius:var(--radius-sm);font-size:var(--fs-14);font-weight:500;cursor:pointer;border:1px solid transparent;transition:background-color .2s ease,border-color .2s ease,color .2s ease;}
   .btn-primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
-  .btn-primary:hover{background:#E4F98C;border-color:#E4F98C;}
+  .btn-primary:hover,.btn-primary:focus-visible{background:#E4F98C;border-color:#E4F98C;}
   .btn-secondary{background:transparent;color:var(--text);border-color:var(--border);}
-  .btn-secondary:hover{background:var(--surface);border-color:rgba(255,255,255,.22);}
+  .btn-secondary:hover,.btn-secondary:focus-visible{background:var(--surface);border-color:rgba(216,242,107,.5);color:var(--accent);}
 
   /* ===== 阶段列表 ===== */
   .stage-list{display:flex;flex-direction:column;gap:var(--space-24);padding:var(--space-40) 0 var(--space-56);}
@@ -86,7 +86,7 @@ const cnNums = ['一', '二', '三', '四'];
   .record{display:flex;align-items:baseline;gap:var(--space-12);font-size:var(--fs-14);color:var(--text);}
   .record-date{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);flex-shrink:0;}
   .record-title{border-bottom:1px solid var(--border);transition:border-color .2s ease;}
-  .record:hover .record-title{border-bottom-color:rgba(255,255,255,.3);}
+  .record:hover .record-title,.record:focus-visible .record-title{border-bottom-color:var(--accent);color:var(--accent);}
   .record-empty{font-size:var(--fs-14);color:var(--text-muted);}
 
   @media(max-width:768px){
