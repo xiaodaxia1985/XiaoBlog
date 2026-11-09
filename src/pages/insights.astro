@@ -268,6 +268,8 @@ const topicCountOf = (t) => posts.filter((p) => p.topic === t).length;
 
   categoryChips.forEach((chip) => {
     chip.addEventListener('click', (e) => {
+      // 保留 Ctrl/Cmd/Shift/Alt + 点击的浏览器原生新标签页/窗口行为。
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
       currentCategory = chip.dataset.categoryFilter;
       applyFilter(currentCategory, currentTopic);
@@ -278,6 +280,8 @@ const topicCountOf = (t) => posts.filter((p) => p.topic === t).length;
 
   topicChips.forEach((chip) => {
     chip.addEventListener('click', (e) => {
+      // 保留 Ctrl/Cmd/Shift/Alt + 点击的浏览器原生新标签页/窗口行为。
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
       currentTopic = chip.dataset.topicFilter;
       applyFilter(currentCategory, currentTopic);
