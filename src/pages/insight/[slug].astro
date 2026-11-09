@@ -328,11 +328,13 @@ const jsonLd = {
             <div class="oc-brand">个人商业创造者</div>
           </article>
         ))}
-        <div class="opinion-dots">
-          {opinionCards.map((card, i) => (
-            <button type="button" class="opinion-dot" data-dot data-index={i} aria-label={`查看第 ${card.index} 条观点`} aria-current={i === 0 ? 'true' : 'false'}></button>
-          ))}
-        </div>
+        {opinionCards.length > 1 && (
+          <div class="opinion-dots">
+            {opinionCards.map((card, i) => (
+              <button type="button" class="opinion-dot" data-dot data-index={i} aria-label={`查看第 ${card.index} 条观点`} aria-current={i === 0 ? 'true' : 'false'}></button>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   </div>
