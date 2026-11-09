@@ -39,9 +39,9 @@ const { active = '', variant = 'main', backHref = '/insights', backLabel = 'è¿”å
   .site-avatar{width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid var(--border);flex-shrink:0;}
   .site-nav-links{display:grid;grid-template-columns:repeat(4,minmax(56px,1fr));gap:var(--space-12);list-style:none;margin:0;padding:0;min-width:296px;text-align:center;}
   .site-nav-links a{display:block;font-size:var(--fs-14);letter-spacing:.04em;color:var(--text-secondary);transition:color .2s ease;}
-  .site-nav-links a:hover,.site-nav-links a.active{color:var(--text);}
+  .site-nav-links a:hover,.site-nav-links a.active,.site-nav-links a:focus-visible{color:var(--accent);}
   .site-back{display:inline-flex;align-items:center;gap:var(--space-8);font-size:var(--fs-14);color:var(--text-secondary);transition:color .2s ease;}
-  .site-back:hover{color:var(--text);}
+  .site-back:hover,.site-back:focus-visible{color:var(--accent);}
   .site-back svg{width:16px;height:16px;stroke-width:1.5;}
   .site-nav-toggle{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px;}
   .site-nav-toggle span{width:22px;height:1.5px;background:var(--text);border-radius:2px;transition:transform .2s ease,opacity .2s ease;}
@@ -67,7 +67,7 @@ const { active = '', variant = 'main', backHref = '/insights', backLabel = 'è¿”å
       toggle.classList.toggle('open');
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
-    links.querySelectorAll('a').forEach((link) => {
+    document.addEventListener('keydown', (event) => {\n      if (event.key === 'Escape' && links.classList.contains('open')) {\n        links.classList.remove('open');\n        toggle.classList.remove('open');\n        toggle.setAttribute('aria-expanded', 'false');\n        toggle.focus();\n      }\n    });\n    document.addEventListener('click', (event) => {\n      if (!links.classList.contains('open')) return;\n      if (links.contains(event.target) || toggle.contains(event.target)) return;\n      links.classList.remove('open');\n      toggle.classList.remove('open');\n      toggle.setAttribute('aria-expanded', 'false');\n    });\n    links.querySelectorAll('a').forEach((link) => {
       link.addEventListener('click', () => {
         links.classList.remove('open');
         toggle.classList.remove('open');
