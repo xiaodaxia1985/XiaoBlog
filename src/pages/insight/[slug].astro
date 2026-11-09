@@ -291,6 +291,47 @@ const jsonLd = {
     .js .opinion-slide.is-active{animation:none;}
     .opinion-dot::before{transition:none;}
   }
+
+  /* 阅读体验补强：稳定的目录列、清晰的正文节奏与可触达控件。 */
+  .reading-layout{width:100%;max-width:1004px;margin:0 auto;grid-template-columns:minmax(150px,var(--toc-w)) minmax(0,var(--art-w));}
+  .article-toc{min-width:0;}
+  .article-toc nav{max-height:calc(100vh - 190px);overflow:auto;padding-right:6px;}
+  .toc-link{overflow-wrap:anywhere;}
+  .article-tools{position:relative;}
+  .article-tools button:disabled{opacity:.35;cursor:not-allowed;}
+  .font-tools output{min-width:34px;text-align:center;color:var(--text-secondary);font:11px 'Inter',sans-serif;font-variant-numeric:tabular-nums;}
+  .markdown{overflow-wrap:anywhere;}
+  .markdown > :first-child{margin-top:0;}
+  .markdown h2{scroll-margin-top:104px;}
+  .markdown h3{scroll-margin-top:104px;}
+  .markdown hr{border:0;border-top:1px solid var(--border);margin:36px 0;}
+  .markdown blockquote p:last-child{margin-bottom:0;}
+  .markdown pre{tab-size:2;-webkit-overflow-scrolling:touch;}
+  .markdown table{width:100%;display:block;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;}
+  .markdown th{white-space:nowrap;}
+  .markdown td{min-width:100px;}
+  .markdown a{overflow-wrap:anywhere;}
+  .article-end{width:100%;}
+  @media(max-width:1060px){
+    .reading-layout{max-width:760px;}
+    .article-toc nav{max-height:none;}
+  }
+  @media(max-width:720px){
+    .article-tools{position:sticky;top:58px;z-index:20;background:rgba(12,12,12,.94);backdrop-filter:blur(12px);padding:8px 0;margin-bottom:18px;}
+    .article-tools button{min-height:38px;font-size:11px;}
+    .font-tools{min-height:38px;}
+    .article-toc{margin-bottom:18px;}
+    .article-toc details{background:rgba(20,20,20,.72);}
+    .article-toc nav{padding-top:4px;}
+    .markdown blockquote{padding:16px 18px;margin:24px 0;}
+    .markdown pre{padding:14px;margin:20px 0;font-size:12px;}
+    .markdown table{font-size:12px;}
+    .markdown th,.markdown td{padding:8px 10px;}
+    .reading-layout{max-width:none;}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .reading-progress,.reading-top,.toc-link{transition:none!important;}
+  }
 </style>
 </head>
 <body>
@@ -368,7 +409,9 @@ const jsonLd = {
           <div class="font-tools" aria-label="字号设置">
             <span>字号</span>
             <button type="button" data-font="down" aria-label="缩小字号">A−</button>
+            <output data-font-value aria-live="polite">17px</output>
             <button type="button" data-font="up" aria-label="放大字号">A＋</button>
+            <button type="button" data-font="reset" aria-label="恢复默认字号">重置</button>
           </div>
           <button type="button" class="focus-toggle" data-focus-toggle aria-pressed="false">专注阅读</button>
           <button type="button" class="top-toggle" data-back-top>回到顶部 ↑</button>
@@ -434,12 +477,26 @@ const jsonLd = {
   const topButtons = document.querySelectorAll('[data-back-top]');
   const floatingTop = document.querySelector('.reading-top');
   const tocDetails = document.querySelector('[data-toc-details]');
-  let readingFont = window.matchMedia('(max-width: 720px)').matches ? 16 : 17;
+  const mobileReading = window.matchMedia('(max-width: 720px)');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const fontValue = document.querySelector('[data-font-value]');
+  const defaultFont = () => mobileReading.matches ? 16 : 17;
+  let readingFont = defaultFont();
+  const paintFont = () => {
+    if (article) article.style.setProperty('--reading-font', readingFont + 'px');
+    if (fontValue) fontValue.textContent = readingFont + 'px';
+    fontButtons.forEach((button) => {
+      const action = button.dataset.font;
+      button.disabled = (action === 'down' && readingFont <= 15) || (action === 'up' && readingFont >= 21);
+    });
+  };
+  paintFont();
 
   fontButtons.forEach((button) => {
     button.addEventListener('click', () => {
-      readingFont = Math.max(15, Math.min(21, readingFont + (button.dataset.font === 'up' ? 1 : -1)));
-      if (article) article.style.setProperty('--reading-font', readingFont + 'px');
+      if (button.dataset.font === 'reset') readingFont = defaultFont();
+      else readingFont = Math.max(15, Math.min(21, readingFont + (button.dataset.font === 'up' ? 1 : -1)));
+      paintFont();
     });
   });
 
@@ -455,10 +512,12 @@ const jsonLd = {
   });
   const syncTocMode = () => {
     if (!tocDetails) return;
-    if (window.matchMedia('(max-width: 900px)').matches) tocDetails.open = false;
-    else tocDetails.open = true;
+    if (window.matchMedia('(max-width: 900px)').matches) {
+      if (!tocDetails.dataset.userToggled) tocDetails.open = false;
+    } else tocDetails.open = true;
   };
   syncTocMode();
+  tocDetails?.addEventListener('toggle', () => { tocDetails.dataset.userToggled = 'true'; });
   window.addEventListener('resize', syncTocMode);
 
   const tocLinks = Array.from(document.querySelectorAll('.toc-link'));
@@ -478,15 +537,25 @@ const jsonLd = {
     tocTargets.forEach((target) => observer.observe(target));
   }
 
+  let ticking = false;
   const update = () => {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = max > 0 ? Math.min(1, window.scrollY / max) : 0;
-    bar.style.width = (progress * 100) + '%';
-    bar.setAttribute('aria-valuenow', String(Math.round(progress * 100)));
-    if (floatingTop) floatingTop.classList.toggle('is-visible', window.scrollY > 520);
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(() => {
+      const rect = article?.getBoundingClientRect();
+      const articleTop = window.scrollY + (rect?.top ?? 0);
+      const articleHeight = article?.offsetHeight ?? document.documentElement.scrollHeight;
+      const track = Math.max(1, articleHeight - window.innerHeight * 0.55);
+      const progress = Math.max(0, Math.min(1, (window.scrollY - articleTop + window.innerHeight * 0.35) / track));
+      bar.style.width = (progress * 100) + '%';
+      bar.setAttribute('aria-valuenow', String(Math.round(progress * 100)));
+      if (floatingTop) floatingTop.classList.toggle('is-visible', window.scrollY > 520);
+      ticking = false;
+    });
   };
   window.addEventListener('scroll', update, { passive: true });
   window.addEventListener('resize', update);
+  if (article && 'ResizeObserver' in window) new ResizeObserver(update).observe(article);
   update();
 </script>
 
