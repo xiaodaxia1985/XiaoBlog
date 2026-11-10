@@ -27,3 +27,6 @@ covers-originals/
 # QA artifacts: screenshots, long captures, verification output
 .qa/
 _verify/
+
+# article2media working output (source article + rendered wechat layout)
+article2media-out/
