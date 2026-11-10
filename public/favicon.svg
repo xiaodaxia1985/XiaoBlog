@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#0A0A0A"/>
-  <circle cx="32" cy="32" r="21" fill="#39FF14"/>
-  <text x="32" y="41" text-anchor="middle" font-family="'Noto Sans SC',sans-serif" font-size="26" font-weight="700" fill="#0A0A0A">创</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" role="img" aria-label="个人商业创造者">
+  <rect width="100" height="100" rx="18" fill="#0C0C0C"/>
+  <path d="M20 84 L20 64.6 L38 64.6 L38 45.4 L56 45.4 L56 26.2 L74 26.2 L74 84 Z" fill="#D8F26B"/>
+  <circle cx="65" cy="18" r="5.6" fill="#D8F26B"/>
 </svg>

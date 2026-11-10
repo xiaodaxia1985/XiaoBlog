@@ -10,7 +10,7 @@ const { active = '', variant = 'main', backHref = '/insights', backLabel = '返�
 <nav class="site-nav">
   <div class="site-nav-inner">
     <a href="/" class="site-logo">
-      <img class="site-avatar" src="/images/f409a539ce.jpg" alt="" decoding="async" width="26" height="26">
+      <img class="site-logo-mark" src="/images/logo-mark.svg" alt="" decoding="async" width="24" height="24">
       个人商业创造者
     </a>
     {variant === 'article' ? (
@@ -38,6 +38,7 @@ const { active = '', variant = 'main', backHref = '/insights', backLabel = '返�
   .site-nav-inner{max-width:var(--container-w);margin:0 auto;width:100%;height:64px;display:flex;align-items:center;justify-content:space-between;gap:var(--space-24);}
   .site-logo{display:inline-flex;align-items:center;gap:var(--space-8);font-size:var(--fs-16);font-weight:600;color:var(--text);}
   .site-avatar{width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid var(--border);flex-shrink:0;}
+  .site-logo-mark{width:24px;height:24px;flex-shrink:0;display:block;}
   .site-nav-links{display:grid;grid-template-columns:repeat(4,minmax(56px,1fr));gap:var(--space-12);list-style:none;margin:0;padding:0;min-width:296px;text-align:center;}
   .site-nav-links a{display:block;font-size:var(--fs-14);letter-spacing:.04em;color:var(--text-secondary);transition:color .2s ease;}
   .site-nav-links a:hover,.site-nav-links a.active,.site-nav-links a:focus-visible{color:var(--accent);}
