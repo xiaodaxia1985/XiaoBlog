@@ -10,7 +10,7 @@ const latest = posts.slice(0, 3);
 const practice = getPracticeSnapshot();
 const stages = practice.stages;
 const currentStage = stages.find((stage) => stage.id === practice.currentStageId) ?? stages[0];
-const countByTopic = (topic) => posts.filter((post) => post.topic === topic.title).length;
+const countByTopic = (topic) => posts.filter((post) => post.topics.includes(topic.title)).length;
 import { ClientRouter } from 'astro:transitions';
 ---
 <!DOCTYPE html>

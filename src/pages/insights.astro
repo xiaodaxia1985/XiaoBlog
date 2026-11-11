@@ -6,7 +6,7 @@ import Footer from '../components/Footer.astro';
 
 const posts = await getPublishedPosts();
 const countOf = (c) => posts.filter((p) => p.category === c).length;
-const topicCountOf = (t) => posts.filter((p) => p.topic === t).length;
+const topicCountOf = (t) => posts.filter((p) => p.topics.includes(t)).length;
 import { ClientRouter } from 'astro:transitions';
 ---
 <!DOCTYPE html>
@@ -157,7 +157,7 @@ import { ClientRouter } from 'astro:transitions';
 
   <div class="post-grid" id="insightGrid">
     {posts.map((post) => (
-      <a href={post.url} class="post-card" data-category={post.category} data-topic={post.topic}>
+      <a href={post.url} class="post-card" data-category={post.category} data-topics={post.topics.join(' ')}>
         <span class="post-tag">{post.category}</span>
         <h2>{post.title}</h2>
         <p class="post-excerpt">{post.excerpt}</p>
@@ -207,7 +207,8 @@ import { ClientRouter } from 'astro:transitions';
     const t = topic && topic !== 'all' ? topic : 'all';
     let shown = 0;
     cards.forEach((card) => {
-      const hit = (c === 'all' || card.dataset.category === c) && (t === 'all' || card.dataset.topic === t);
+      const cardTopics = (card.dataset.topics || '').split(/\s+/).filter(Boolean);
+      const hit = (c === 'all' || card.dataset.category === c) && (t === 'all' || cardTopics.includes(t));
       card.style.display = hit ? '' : 'none';
       if (hit) shown++;
     });

@@ -12,7 +12,7 @@ const { topic } = Astro.props;
 const pageTitle = topic.title + ' — 个人商业创造者';
 const pageDescription = topic.definition + ' ' + topic.title + '方向的专题页：主题介绍、实践思考与相关文章。';
 const canonical = new URL('/topics/' + topic.slug + '/', Astro.site ?? 'https://xiaomaker.top').toString();
-const posts = (await getPublishedPosts()).filter((p) => p.topic === topic.title);
+const posts = (await getPublishedPosts()).filter((p) => p.topics.includes(topic.title));
 const siblings = topics.filter((t) => t.slug !== topic.slug);
 import { ClientRouter } from 'astro:transitions';
 ---

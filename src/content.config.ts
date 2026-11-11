@@ -9,7 +9,7 @@ const insights = defineCollection({
     title: z.string().min(1),
     tagline: z.string().optional(),
     category: z.enum(CATEGORIES),
-    topic: z.enum(TOPICS).optional(),
+    topic: z.union([z.enum(TOPICS), z.array(z.enum(TOPICS))]).optional(),
     date: z
       .string()
       .regex(/^\d{4}[.-]\d{1,2}[.-]\d{1,2}$/, 'date 用 2026.11.12 或 2026-11-12'),

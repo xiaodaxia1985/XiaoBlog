@@ -25,6 +25,7 @@ export type Post = {
   tagline: string;
   category: string;
   topic: string;
+  topics: string[];
   date: string;
   sortKey: string;
   draft: boolean;
@@ -104,13 +105,16 @@ function resolveCover(slug: string, override?: string): string {
 export function toPost(entry: any): Post {
   const body: string = entry.body ?? '';
   const date = resolveDate(entry.data.date);
+  const rawTopic = entry.data.topic;
+  const topics = Array.isArray(rawTopic) ? rawTopic.filter(Boolean) : rawTopic ? [rawTopic] : [];
   return {
     slug: entry.id,
     url: `/insight/${entry.id}/`,
     title: entry.data.title,
     tagline: entry.data.tagline ?? '',
     category: entry.data.category,
-    topic: entry.data.topic ?? '',
+    topic: topics[0] ?? '',
+    topics,
     date,
     sortKey: date.replace(/[.-]/g, ''),
     draft: entry.data.draft === true,
