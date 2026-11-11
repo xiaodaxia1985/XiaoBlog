@@ -1,4 +1,4 @@
 User-agent: *
-Allow: /
+Disallow: /d/
 
 Sitemap: https://xiaomaker.top/sitemap.xml

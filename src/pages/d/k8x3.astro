@@ -1,0 +1,200 @@
+---
+import { getPlan } from '../../data/day-plan.mjs';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+
+const plan = getPlan();
+---
+<!DOCTYPE html>
+<html lang="zh-CN" style="background:#0c0c0c;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0c0c0c">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>每日执行清单 · 私有</title>
+<link rel="stylesheet" href="/fonts/fonts.css">
+<link rel="stylesheet" href="/css/tokens.css">
+<script is:inline data-astro-rerun>document.documentElement.classList.add('js');</script>
+<script is:inline src="/js/site-shell.js" defer></script>
+<style is:global>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Noto Sans SC','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;font-size:var(--fs-16);line-height:var(--lh-body);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
+  a{text-decoration:none;color:inherit;}
+  ul,ol{list-style:none;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px;}
+  .wrap{max-width:var(--container-w);margin:0 auto;padding:0 var(--gutter);}
+
+  .head{padding:calc(64px + var(--space-40)) 0 var(--space-32);border-bottom:1px solid var(--border);}
+  .eyebrow{display:flex;align-items:center;gap:var(--space-8);font-size:var(--fs-12);color:var(--text-muted);margin-bottom:var(--space-16);}
+  .eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);}
+  .head h1{font-size:var(--fs-40);font-weight:600;line-height:1.2;}
+  .stat{display:flex;flex-wrap:wrap;gap:var(--space-16);margin-top:var(--space-20);font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);}
+  .stat b{color:var(--text);font-weight:600;font-size:var(--fs-16);display:block;line-height:1.4;}
+  .stat span{display:block;margin-top:2px;}
+
+  .bar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-12);padding:var(--space-12) 0;background:rgba(12,12,12,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);}
+  .nav-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;color:var(--text-secondary);cursor:pointer;font-size:15px;}
+  .nav-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .date-input{background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:6px 10px;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-13);color-scheme:dark;}
+  .jump{background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-secondary);padding:6px 12px;font-size:var(--fs-12);cursor:pointer;}
+  .jump:hover{border-color:var(--accent);color:var(--accent);}
+  .tiers{display:flex;gap:6px;margin-left:auto;}
+  .tier{border:1px solid var(--border);background:transparent;color:var(--text-muted);border-radius:var(--radius-sm);padding:6px 12px;font-size:var(--fs-12);cursor:pointer;font-family:'Inter',sans-serif;}
+  .tier.on{border-color:var(--accent);color:var(--accent);background:rgba(216,242,107,.08);}
+
+  .day-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--space-12);padding:var(--space-24) 0 var(--space-12);}
+  .day-meta h2{font-size:var(--fs-24);font-weight:600;}
+  .day-meta .col{font-size:var(--fs-13);color:var(--accent);}
+  .day-meta .note{font-size:var(--fs-12);color:var(--text-muted);}
+  .bar-progress{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:var(--space-20);}
+  .bar-progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s ease;}
+
+  .tasks{display:flex;flex-direction:column;gap:var(--space-8);}
+  .task{display:grid;grid-template-columns:26px 1fr;gap:var(--space-12);padding:var(--space-12) var(--space-16);background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--radius-sm);}
+  .task.is-done{opacity:.55;border-color:rgba(216,242,107,.28);}
+  .task.is-done .t-label{text-decoration:line-through;text-decoration-color:rgba(216,242,107,.6);}
+  .chk{width:20px;height:20px;margin-top:2px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;position:relative;flex-shrink:0;}
+  .chk:checked{background:var(--accent);border-color:var(--accent);}
+  .chk:checked::after{content:'';position:absolute;left:6px;top:2px;width:5px;height:10px;border-right:2px solid #0c0c0c;border-bottom:2px solid #0c0c0c;transform:rotate(40deg);}
+  .t-body{min-width:0;}
+  .t-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--space-8);}
+  .t-time{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-11);color:var(--text-muted);border:1px solid var(--border);border-radius:3px;padding:1px 6px;}
+  .t-label{font-size:var(--fs-14);font-weight:500;}
+  .t-auto{font-size:var(--fs-11);color:var(--accent);border:1px solid rgba(216,242,107,.35);border-radius:3px;padding:1px 6px;}
+  .t-detail{font-size:var(--fs-12);color:var(--text-secondary);margin-top:4px;line-height:1.7;}
+  .t-verify{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .t-verify input{flex:1;min-width:150px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:6px 10px;font-size:var(--fs-12);font-family:'Inter',sans-serif;}
+  .t-verify button{border:1px solid var(--border);background:transparent;color:var(--text-secondary);border-radius:var(--radius-sm);padding:6px 12px;font-size:var(--fs-12);cursor:pointer;}
+  .t-verify button:hover{border-color:var(--accent);color:var(--accent);}
+  .t-verify .msg{font-size:var(--fs-11);color:var(--text-muted);align-self:center;}
+  .t-verify .msg.ok{color:var(--accent);}
+  .t-verify .msg.err{color:#ff8f8f;}
+
+  .note-box{margin-top:var(--space-24);}
+  .note-box label{display:block;font-size:var(--fs-12);color:var(--text-muted);margin-bottom:6px;}
+  .note-box textarea{width:100%;min-height:72px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:var(--space-12);font-size:var(--fs-13);line-height:1.7;resize:vertical;font-family:inherit;}
+
+  h3.sec{font-size:var(--fs-14);font-weight:500;color:var(--text-muted);margin:var(--space-56) 0 var(--space-16);letter-spacing:.02em;}
+  .week-list,.all-list{display:flex;flex-direction:column;gap:6px;}
+  .row{display:grid;grid-template-columns:64px 1fr 56px;align-items:center;gap:var(--space-12);padding:10px var(--space-12);border:1px solid var(--border);border-radius:var(--radius-sm);background:rgba(255,255,255,.02);cursor:pointer;text-align:left;color:inherit;font:inherit;width:100%;}
+  .row:hover{border-color:rgba(216,242,107,.4);}
+  .row .d{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);}
+  .row .m{font-size:var(--fs-13);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .row .m em{font-style:normal;color:var(--text-secondary);font-size:var(--fs-12);margin-left:8px;}
+  .row .c{text-align:right;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);}
+  .row.done .c{color:var(--accent);}
+  .row.now{border-color:var(--accent);background:rgba(216,242,107,.06);}
+
+  .stage-block{margin-bottom:var(--space-24);}
+  .stage-title{display:flex;align-items:baseline;gap:var(--space-8);font-size:var(--fs-13);color:var(--text-secondary);margin-bottom:8px;}
+  .stage-title span{font-size:var(--fs-11);color:var(--text-muted);}
+
+  .data-box{margin-top:var(--space-56);padding:var(--space-24);border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);}
+  .data-box h3{font-size:var(--fs-14);color:var(--text);margin-bottom:var(--space-8);}
+  .data-box p{font-size:var(--fs-12);color:var(--text-secondary);line-height:1.8;}
+  .data-actions{display:flex;flex-wrap:wrap;gap:var(--space-8);margin-top:var(--space-16);}
+  .data-actions button,.data-actions label{border:1px solid var(--border);background:transparent;color:var(--text-secondary);border-radius:var(--radius-sm);padding:8px 14px;font-size:var(--fs-12);cursor:pointer;}
+  .data-actions button:hover{border-color:var(--accent);color:var(--accent);}
+  .data-actions input[type=file]{display:none;}
+  .gh{margin-top:var(--space-16);padding-top:var(--space-16);border-top:1px solid var(--border);}
+  .gh summary{cursor:pointer;font-size:var(--fs-12);color:var(--text-muted);}
+  .gh-grid{display:grid;gap:8px;margin-top:var(--space-12);}
+  .gh-grid input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:8px 10px;font-size:var(--fs-12);font-family:'Inter',sans-serif;}
+  .gh-msg{font-size:var(--fs-11);color:var(--text-muted);margin-top:8px;word-break:break-all;}
+
+  @media(max-width:768px){
+    .head{padding:calc(56px + var(--space-32)) 0 var(--space-24);}
+    .head h1{font-size:28px;}
+    .stat{gap:var(--space-12);}
+    .task{padding:var(--space-12);}
+    .row{grid-template-columns:56px 1fr 48px;}
+    .tiers{margin-left:0;width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<Nav active="focus" />
+
+<header class="head">
+  <div class="wrap">
+    <p class="eyebrow">私有页面 · 未对外公开</p>
+    <h1>每日执行清单</h1>
+    <div class="stat">
+      <span><b id="s-day">Day 04 / 90</b>实践进度</span>
+      <span><b id="s-stage">第一阶段</b>当前阶段</span>
+      <span><b id="s-today">0 / 0</b>今日完成</span>
+      <span><b id="s-streak">0</b>连续有产出</span>
+      <span><b id="s-total">0 / 1080</b>90 天累计</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="bar">
+    <button class="nav-btn" id="prev" aria-label="前一天">‹</button>
+    <input class="date-input" type="date" id="date" aria-label="选择日期">
+    <button class="nav-btn" id="next" aria-label="后一天">›</button>
+    <button class="jump" id="today-btn">回到今天</button>
+    <div class="tiers" id="tiers">
+      <button class="tier" data-tier="A">A 完整日</button>
+      <button class="tier" data-tier="B">B 忙日</button>
+      <button class="tier" data-tier="C">C 底线</button>
+    </div>
+  </div>
+
+  <section>
+    <div class="day-meta">
+      <h2 id="d-title">Day 04</h2>
+      <span class="col" id="d-col">90天实战</span>
+      <span class="note" id="d-note"></span>
+    </div>
+    <div class="bar-progress"><i id="d-bar"></i></div>
+    <div class="tasks" id="d-tasks"></div>
+    <div class="note-box">
+      <label for="d-note-input">今天的日志与卡点（自动保存在本机）</label>
+      <textarea id="d-note-input" placeholder="日期 / 发布链接 / 卡点，各一行"></textarea>
+    </div>
+  </section>
+
+  <h3 class="sec">本周</h3>
+  <div class="week-list" id="week-list"></div>
+
+  <h3 class="sec">全部 90 天</h3>
+  <div class="all-list" id="all-list"></div>
+
+  <section class="data-box">
+    <h3>数据存在哪</h3>
+    <p>默认存在这台设备的浏览器本地（localStorage，键名 <code>xm.dayplan.v1</code>），不联网、不上传，清缓存会丢，所以建议每周导出一次 JSON 备份。要在手机和电脑之间同步，用下面的「仓库同步」：状态写进私有仓库的 <code>state/dayplan.json</code>，只在你手动点保存时才提交。</p>
+    <div class="data-actions">
+      <button id="export">导出 JSON</button>
+      <label for="import">导入 JSON</label>
+      <input type="file" id="import" accept="application/json">
+      <button id="copy">复制全部状态</button>
+    </div>
+    <details class="gh">
+      <summary>仓库同步（可选）</summary>
+      <div class="gh-grid">
+        <input id="gh-token" placeholder="GitHub fine-grained token（只勾这一仓库的 Contents: Read & Write）" autocomplete="off">
+        <input id="gh-repo" placeholder="仓库" value="xiaodaxia1985/XiaoBlog">
+        <input id="gh-path" placeholder="路径" value="state/dayplan.json">
+        <input id="gh-branch" placeholder="分支" value="main">
+      </div>
+      <div class="data-actions">
+        <button id="gh-pull">从仓库拉取</button>
+        <button id="gh-push">保存到仓库</button>
+      </div>
+      <p class="gh-msg" id="gh-msg">token 只保存在本机浏览器，用来读写这一个仓库。保存会往 main 推一次提交，会触发一次站点重建，正常。</p>
+    </details>
+  </section>
+</div>
+
+<Footer />
+<script type="application/json" id="plan" set:html={JSON.stringify(plan)}></script>
+<script is:inline src="/js/dayplan.js" defer></script>
+</body>
+</html>
