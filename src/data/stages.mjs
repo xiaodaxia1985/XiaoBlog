@@ -15,7 +15,7 @@ export const stages = [
       '借助 AI 创造：用 AI 完成设计、开发与内容生产',
       '建立品牌与内容：品牌表达 V1 与首批 6 篇公开内容'
     ],
-    postIds: ['90-days-first-product', '18-years-without-my-own-business', 'deploy-static-site-without-server-or-icp', 'rebuild-visual-system-21-themes-to-3']
+    postIds: ['90-days-first-product', '18-years-without-my-own-business', 'deploy-static-site-without-server-or-icp', 'micro-innovation-better-world']
   },
   {
     id: 2,
