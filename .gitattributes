@@ -1,0 +1,2 @@
+# git hooks 必须是 LF，否则 sh 在 Windows 上会因 CR 报错
+scripts/githooks/* text eol=lf
