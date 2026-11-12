@@ -105,7 +105,12 @@ async function renderOne(slug, meta, index, total) {
     pathToFileURL(tmpHtml).href,
   ], { stdio: 'ignore' });
 
-  if (!fs.existsSync(tmpPng)) throw new Error('截图失败，未生成 PNG');
+  // Edge 的启动进程会先退出、截图由子进程稍后写出，所以要等文件真正落盘再判定失败。
+  const deadline = Date.now() + 15000;
+  while (!fs.existsSync(tmpPng) || fs.statSync(tmpPng).size === 0) {
+    if (Date.now() > deadline) throw new Error('截图失败，未生成 PNG');
+    await new Promise((r) => setTimeout(r, 200));
+  }
   const out = path.join(coversDir, `${slug}-${index + 1}.webp`);
   let quality = 82;
   let size = 0;
@@ -117,7 +122,15 @@ async function renderOne(slug, meta, index, total) {
   }
 
   for (const p of [tmpHtml, tmpPng]) fs.rmSync(p, { force: true });
-  fs.rmSync(profile, { recursive: true, force: true });
+  // 浏览器子进程可能还握着临时 profile（lockfile），重试几次，实在清不掉就留给系统临时目录。
+  for (let i = 0; i < 10; i++) {
+    try {
+      fs.rmSync(profile, { recursive: true, force: true });
+      break;
+    } catch {
+      await new Promise((r) => setTimeout(r, 300));
+    }
+  }
 
   const rel = path.relative(root, out);
   console.log(`  ${index + 1}/${total}  ${rel}  ${(size / 1024).toFixed(1)}KB  q=${quality}  L=${color.lightness}%  「${headline}」`);
