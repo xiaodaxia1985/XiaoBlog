@@ -1,0 +1,63 @@
+#!/bin/sh
+# publish-watch: record newly added AND edited articles when pushing to main,
+# so the text2Media three-platform pass can be triggered by reading the log.
+# Rules: only builtins + git (this machine's sh has no dirname/sed/tr/date),
+#        and it must NEVER block a push.
+
+trap 'exit 0' EXIT
+
+cd "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || exit 0
+
+LOG="../../output/publish-watch.log"
+[ -d "../../output" ] || mkdir -p "../../output" 2>/dev/null || exit 0
+
+remote="${1:-origin}"
+target="refs/heads/main"
+zero="0000000000000000000000000000000000000000"
+
+range=""
+if [ -t 0 ]; then
+  range="origin/main...HEAD"
+else
+  while read -r local_ref local_sha remote_ref remote_sha; do
+    [ "$remote_ref" = "$target" ] || continue
+    [ "$local_sha" = "$zero" ] && continue
+    if [ "$remote_sha" = "$zero" ]; then
+      range="$local_sha"
+    else
+      range="$remote_sha..$local_sha"
+    fi
+  done
+  [ -n "$range" ] || exit 0
+fi
+
+added=$(git diff --diff-filter=A --name-only $range -- src/content/insights 2>/dev/null)
+edited=$(git diff --diff-filter=M --name-only $range -- src/content/insights 2>/dev/null)
+[ -n "$added$edited" ] || exit 0
+
+list_slugs() {
+  _out=""
+  for _f in $1; do
+    _n=${_f#src/content/insights/}
+    _n=${_n%.md}
+    if [ -z "$_out" ]; then _out="$_n"; else _out="$_out,$_n"; fi
+  done
+  printf '%s' "$_out"
+}
+
+new_slugs=$(list_slugs "$added")
+edit_slugs=$(list_slugs "$edited")
+
+sha=$(git rev-parse --short HEAD 2>/dev/null)
+branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+ts=$(date '+%Y-%m-%dT%H:%M:%S' 2>/dev/null)
+[ -n "$ts" ] || ts=$(git log -1 --format=%cd --date=format:'%Y-%m-%dT%H:%M:%S' 2>/dev/null)
+
+[ -f "$LOG" ] || printf '# time\tsha\tbranch\tremote\tnew_articles\tedited_articles\n' > "$LOG"
+printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$ts" "$sha" "$branch" "$remote" "$new_slugs" "$edit_slugs" >> "$LOG"
+
+[ -n "$new_slugs" ] && echo "[publish-watch] new: $new_slugs" >&2
+[ -n "$edit_slugs" ] && echo "[publish-watch] edited: $edit_slugs" >&2
+echo "[publish-watch] after this push lands, (re)run the three-platform pass." >&2
+
+exit 0
