@@ -1,0 +1,72 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import SiteHead from '../components/SiteHead.astro';
+import { SITE } from '../lib/site';
+
+interface Props {
+  title: string;
+  description?: string;
+  canonicalPath: string;
+  ogType?: 'website' | 'article';
+  ogImage?: string;
+  twitterCard?: 'summary' | 'summary_large_image';
+  robots?: string;
+  active?: 'home' | 'focus' | 'insights' | 'about' | '';
+  navVariant?: 'main' | 'article';
+  showNav?: boolean;
+  hideFooter?: boolean;
+  bodyClass?: string;
+}
+
+const {
+  title,
+  description = SITE.description,
+  canonicalPath,
+  ogType = 'website',
+  ogImage,
+  twitterCard,
+  robots,
+  active = '',
+  navVariant = 'main',
+  showNav = true,
+  hideFooter = false,
+  bodyClass,
+} = Astro.props;
+
+const siteUrl = Astro.site ?? new URL(SITE.url);
+const canonical = new URL(canonicalPath, siteUrl).toString();
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN" style="background:#0c0c0c;">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0c0c0c" />
+  <meta name="color-scheme" content="dark" />
+  {robots && <meta name="robots" content={robots} />}
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/fonts/fonts.css" />
+  <link rel="stylesheet" href="/css/tokens.css" />
+  <script is:inline data-astro-rerun>document.documentElement.classList.add('js');</script>
+  <script is:inline src="/js/site-shell.js" defer></script>
+  <SiteHead
+    title={title}
+    description={description}
+    canonical={canonical}
+    ogType={ogType}
+    ogImage={ogImage}
+    twitterCard={twitterCard}
+  />
+  <slot name="head" />
+  <ClientRouter fallback="swap" />
+</head>
+<body class={bodyClass}>
+  {showNav && <Nav active={active} variant={navVariant} />}
+  <slot />
+  {!hideFooter && <Footer />}
+  <slot name="scripts" />
+</body>
+</html>

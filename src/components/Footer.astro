@@ -1,4 +1,5 @@
 ---
+import { SITE } from '../lib/site';
 ---
 <footer class="site-footer">
   <div class="footer-inner">
@@ -7,7 +8,7 @@
       <div class="author-copy">
         <strong>个人商业创造者</strong>
         <p>18 年 IT 与产业数字化经验，正在用 AI 把专业能力转化为自己的产品与商业资产。</p>
-        <a href="mailto:cronaldo.yang@outlook.com">cronaldo.yang@outlook.com</a>
+        <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
         <p class="author-social">抖音、小红书和微信公众号搜索「个人商业创造者」</p>
       </div>
     </section>

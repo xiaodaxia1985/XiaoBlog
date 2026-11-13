@@ -58,7 +58,7 @@ function firstParagraph(body: string): string {
     if (/^>/.test(text)) continue;
     if (/^[-*+]\s/.test(text)) continue;
     if (/^\d+\.\s/.test(text)) continue;
-    const plain = stripMarkdown(text).replace(/\s+/g, '');
+    const plain = stripMarkdown(text).replace(/\s+/g, ' ').trim();
     if (plain.length < 12) continue;
     return plain;
   }
@@ -107,6 +107,12 @@ export function toPost(entry: any): Post {
   const date = resolveDate(entry.data.date);
   const rawTopic = entry.data.topic;
   const topics = Array.isArray(rawTopic) ? rawTopic.filter(Boolean) : rawTopic ? [rawTopic] : [];
+  const explicitCover: string | undefined = entry.data.cover;
+  const cover = resolveCover(entry.id, explicitCover);
+  // 未显式指定封面又回退到默认图的已发布文章，构建期告警，避免封面静默丢失（严格枚举校验在 B2 check-content 脚本）。
+  if (!entry.data.draft && !explicitCover?.trim() && cover === assetUrl(defaultCover)) {
+    console.warn(`[cover] 文章「${entry.data.title}」缺少封面，已回退默认图`);
+  }
   return {
     slug: entry.id,
     url: `/insight/${entry.id}/`,
@@ -120,7 +126,7 @@ export function toPost(entry: any): Post {
     draft: entry.data.draft === true,
     readTime: readingTime(body),
     excerpt: deriveExcerpt(body, entry.data.excerpt),
-    cover: resolveCover(entry.id, entry.data.cover),
+    cover,
     takeaways: entry.data.takeaways ?? [],
     tags: entry.data.tags ?? [],
   };

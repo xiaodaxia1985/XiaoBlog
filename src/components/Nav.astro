@@ -11,18 +11,14 @@ const { active = '', variant = 'main' } = Astro.props;
       <img class="site-logo-mark" src="/images/logo-mark.svg" alt="" decoding="async" width="24" height="24">
       个人商业创造者
     </a>
-    {variant === 'article' ? null : (
-      <>
-        <button class="site-nav-toggle" id="siteNavToggle" aria-label="打开导航菜单" aria-expanded="false" aria-controls="siteNavLinks"><span></span><span></span><span></span></button>
-        <button class="site-nav-backdrop" id="siteNavBackdrop" type="button" aria-label="关闭导航菜单" hidden></button>
-        <ul class="site-nav-links" id="siteNavLinks" aria-label="主导航">
-          <li><a href="/" class:list={{ active: active === 'home' }} aria-current={active === 'home' ? 'page' : undefined}>首页</a></li>
-          <li><a href="/#focus" class:list={{ active: active === 'focus' }} aria-current={active === 'focus' ? 'page' : undefined}>方向</a></li>
-          <li><a href="/insights" class:list={{ active: active === 'insights' }} aria-current={active === 'insights' ? 'page' : undefined}>洞察</a></li>
-          <li><a href="/about" class:list={{ active: active === 'about' }} aria-current={active === 'about' ? 'page' : undefined}>关于</a></li>
-        </ul>
-      </>
-    )}
+    <button class="site-nav-toggle" id="siteNavToggle" aria-label="打开导航菜单" aria-expanded="false" aria-controls="siteNavLinks"><span></span><span></span><span></span></button>
+    <button class="site-nav-backdrop" id="siteNavBackdrop" type="button" aria-label="关闭导航菜单" hidden></button>
+    <ul class="site-nav-links" id="siteNavLinks" aria-label="主导航">
+      <li><a href="/" class:list={{ active: active === 'home' }} aria-current={active === 'home' ? 'page' : undefined}>首页</a></li>
+      <li><a href="/#focus" class:list={{ active: active === 'focus' }} aria-current={active === 'focus' ? 'page' : undefined}>方向</a></li>
+      <li><a href="/insights" class:list={{ active: active === 'insights' }} aria-current={active === 'insights' ? 'page' : undefined}>洞察</a></li>
+      <li><a href="/about" class:list={{ active: active === 'about' }} aria-current={active === 'about' ? 'page' : undefined}>关于</a></li>
+    </ul>
   </div>
 </nav>
 
@@ -30,7 +26,6 @@ const { active = '', variant = 'main' } = Astro.props;
   .site-nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:0 var(--gutter);background:rgba(12,12,12,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
   .site-nav-inner{max-width:var(--container-w);margin:0 auto;width:100%;height:64px;display:flex;align-items:center;justify-content:space-between;gap:var(--space-24);}
   .site-logo{display:inline-flex;align-items:center;gap:var(--space-8);font-size:var(--fs-16);font-weight:600;color:var(--text);}
-  .site-avatar{width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid var(--border);flex-shrink:0;}
   .site-logo-mark{width:24px;height:24px;flex-shrink:0;display:block;}
   .site-nav-links{display:grid;grid-template-columns:repeat(4,minmax(56px,1fr));gap:var(--space-12);list-style:none;margin:0;padding:0;min-width:296px;text-align:center;}
   .site-nav-links a{display:block;font-size:var(--fs-14);letter-spacing:.04em;color:var(--text-secondary);transition:color .2s ease;}

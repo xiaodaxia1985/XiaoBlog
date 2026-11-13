@@ -19,17 +19,19 @@ export const INK = {
   solid: '#0C0C0C',
 };
 
-const STEP = 5;
 const MAX_L = 88;
 
 /**
- * 第 index 张卡的底色：以主色为第 1 档，逐张提亮 5%。
+ * 第 index 张卡的底色：以主色为第 1 档，按卡片总数在主色明度到封顶明度之间均匀分配阶梯，
+ * 多卡时每张仍可区分，不会在第几张后停止渐变。
  * @param {number} index 0 起的序号
- * @param {number} total 卡片总数（仅用于封顶，不改变阶梯）
+ * @param {number} total 卡片总数
  * @returns {{ bg: string, accent: string, lightness: number, ink: object }}
  */
 export function shade(index, total = 4) {
-  const lightness = Number(Math.min(MAIN.l + STEP * index, MAX_L).toFixed(1));
+  const span = MAX_L - MAIN.l;
+  const step = total > 1 ? span / (total - 1) : 0;
+  const lightness = Number(Math.min(MAIN.l + step * index, MAX_L).toFixed(1));
   return {
     bg: `hsl(${MAIN.hue} ${MAIN.sat}% ${lightness}%)`,
     accent: INK.strong,
