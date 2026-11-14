@@ -166,7 +166,7 @@ const countByTopic = (topic) => posts.filter((post) => post.topics.includes(topi
     .all-articles{display:flex;justify-content:flex-end;margin-top:22px;}
     .all-articles a{font-size:12px;color:var(--text-secondary);}
     .all-articles a:hover,.all-articles a:focus-visible{color:var(--accent);text-decoration:underline;text-underline-offset:4px;}
-    @media(max-width:850px){
+    @media(max-width:1060px){
       .hero-grid{grid-template-columns:1fr;gap:42px;}
       .hero-aside{max-width:560px;}
       .topic-grid{grid-template-columns:1fr;}
@@ -176,7 +176,7 @@ const countByTopic = (topic) => posts.filter((post) => post.topics.includes(topi
       .topic-foot{padding-top:16px;}
       .section-heading{align-items:flex-start;flex-direction:column;}
     }
-    @media(max-width:600px){
+    @media(max-width:720px){
       .wrap{width:calc(100% - 40px);}
       .hero{padding:104px 0 52px;}
       h1{font-size:clamp(30px,8vw,38px);line-height:1.25;max-width:600px;}

@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily XiaoBlog backup timer
+
+[Timer]
+# 每日 03:17 执行；机器关机错过则开机后补跑一次。
+OnCalendar=*-*-* 03:17:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

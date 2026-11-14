@@ -50,7 +50,7 @@ const { active = '', variant = 'main' } = Astro.props;
   .site-nav-toggle span{width:22px;height:1.5px;background:var(--text);border-radius:2px;transition:transform .2s ease,opacity .2s ease;}
   .site-nav-backdrop{display:none;}
 
-  @media(max-width:768px){
+  @media(max-width:720px){
     .site-nav-inner{height:56px;}
     .site-nav-links{position:fixed;top:0;right:0;width:min(280px,78vw);height:100vh;height:100dvh;background:var(--bg);display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:calc(56px + var(--space-24)) var(--space-24) var(--space-32);gap:var(--space-24);min-width:0;text-align:left;transform:translateX(102%);transition:transform .25s ease;visibility:hidden;border-left:1px solid var(--border);z-index:1002;box-shadow:-24px 0 64px rgba(0,0,0,.28);}
     .site-nav-links.open{transform:translateX(0);visibility:visible;}

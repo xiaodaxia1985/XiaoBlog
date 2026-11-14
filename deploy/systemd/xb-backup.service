@@ -1,0 +1,12 @@
+[Unit]
+Description=XiaoBlog PostgreSQL + env backup
+After=postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=oneshot
+# 备份需要 sudo -u postgres 与读 /opt/XiaoBlog/server/.env，以 root 运行。
+ExecStart=/bin/bash /opt/XiaoBlog/deploy/backup.sh
+# 备份失败不影响站点；结果写 journald：journalctl -u xb-backup
+StandardOutput=journal
+StandardError=journal

@@ -26,6 +26,14 @@ API_PORT="8787"
 DB_NAME_API="xb_api"
 DB_USER_API="xb_api"
 
+# 私有页 /d/ Basic Auth
+DASH_USER="xb-admin"
+HTPASSWD_FILE="/etc/nginx/.xb-htpasswd"
+DASH_PW_FILE="/opt/.xb-dashboard-pw"
+
+# swap 大小（2G 内存机型补 1G 交换空间防 OOM）；设为空则不创建。
+SWAP_SIZE="1G"
+
 BUILD_FRONTEND="1"                   # 1=在仓库目录重新构建 dist 与 slugs.json；0=沿用现有 dist
 # ------------------------------------------------------------------------------
 
@@ -63,7 +71,7 @@ if [ "$DISTRO" = debian ]; then
   apt-get install -y -qq curl wget gnupg ca-certificates lsb-release unzip \
       postgresql postgresql-contrib nginx >/dev/null
 else
-  dnf install -y -q curl wget ca-certificates unzip \
+  dnf install -y -q curl wget ca-certificates unzip openssl \
       postgresql-server postgresql-contrib nginx
 fi
 
@@ -99,6 +107,18 @@ fi
 if ! id "$SVC_USER" >/dev/null 2>&1; then
   c_info "  创建系统用户 $SVC_USER"
   useradd --system --no-create-home --shell /usr/sbin/nologin "$SVC_USER"
+fi
+
+# swap：内存偏小时补交换空间防 OOM；已存在则跳过，幂等。
+if [ -n "$SWAP_SIZE" ] && [ ! -f /swapfile ]; then
+  c_info "  创建 $SWAP_SIZE swapfile"
+  fallocate -l "$SWAP_SIZE" /swapfile 2>/dev/null || dd if=/dev/zero of=/swapfile bs=1M count=1024
+  chmod 600 /swapfile
+  mkswap /swapfile >/dev/null
+  swapon /swapfile
+  grep -qE '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+else
+  c_info "  swapfile 已存在或未配置 SWAP_SIZE，跳过"
 fi
 
 # ----------------------------- 2. PostgreSQL 建库建角色 -----------------------------
@@ -194,11 +214,28 @@ chmod -R a+rX "$REPO_DIR/dist" "$REPO_DIR/server/node_modules" 2>/dev/null || tr
 # ----------------------------- 5. systemd 单元 -----------------------------
 c_info "5/8 安装并启用 systemd 服务"
 cp "$REPO_DIR/deploy/systemd/xb-api.service" /etc/systemd/system/xb-api.service
+cp "$REPO_DIR/deploy/systemd/xb-backup.service" /etc/systemd/system/xb-backup.service
+cp "$REPO_DIR/deploy/systemd/xb-backup.timer" /etc/systemd/system/xb-backup.timer
 systemctl daemon-reload
 systemctl enable --now xb-api
+systemctl enable --now xb-backup.timer
 
 # ----------------------------- 6. nginx 反代 -----------------------------
 c_info "6/8 写入 nginx 站点配置并 reload"
+
+# 私有页 /d/ Basic Auth 凭据（首次生成；--regen-secrets 可重置）。
+# apr1 哈希由 nginx auth_basic 识别；明文密码仅存 root 可读文件，便于找回，不进仓库。
+if [ ! -f "$HTPASSWD_FILE" ] || [ "$regen_secrets" = 1 ]; then
+  dash_pw="$(openssl rand -hex 16)"
+  openssl passwd -apr1 "$dash_pw" | awk -v u="$DASH_USER" '{print u":"$0}' > "$HTPASSWD_FILE"
+  # htpasswd 需让 nginx worker 可读：640 + 属主组为 web 用户；明文密码文件仍 600 root。
+  chmod 640 "$HTPASSWD_FILE"
+  if [ "$DISTRO" = debian ]; then chown root:www-data "$HTPASSWD_FILE" 2>/dev/null || true; else chown root:nginx "$HTPASSWD_FILE" 2>/dev/null || true; fi
+  printf '%s %s\n' "$DASH_USER" "$dash_pw" > "$DASH_PW_FILE"
+  chmod 600 "$DASH_PW_FILE"
+  c_info "  生成私有页 Basic Auth 凭据（明文存于 $DASH_PW_FILE，600）"
+fi
+
 if [ "$DISTRO" = debian ]; then
     sed -e "s|__REPO_DIR__|$REPO_DIR|g" \
         -e "s|__SITE_HOST__|$SITE_DOMAIN $PUBLIC_HOST|g" \
@@ -266,6 +303,14 @@ cat <<EOF
 
 前端构建环境变量（仓库 .env，需与上面对外地址一致）：
   PUBLIC_API_BASE=http://${PUBLIC_HOST}
+
+私有页 /d/ Basic Auth：
+  账号 $DASH_USER，明文密码见 ${DASH_PW_FILE}（600，仅 root 可读）；
+  改密码：sudo bash deploy/setup-ecs.sh --regen-secrets（会同时重生成 API 密钥，需同步 .env）。
+
+备份：
+  每日 03:17 由 xb-backup.timer 触发 deploy/backup.sh，留存 7 天；
+  手动跑：sudo bash deploy/backup.sh；查看：systemctl list-timers xb-backup.timer
 
 上线切域名后要改：
   1. server/.env 的 SITE_URL → https://${SITE_DOMAIN}
