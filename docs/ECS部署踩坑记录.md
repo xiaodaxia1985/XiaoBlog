@@ -103,3 +103,41 @@ chown -R deployer:deployer /opt/XiaoBlog
 ```
 
 > ⚠️ **重要原则**：所有构建和部署操作应统一以 deployer 身份执行，避免 root 与 deployer 混用导致权限混乱。若不慎以 root 执行了 npm 命令，需立即 chown 修复。
+
+## 7. CI Deploy 成功验证（2026-11-14）
+
+修复第 3、5、6 条问题后，commit `d6e4fa0` 触发的 GitHub Actions **Build site** 和 **Deploy to ECS** 均成功通过，CI/CD 链路完全打通。
+
+---
+
+## 📋 运维规范（必读）
+
+### 会话结束前必做
+每次对话完成前，**必须**将本次出现的错误、排查过程、修复方案追加到本文档（`docs/ECS部署踩坑记录.md`）。新会话开始时先执行：
+```bash
+cat /opt/XiaoBlog/README.md        # 找到运维文档入口
+cat /opt/XiaoBlog/docs/ECS部署踩坑记录.md  # 恢复历史上下文
+```
+
+### 用户与权限规范
+| 操作 | 执行用户 | 说明 |
+|---|---|---|
+| git pull / npm ci / npm run build | deployer | CI 和本地手动操作统一用 deployer |
+| systemctl restart/reload | deployer + sudo | deployer 已配置免密 sudo |
+| 系统级安装（dnf/pg_hba） | root | 仅在初始化或修复系统组件时使用 |
+
+> ⚠️ **严禁以 root 执行 npm 命令**，否则 node_modules 属主变为 root，CI 必然 EACCES 失败。若误操作，立即 `chown -R deployer:deployer /opt/XiaoBlog`。
+
+### SSH Key 清单
+| 密钥文件 | 属主 | 用途 |
+|---|---|---|
+| `/root/.ssh/github_deploy_key_pem` | root | 手动 root 操作时拉代码（备用） |
+| `/home/deployer/.ssh/github_deploy_key_pem` | deployer | CI 及日常 git 操作（主力） |
+| `/home/deployer/.ssh/id_ed25519` | deployer | CI SSH 登录 ECS 的密钥（ECS_SSH_KEY secret） |
+
+### CI 部署流程（deploy.sh）
+```
+git pull → npm ci → npm run build → [server/变更?] → npm ci + restart xb-api → reload nginx
+```
+- server/ 无变更时跳过重启，避免不必要的服务中断
+- deploy.sh 自身有 bug 时存在鸡生蛋问题，需手动在服务器上修复后再推送
