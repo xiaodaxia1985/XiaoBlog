@@ -141,3 +141,28 @@ git pull → npm ci → npm run build → [server/变更?] → npm ci + restart 
 ```
 - server/ 无变更时跳过重启，避免不必要的服务中断
 - deploy.sh 自身有 bug 时存在鸡生蛋问题，需手动在服务器上修复后再推送
+
+## 8. setup-ecs.sh 已由研发统一适配（2026-11-14）
+
+研发更新了 `deploy/setup-ecs.sh`，**之前所有踩坑点均已内置修复**，无需再使用独立的 `setup-alinux3.sh`：
+
+- ✅ 自动识别发行版（debian/rhel），dnf/apt 分支
+- ✅ PG pg_hba.conf 自动改 scram-sha-256 + password_encryption + 重设密码
+- ✅ nginx 配置按 DISTRO 写入 conf.d 或 sites-available
+- ✅ 防火墙按 DISTRO 选择 firewalld 或 ufw
+- ✅ NodeSource 按 DISTRO 选择 rpm 或 deb
+- ✅ 新增：swap、Basic Auth（/d/）、xb-backup.timer 每日备份
+
+**⚠️ 仍需注意**：脚本以 root 执行 npm ci/build，完成后**必须**立即执行：
+```bash
+chown -R deployer:deployer /opt/XiaoBlog
+```
+否则 CI 以 deployer 身份执行时会 EACCES 失败（踩坑第6条）。
+
+### 新增功能速查
+| 功能 | 说明 |
+|---|---|
+| 私有页 Basic Auth | 账号 xb-admin，密码见 `/opt/.xb-dashboard-pw` |
+| 每日备份 | xb-backup.timer 每日 03:17 触发，留存 7 天 |
+| Swap | 1G swapfile，防 2G 内存机型 OOM |
+| --regen-secrets | 重生成所有密钥（API密码 + Basic Auth + Visitor Salt） |
