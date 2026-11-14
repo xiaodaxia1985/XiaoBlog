@@ -167,7 +167,7 @@ category: "90天实战"
 静态产物始终是纯静态 `dist/`，不携带数据库与密钥。当前存在两条链路，最终迁回阿里云 ECS、停用 EdgeOne：
 
 - **现网（兜底）**：EdgeOne Pages 连 GitHub 私有仓库 `xiaodaxia1985/XiaoBlog`，构建命令 `npm run build`、输出目录 `dist`，推 `main` 触发；加速区域选「全球可用区（不含中国大陆）」，避免境内备案门槛。`*.edgeone.app` 仅预览域名，不作长期地址。
-- **目标（ECS 自托管）**：阿里云 ECS（`39.96.115.35`，Ubuntu + nginx）静态托管 `dist/`，同机跑 `server/` 薄 API 与 PostgreSQL。后端一键部署见 [docs/后端部署手册_ECS.md](docs/后端部署手册_ECS.md)，脚本与模板在 `deploy/`（`setup-ecs.sh` 装 PG/薄 API/nginx/systemd，幂等可重复执行）。CI（`.github/workflows/deploy.yml`）用 SSH 密钥登录执行 `/opt/XiaoBlog/deploy.sh`，密钥存 GitHub Secrets。
+- **目标（ECS 自托管）**：阿里云 ECS（`39.96.115.35`，Alibaba Cloud Linux 3 / Ubuntu + nginx）静态托管 `dist/`，同机跑 `server/` 薄 API 与 PostgreSQL。后端一键部署见 [docs/后端部署手册_ECS.md](docs/后端部署手册_ECS.md)，脚本与模板在 `deploy/`（`setup-ecs.sh` 装 PG/薄 API/nginx/systemd，幂等可重复执行）。CI（`.github/workflows/deploy.yml`）用 SSH 密钥登录执行 `/opt/XiaoBlog/deploy.sh`，密钥存 GitHub Secrets。
 - **切换前置（未完成）**：源站 TLS、ICP 备案核实、DNS 由 CNAME 改 A 记录、HSTS 下沉 nginx、停用 EdgeOne Pages；备案未完成前不把 DNS 切到大陆地域 ECS。联调阶段可先用 ECS IP 直连，上线再切域名。
 
 ## 已知限制

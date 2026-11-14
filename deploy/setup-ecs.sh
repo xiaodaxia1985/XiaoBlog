@@ -2,7 +2,10 @@
 # =============================================================================
 # XiaoBlog ECS 一键后端部署脚本（薄 API + PostgreSQL + nginx 反代 + systemd）
 #
-# 适用：阿里云 Ubuntu 22.04/24.04 ECS，以 root 执行：
+# 适用：
+#   - Debian/Ubuntu 22.04/24.04（apt / ufw / sites-enabled）
+#   - RHEL 系：Alibaba Cloud Linux 3 / CentOS / RHEL / Rocky / AlmaLinux（dnf / firewalld / conf.d）
+# 以 root 执行：
 #   sudo bash deploy/setup-ecs.sh
 #
 # 幂等：可重复运行。已存在的库/角色/服务/配置不会被重复创建；密钥仅在首次生成，
@@ -40,34 +43,78 @@ die() { printf "\033[1;31m[setup] 失败:\033[0m %s\n" "$*" >&2; exit 1; }
 [ "$(id -u)" -eq 0 ] || die "请用 root 执行：sudo bash deploy/setup-ecs.sh"
 [ -d "$REPO_DIR" ] || die "仓库目录不存在：$REPO_DIR（先由 CI/deploy.sh 拉代码到该路径）"
 
+# ----------------------------- 识别发行版 -----------------------------
+. /etc/os-release 2>/dev/null || true
+case "${ID:-}" in
+  ubuntu|debian)            DISTRO=debian ;;
+  alinux|centos|rhel|rocky|almalinux|ol|anolis) DISTRO=rhel ;;
+  *)
+    # 兜底：有 apt 判 Debian，否则按 RHEL 系处理
+    if command -v apt-get >/dev/null 2>&1; then DISTRO=debian; else DISTRO=rhel; fi
+    ;;
+esac
+c_info "识别发行版：${PRETTY_NAME:-$ID}（按 $DISTRO 系处理）"
+
 # ----------------------------- 1. 系统依赖 -----------------------------
 c_info "1/8 安装系统依赖（postgresql / nginx / node $NODE_MAJOR / curl / unzip）"
-export DEBIAN_FRONTEND=noninteractive
-apt-get update -qq
-apt-get install -y -qq curl wget gnupg ca-certificates lsb-release unzip \
-    postgresql postgresql-contrib nginx >/dev/null
-
-# Node 22（NodeSource）
-if ! command -v node >/dev/null || [ "$(node -v | cut -d v -f2 | cut -d . -f1)" -lt "$NODE_MAJOR" ]; then
-    c_info "  配置 NodeSource Node $NODE_MAJOR 源"
-    curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" | bash -
-    apt-get install -y -qq nodejs >/dev/null
+if [ "$DISTRO" = debian ]; then
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update -qq
+  apt-get install -y -qq curl wget gnupg ca-certificates lsb-release unzip \
+      postgresql postgresql-contrib nginx >/dev/null
+else
+  dnf install -y -q curl wget ca-certificates unzip \
+      postgresql-server postgresql-contrib nginx
 fi
-node -v && npm -v
+
+# Node $NODE_MAJOR（NodeSource；Debian 走 deb，RHEL 走 rpm）
+need_node=0
+if ! command -v node >/dev/null 2>&1; then
+  need_node=1
+else
+  cur_major="$(node -v | cut -d v -f2 | cut -d . -f1)"
+  [ "$cur_major" -lt "$NODE_MAJOR" ] 2>/dev/null && need_node=1
+fi
+if [ "$need_node" = 1 ]; then
+  c_info "  配置 NodeSource Node $NODE_MAJOR 源并安装"
+  if [ "$DISTRO" = debian ]; then
+    curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" | bash - || true
+    apt-get install -y -qq nodejs >/dev/null || true
+  else
+    curl -fsSL "https://rpm.nodesource.com/setup_${NODE_MAJOR}.x" | bash - || true
+    dnf install -y -q nodejs || true
+  fi
+fi
+if command -v node >/dev/null 2>&1; then
+  node -v && npm -v
+  cur_major="$(node -v | cut -d v -f2 | cut -d . -f1)"
+  if [ "$cur_major" -lt "$NODE_MAJOR" ] 2>/dev/null; then
+    c_warn "  当前 Node 主版本 $cur_major 低于 $NODE_MAJOR；NodeSource 源若未识别本发行版，可按手册用 nvm 或官方二进制手动升级"
+  fi
+else
+  die "未安装 Node.js，请按手册手动安装 Node $NODE_MAJOR 后重跑"
+fi
 
 # 专用非登录系统用户
 if ! id "$SVC_USER" >/dev/null 2>&1; then
-    c_info "  创建系统用户 $SVC_USER"
-    useradd --system --no-create-home --shell /usr/sbin/nologin "$SVC_USER"
+  c_info "  创建系统用户 $SVC_USER"
+  useradd --system --no-create-home --shell /usr/sbin/nologin "$SVC_USER"
 fi
 
 # ----------------------------- 2. PostgreSQL 建库建角色 -----------------------------
 c_info "2/8 准备 PostgreSQL 数据库与角色"
+if [ "$DISTRO" = rhel ]; then
+  # RHEL 系首次需要初始化数据簇；已初始化则跳过。
+  if [ ! -f /var/lib/pgsql/data/PG_VERSION ]; then
+    c_info "  初始化 PostgreSQL 数据簇"
+    postgresql-setup --initdb
+  fi
+fi
 systemctl enable --now postgresql
 
 api_pw_file="/opt/.xb-api-pw"
 if [ ! -f "$api_pw_file" ] || [ "$regen_secrets" = 1 ]; then
-    openssl rand -hex 24 > "$api_pw_file"; chmod 600 "$api_pw_file"
+  openssl rand -hex 24 > "$api_pw_file"; chmod 600 "$api_pw_file"
 fi
 API_PW="$(cat "$api_pw_file")"
 
@@ -120,6 +167,9 @@ else
 fi
 [ -f "$REPO_DIR/public/data/slugs.json" ] || die "缺少 public/data/slugs.json，请先在仓库目录跑 npm run build"
 
+# 静态产物与 node_modules 需让 nginx / xb 用户可读可执行
+chmod -R a+rX "$REPO_DIR/dist" "$REPO_DIR/server/node_modules" 2>/dev/null || true
+
 # ----------------------------- 5. systemd 单元 -----------------------------
 c_info "5/8 安装并启用 systemd 服务"
 cp "$REPO_DIR/deploy/systemd/xb-api.service" /etc/systemd/system/xb-api.service
@@ -128,23 +178,40 @@ systemctl enable --now xb-api
 
 # ----------------------------- 6. nginx 反代 -----------------------------
 c_info "6/8 写入 nginx 站点配置并 reload"
-sed -e "s|__REPO_DIR__|$REPO_DIR|g" \
-    -e "s|__SITE_HOST__|$SITE_DOMAIN $PUBLIC_HOST|g" \
-    -e "s|__API_PORT__|$API_PORT|g" \
-    "$REPO_DIR/deploy/nginx/$NGINX_SITE" > "/etc/nginx/sites-available/$NGINX_SITE"
-ln -sfn "/etc/nginx/sites-available/$NGINX_SITE" "/etc/nginx/sites-enabled/$NGINX_SITE"
-# 去掉默认站点对 80 端口的抢占
-rm -f /etc/nginx/sites-enabled/default
+if [ "$DISTRO" = debian ]; then
+    sed -e "s|__REPO_DIR__|$REPO_DIR|g" \
+        -e "s|__SITE_HOST__|$SITE_DOMAIN $PUBLIC_HOST|g" \
+        -e "s|__API_PORT__|$API_PORT|g" \
+        "$REPO_DIR/deploy/nginx/$NGINX_SITE" > "/etc/nginx/sites-available/$NGINX_SITE"
+    ln -sfn "/etc/nginx/sites-available/$NGINX_SITE" "/etc/nginx/sites-enabled/$NGINX_SITE"
+    # 去掉默认站点对 80 端口的抢占
+    rm -f /etc/nginx/sites-enabled/default
+else
+    sed -e "s|__REPO_DIR__|$REPO_DIR|g" \
+        -e "s|__SITE_HOST__|$SITE_DOMAIN $PUBLIC_HOST|g" \
+        -e "s|__API_PORT__|$API_PORT|g" \
+        "$REPO_DIR/deploy/nginx/$NGINX_SITE" > "/etc/nginx/conf.d/$NGINX_SITE"
+    # RHEL 系默认示例站点若存在则移除，避免抢占 80
+    rm -f /etc/nginx/conf.d/default.conf
+fi
 nginx -t
 systemctl reload nginx
 
 # ----------------------------- 7. 防火墙 -----------------------------
-c_info "7/8 配置防火墙（OpenSSH / 80 / 443）"
-if command -v ufw >/dev/null 2>&1; then
-    ufw allow OpenSSH || true
-    ufw allow 80/tcp || true
-    ufw allow 443/tcp || true
-    ufw --force enable || true
+c_info "7/8 配置防火墙（SSH / 80 / 443）"
+if [ "$DISTRO" = debian ]; then
+    if command -v ufw >/dev/null 2>&1; then
+        ufw allow OpenSSH || true
+        ufw allow 80/tcp || true
+        ufw allow 443/tcp || true
+        ufw --force enable || true
+    fi
+else
+    systemctl enable --now firewalld || true
+    firewall-cmd --permanent --add-service=ssh || true
+    firewall-cmd --permanent --add-service=http || true
+    firewall-cmd --permanent --add-service=https || true
+    firewall-cmd --reload || true
 fi
 
 # ----------------------------- 8. 健康检查 -----------------------------

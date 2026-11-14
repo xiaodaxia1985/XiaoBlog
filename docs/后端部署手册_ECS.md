@@ -4,11 +4,12 @@
 静态站 `dist/` 仍是纯静态产物，不携带数据库与密钥；动态能力由同机一个 Node 服务 + 本机 PostgreSQL 提供。
 
 > 部署方式：**不在本地连 ECS**。把代码推到仓库后，在 ECS 上执行 `deploy/setup-ecs.sh` 一个脚本即可装好 PostgreSQL、薄 API、nginx 反代与 systemd 托管。
+> 脚本自动识别发行版：Debian/Ubuntu（apt / ufw / sites-enabled）与 RHEL 系（Alibaba Cloud Linux 3、CentOS、RHEL、Rocky、AlmaLinux；dnf / firewalld / conf.d）两套分支都支持。
 
 ## 1. 架构与拓扑
 
 ```
-                         阿里云 ECS  39.96.115.35 (Ubuntu)
+                         阿里云 ECS  39.96.115.35 (Alibaba Cloud Linux 3 / Ubuntu)
   浏览器 ──80/443──▶ nginx
                         ├─ /            → /opt/XiaoBlog/dist（Astro 静态产物）
                         └─ /api/        → 127.0.0.1:8787  薄 API（Fastify）
@@ -34,9 +35,9 @@
 
 ## 3. 前置条件
 
-- ECS：Ubuntu 22.04 / 24.04，2C2G 及以上；已开放安全组 `22 / 80 / 443`。
+- ECS：Ubuntu 22.04/24.04 或 RHEL 系（Alibaba Cloud Linux 3 / CentOS / RHEL / Rocky / AlmaLinux），2C2G 及以上；阿里云安全组已放行 `22 / 80 / 443`。
 - 仓库已在 `/opt/XiaoBlog`（首次可手动 `git clone` 到该路径，之后由 CI 更新）。
-- Node 22 由脚本通过 NodeSource 安装；本机构建验证用 Node 22.23。
+- Node 22 由脚本通过 NodeSource 安装；本机构建验证用 Node 22.23。若 NodeSource 不识别 ALinux3，脚本会保留现有 Node 并告警，可改用 nvm（`nvm install 22`）或官方 Linux 二进制手动装 22 后重跑脚本。
 - **备案口径（D13）**：大陆地域 ECS 未完成 ICP 备案前，不要把 DNS A 记录切到本 ECS；联调先用公网 IP，上线再切域名。
 - 前端 `.env`（仓库根，不入库）在构建前填好对外地址，产物才会指向后端：
 
@@ -57,14 +58,24 @@ sudo bash deploy/setup-ecs.sh
 
 脚本步骤（幂等，可重复运行）：
 
-1. 安装系统依赖：`postgresql`、`nginx`、`nodejs@22`、`curl`、`unzip` 等。
+1. 按发行版安装系统依赖：PostgreSQL、nginx、Node 22、`curl`、`unzip` 等。
 2. 创建系统用户 `xb`；初始化 PG，幂等创建角色与库，密码用 `openssl rand -hex 24` 生成并落盘到 600 权限文件。
 3. 写薄 API `.env`（连接串、`SITE_URL`、访客盐、白名单路径、端口、限流），`npm ci --omit=dev` 装依赖。
 4. （`BUILD_FRONTEND=1`）在仓库目录 `npm ci && npm run build`，产出 `dist/` 与 `public/data/slugs.json` 白名单。
 5. 安装 `xb-api.service`，`daemon-reload` 并 `enable --now`。
 6. 模板化生成 nginx 站点配置（静态 + `/api/` 反代），`nginx -t` 后 reload。
-7. 配置 ufw（OpenSSH / 80 / 443）。
+7. 配置防火墙放行 SSH / 80 / 443。
 8. 健康检查：服务 `active`，探测薄 API 首个 slug 统计接口。
+
+发行版差异（脚本自动处理，无需手动选）：
+
+| 环节 | Debian / Ubuntu | RHEL 系（ALinux3 等） |
+| --- | --- | --- |
+| 包管理器 | `apt-get` | `dnf` |
+| PostgreSQL 包 | `postgresql` / `postgresql-contrib` | `postgresql-server` / `postgresql-contrib`，首次 `postgresql-setup --initdb` 初始化数据簇 |
+| Node 22 | NodeSource deb 源 | NodeSource rpm 源 |
+| 防火墙 | `ufw` | `firewalld`（`firewall-cmd`） |
+| nginx 站点 | `sites-available/` + `sites-enabled/` 软链 | `/etc/nginx/conf.d/xiaoblog.conf` |
 
 > 重生成密钥：`sudo bash deploy/setup-ecs.sh --regen-secrets`。已存在的环境文件默认不覆盖，避免误改在跑配置。
 
@@ -152,6 +163,9 @@ nginx -t && systemctl reload nginx   # 改 nginx 后校验重载
 | 写入接口 403 `origin_forbidden` | `server/.env` 的 `SITE_URL` 与浏览器实际 Origin 协议+主机不一致 |
 | 写入接口 404 `not_found` | slug 不在白名单（草稿未发布，或构建后未重出 `slugs.json`） |
 | 502 / 504 | 上游 Node 服务未起或崩溃；先 `systemctl status` 看服务，再查日志 |
+| PG 起不来 / `psql: command not found` | RHEL 系装的是 `postgresql-server`；首次需 `postgresql-setup --initdb`（脚本已处理）；`systemctl status postgresql` 看日志 |
+| 对外 80/443 不通 | 先查阿里云安全组是否放行；本机再查防火墙：Ubuntu `ufw status`，RHEL 系 `firewall-cmd --list-services` |
+| Node 版本偏低 | 脚本经 NodeSource 升到 22；若源未识别，手动核对 `node -v` 后按 NodeSource 文档重装 |
 
 ## 11. 遗留与未决
 
