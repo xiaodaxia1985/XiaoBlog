@@ -18,6 +18,7 @@ export function registerEngagementRoutes(
   const votes = new VoteRepo();
   const stats = new StatsRepo();
   const views = new ViewRepo();
+  const secureCookie = deps.env.SITE_URL.startsWith('https:');
 
   /** 统一前置校验：同源 + slug 白名单。 */
   function precheck(req: FastifyRequest, reply: FastifyReply) {
@@ -43,7 +44,7 @@ export function registerEngagementRoutes(
     const body = voteBodySchema.safeParse(req.body ?? {});
     if (!body.success) return reply.code(400).send({ error: 'invalid_choice' });
 
-    const visitor = resolveVisitor(req, reply, deps.env.VISITOR_SALT);
+    const visitor = resolveVisitor(req, reply, deps.env.VISITOR_SALT, secureCookie);
     const existing = await votes.getVote(slug, visitor);
 
     // 再次点击同一项 → 取消；否则改票/投票。
@@ -68,7 +69,7 @@ export function registerEngagementRoutes(
   app.post('/api/view/:slug', async (req, reply) => {
     if (!precheck(req, reply)) return;
     const { slug } = paramsSchema.parse(req.params);
-    const visitor = resolveVisitor(req, reply, deps.env.VISITOR_SALT);
+    const visitor = resolveVisitor(req, reply, deps.env.VISITOR_SALT, secureCookie);
 
     const firstToday = !(await views.hasViewedToday(slug, visitor));
     if (firstToday) {

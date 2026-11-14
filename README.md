@@ -6,12 +6,15 @@
 
 - **Astro 5.18**：静态生成，输出 `dist/`，路由为目录式（`/insight/<slug>/`）
 - **内容**：Astro Content Collections（`glob` loader）+ Markdown，一篇文章一个 `.md`
-- **样式**：手写 CSS；颜色、间距、字号、断点集中在 `public/css/tokens.css`。每个页面是独立 `.astro`，样式内联
-- **字体**：本地托管 `public/fonts/`（Inter + Noto Sans SC，2 个 woff2），不引外部 CDN
-- **脚本**：少量原生 JS（`public/js/site-shell.js`：页面跳转进度、图片淡入、移动端导航；`public/js/practice-clock.js`：90 天日期与阶段状态）
+- **样式**：手写 CSS；颜色、间距、字号、断点集中在 `public/css/tokens.css`，明暗双主题令牌在同一文件覆盖；每个页面是独立 `.astro`，样式内联
+- **字体**：本地托管 `public/fonts/`（Inter + Noto Sans SC，2 个 woff2），`font-display: swap`，不引外部字体 CDN
+- **检索**：Pagefind 预构建站内搜索，弹窗打开时才懒加载客户端 JS/CSS，不进首屏
+- **图片**：构建脚本为正文图生成 AVIF/WebP 1x/2x 变体，remark 插件把裸 `<img>` 升级为 `<picture>`；另生成每篇 1200×630 OG 图与 RSS 缩略图
+- **脚本**：少量原生 JS（`public/js/site-shell.js`：跳转进度、图片淡入、移动端导航、跳转链接；`public/js/practice-clock.js`：90 天日期与阶段状态；`public/js/dayplan.js`：私有清单）
+- **后端（`server/`，独立目录，不进静态构建）**：Fastify + Drizzle ORM + PostgreSQL 的薄 API，承载点赞/踩与阅读量
 - **无前端框架**：未接入 React/Vue/Svelte，也不使用 Tailwind
 
-Node 要求：**20 LTS 及以上**（Astro 5 最低 18.17；当前构建验证用 Node 26）。
+Node 要求：**20 LTS 及以上**；当前构建验证用 Node 22。
 
 ## 目录结构
 
@@ -43,15 +46,20 @@ site/XiaoBlog/
 │  │  ├─ projects.mjs           关于页的项目档案数据
 │  │  └─ legacy-ids.mjs         旧文章 id → slug 映射
 │  ├─ assets/covers/            生成的封面 `<slug>-1.webp` + 默认封面
-│  └─ components/               Nav、Footer
+│  └─ components/               Nav、Footer、SiteSearch、ArticleEngagement
 ├─ scripts/
 │  ├─ generate-covers.mjs       封面生成（Edge 截图 + sharp 压缩）
-│  └─ cover-template.html       封面模板
+│  ├─ cover-template.html       封面模板
+│  ├─ gen-image-variants.mjs    正文图 AVIF/WebP 1x/2x 变体 + 清单
+│  ├─ gen-og-thumb.mjs          每篇 OG 1200×630 + RSS 缩略图 + 清单
+│  ├─ remark-responsive-images.mjs  remark 插件：裸 `<img>` 升级 `<picture>`
+│  └─ check-content.mjs         构建期内容/资源/孤儿图校验
+├─ server/                      薄 API（Fastify + Drizzle + PG），独立 npm 工程
 ├─ public/
-│  ├─ css/tokens.css            设计令牌
+│  ├─ css/tokens.css            设计令牌（明暗双主题）
 │  ├─ fonts/                    本地字体
-│  ├─ images/                   文章配图
-│  └─ js/site-shell.js          全站小脚本
+│  ├─ images/                   文章配图（变体/缩略图/OG 由脚本生成，已忽略）
+│  └─ js/                       全站与页面小脚本
 ├─ docs/                        内容更新说明、品牌文档、执行计划
 ```
 
@@ -59,13 +67,24 @@ site/XiaoBlog/
 
 ```powershell
 npm install
-npm run dev      # http://localhost:4321/
-npm run build    # 构建到 dist/
-npm run preview  # 预览 dist/
-npm run covers   # 重新生成文章封面
+npm run dev        # http://localhost:4321/
+npm run build      # 图片变体 → OG/缩略图 → slugs 白名单 → astro build → pagefind 索引
+npm run preview    # 预览 dist/
+npm run covers     # 重新生成文章封面
+npm run check:content  # 内容/资源/孤儿图校验，错误退出码 1
 ```
 
-封面脚本用系统 Microsoft Edge 无头截图、再用 `sharp` 压成 WebP，不需要下载浏览器；Edge 不在默认路径时用环境变量 `EDGE_PATH` 指定 `msedge.exe`。
+构建链：`gen-image-variants` → `gen-og-thumb` → `gen-slugs` → `astro build` → `pagefind --site dist`；变体、缩略图、OG、slugs 白名单与清单均由脚本再生，不入库。封面脚本用系统 Microsoft Edge 无头截图、再用 `sharp` 压成 WebP；Edge 不在默认路径时用环境变量 `EDGE_PATH` 指定 `msedge.exe`。
+
+### 前端公开环境变量
+
+复制 `.env.example` 为 `.env`（不入库）。值会进静态产物，只放非敏感地址：
+
+| 变量 | 作用 | 留空行为 |
+| --- | --- | --- |
+| `PUBLIC_API_BASE` | B5 薄 API 地址（点赞/踩、阅读量） | 前端降级：保留默认计数、隐藏投票按钮 |
+
+`server/` 内的服务端凭证（数据库连接、访客哈希盐等）只存在 ECS 环境变量，样例见 `server/.env.example`，不进前端产物。
 
 ## 写文章
 
@@ -141,23 +160,22 @@ category: "90天实战"
 - **版心**：桌面 TOC 196px + 间距 48px + 正文 760px；≤1060px 改为顶部目录，≤720px 正文留白 20px
 - **断点**：文章布局 1060px、移动正文 720px，全站令牌 768px
 - **配图**：文章图片与图注必须落在正文栏内，左边缘与正文首字对齐，不越栏、不贴视口边缘；跨栏负边距图已废弃
-- **图片**：正文配图放 `public/images/`，文件名小写连字符；封面放 `src/assets/covers/`
+- **图片**：正文配图放 `public/images/`，文件名小写连字符；变体/缩略图/OG 由构建脚本生成，不手工裁剪。封面放 `src/assets/covers/`
 
 ## 部署
 
-EdgeOne Makers（腾讯云 EdgeOne Pages 的现名），连 GitHub 私有仓库 `xiaodaxia1985/XiaoBlog`：
+静态产物始终是纯静态 `dist/`，不携带数据库与密钥。当前存在两条链路，最终迁回阿里云 ECS、停用 EdgeOne：
 
-- 构建命令 `npm run build`，输出目录 `dist`，推 `main` 触发；构建失败时线上保留上一版
-- **加速区域必须选「全球可用区（不含中国大陆）」**，绑定自有域名才不需要 ICP 备案。选「中国大陆」或「含中国大陆」区域，绑域名前必须完成备案；而纯静态托管不构成备案所需的境内接入资源（要先有境内服务器），这条路会卡住
-- 平台默认的 `*.edgeone.app` 只是预览域名、有效期不固定，不能当长期地址
-- 对外域名 `xiaomaker.top`，DNS 在 DNSPod；证书由平台签发
+- **现网（兜底）**：EdgeOne Pages 连 GitHub 私有仓库 `xiaodaxia1985/XiaoBlog`，构建命令 `npm run build`、输出目录 `dist`，推 `main` 触发；加速区域选「全球可用区（不含中国大陆）」，避免境内备案门槛。`*.edgeone.app` 仅预览域名，不作长期地址。
+- **目标（ECS 自托管）**：阿里云 ECS（`39.96.115.35`，Ubuntu + nginx）静态托管 `dist/`，同机跑 `server/` 薄 API 与 PostgreSQL。后端一键部署见 [docs/后端部署手册_ECS.md](docs/后端部署手册_ECS.md)，脚本与模板在 `deploy/`（`setup-ecs.sh` 装 PG/薄 API/nginx/systemd，幂等可重复执行）。CI（`.github/workflows/deploy.yml`）用 SSH 密钥登录执行 `/opt/XiaoBlog/deploy.sh`，密钥存 GitHub Secrets。
+- **切换前置（未完成）**：源站 TLS、ICP 备案核实、DNS 由 CNAME 改 A 记录、HSTS 下沉 nginx、停用 EdgeOne Pages；备案未完成前不把 DNS 切到大陆地域 ECS。联调阶段可先用 ECS IP 直连，上线再切域名。
 
 ## 已知限制
 
 - 旧项目链接会跳转到关于页的代表成果。
-- 尾斜杠行为以 EdgeOne 实测为准；站内链接统一带 `/`
-- 没有自动化测试，验证靠 `npm run build` + 页面实测
-- 草稿不进列表但直链可访问，不能当保密手段
+- B5 薄 API 尚未在线上联调：本机无 PostgreSQL，ECS 备案/TLS/DNS 未就绪；部署链路见 `docs/后端部署手册_ECS.md`，前端在 API 不可达时静默降级，不报错。
+- 没有自动化测试，验证靠 `npm run build`、`npm run check:content` 与页面实测。
+- 草稿不进列表但直链可访问，不能当保密手段。
 
 ## 仓库约定
 

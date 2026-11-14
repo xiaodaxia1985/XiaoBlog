@@ -6,7 +6,7 @@ async function main() {
   await runMigrations();
 
   const app = buildApp(env);
-  await app.listen({ port: env.PORT, host: '0.0.0.0' });
+  await app.listen({ port: env.PORT, host: '127.0.0.1' });
   app.log.info(`XiaoBlog API 已启动，端口 ${env.PORT}`);
 }
 

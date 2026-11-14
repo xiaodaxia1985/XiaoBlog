@@ -18,7 +18,7 @@ server/src/
 - `votes`：`(slug, voter_hash)` 唯一；改票更新原行，不重复计票。
 - `article_stats`：物化计数（views / likes / dislikes），点赞数以 `votes` 为事实源回填。
 - `view_dedup`：`(slug, visitor_hash, viewed_date)` 复合主键，当日去重。
-- 预留：`comments`、`subscribers`、`contact_messages`、`assets`、`audit_events`，需要时以追加迁移落地，不改业务调用层。
+- 预留：`subscribers`、`contact_messages`、`assets`、`audit_events`，需要时以追加迁移落地，不改业务调用层。
 
 ## 安全约束
 
@@ -37,4 +37,5 @@ npm run db:migrate
 npm start
 ```
 
+> ECS 一键部署（PostgreSQL、本服务、systemd、nginx 反代）由仓库根 `deploy/setup-ecs.sh` 完成，说明见 `docs/后端部署手册_ECS.md`。
 > 数据库与在线联调依赖 ECS 备案 / DNS / 源站 TLS 就绪；在部署链路打通前，前端组件以降级方式渲染默认计数、隐藏操作按钮，不报错。

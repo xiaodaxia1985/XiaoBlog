@@ -13,7 +13,7 @@ const currentStage = stages.find((stage) => stage.id === practice.currentStageId
 const countByTopic = (topic) => posts.filter((post) => post.topics.includes(topic.title)).length;
 ---
 <BaseLayout title={SITE.title} description={SITE.description} canonicalPath="/" active="home">
-  <main>
+  <main id="main-content">
     <header class="hero">
       <div class="wrap hero-grid">
         <div>

@@ -32,7 +32,7 @@ const description = '90 天个人商业实践的四个阶段：目标、产出�
     </div>
   </header>
 
-  <main class="wrap">
+  <main id="main-content" class="wrap">
     <div class="stage-list">
       {stages.map((s) => {
         const posts = s.postIds.map(postOf).filter(Boolean).slice(0, 3);

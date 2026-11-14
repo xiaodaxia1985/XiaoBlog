@@ -11,6 +11,7 @@ const paramsSchema = z.object({ slug: z.string().regex(/^[a-z0-9-]+$/) });
 export function registerStatsRoutes(app: FastifyInstance, deps: { slugGuard: SlugGuard; env: Env }) {
   const votes = new VoteRepo();
   const stats = new StatsRepo();
+  const secureCookie = deps.env.SITE_URL.startsWith('https:');
 
   app.get('/api/stats/:slug', async (req, reply) => {
     const parsed = paramsSchema.safeParse(req.params);
@@ -19,7 +20,7 @@ export function registerStatsRoutes(app: FastifyInstance, deps: { slugGuard: Slu
 
     if (!deps.slugGuard.isAllowed(slug)) return reply.code(404).send({ error: 'not_found' });
 
-    const visitor = resolveVisitor(req, reply, deps.env.VISITOR_SALT);
+    const visitor = resolveVisitor(req, reply, deps.env.VISITOR_SALT, secureCookie);
     const [counter, vote] = await Promise.all([
       stats.get(slug),
       votes.getVote(slug, visitor),

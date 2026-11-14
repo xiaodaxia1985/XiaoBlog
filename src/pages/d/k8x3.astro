@@ -23,7 +23,7 @@ const plan = getPlan();
     </div>
   </header>
 
-  <div class="wrap">
+  <main id="main-content" class="wrap">
     <div class="bar">
       <button class="nav-btn" id="prev" aria-label="前一天">‹</button>
       <input class="date-input" type="date" id="date" aria-label="选择日期">
@@ -80,7 +80,7 @@ const plan = getPlan();
         <p class="gh-msg" id="gh-msg">token 只保存在本机浏览器，用来读写这一个仓库。保存会往 main 推一次提交，会触发一次站点重建，正常。</p>
       </details>
     </section>
-  </div>
+  </main>
 
   <style is:global>
     ul,ol{list-style:none;}

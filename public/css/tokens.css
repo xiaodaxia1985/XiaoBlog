@@ -150,6 +150,8 @@ html{background-color:var(--bg);}
 :where(a[href],button):not(:disabled):not([aria-disabled="true"]):active{transform:translateY(1px);}
 :where(a[href],button):focus-visible{position:relative;z-index:2;}
 :target{scroll-margin-top:88px;}
+.skip-link{position:absolute;left:var(--space-16,16px);top:0;z-index:2000;transform:translateY(-120%);padding:8px 14px;background:var(--accent);color:#0c0c0c;border-radius:8px;font-size:var(--fs-14);font-weight:600;text-decoration:none;transition:transform .18s ease;}
+.skip-link:focus-visible{transform:translateY(12px);}
 @media(prefers-reduced-motion:reduce){
   :where(a[href],button,input,select,textarea,summary){transition:none!important;scroll-behavior:auto!important;}
 }

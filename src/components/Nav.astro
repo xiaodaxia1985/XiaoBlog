@@ -6,6 +6,7 @@ interface Props {
 const { active = '', variant = 'main' } = Astro.props;
 ---
 <nav class="site-nav">
+  <div class="site-nav-bg" aria-hidden="true"></div>
   <div class="site-nav-inner">
     <a href="/" class="site-logo">
       <img class="site-logo-mark" src="/images/logo-mark.svg" alt="" decoding="async" width="24" height="24">
@@ -32,8 +33,11 @@ const { active = '', variant = 'main' } = Astro.props;
 </nav>
 
 <style>
-  .site-nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:0 var(--gutter);background:var(--surface);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
-  .site-nav-inner{max-width:var(--container-w);margin:0 auto;width:100%;height:64px;display:flex;align-items:center;justify-content:space-between;gap:var(--space-24);}
+  /* 注意：导航栏本体不能加 backdrop-filter/transform/filter，否则它会成为内部
+     fixed 遮罩与抽屉菜单的包含块，导致遮罩只撑成导航栏高度。毛玻璃背景单独放一个绝对定位层。 */
+  .site-nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:0 var(--gutter);}
+  .site-nav-bg{position:absolute;inset:0;background:var(--surface);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+  .site-nav-inner{position:relative;max-width:var(--container-w);margin:0 auto;width:100%;height:64px;display:flex;align-items:center;justify-content:space-between;gap:var(--space-24);}
   .site-logo{display:inline-flex;align-items:center;gap:var(--space-8);font-size:var(--fs-16);font-weight:600;color:var(--text);}
   .site-logo-mark{width:24px;height:24px;flex-shrink:0;display:block;}
   .site-nav-actions{display:flex;align-items:center;gap:var(--space-8);}
@@ -162,13 +166,26 @@ const { active = '', variant = 'main' } = Astro.props;
       if (m) m.setAttribute('content', t === 'light' ? '#F6F6F2' : '#0C0C0C');
     }
 
+    // 解析当前应使用的主题：优先持久化值，其次 <html> 上已有属性，再回退系统偏好/深色。
+    // 不能在换页时用「默认深色」兜底——ClientRouter 换页后新文档 html 上暂无主题属性，
+    // 否则会把持久化的浅色覆盖回深色并写回 localStorage。
+    function resolveTheme() {
+      let t = null;
+      try { t = localStorage.getItem('xm-theme'); } catch (e) {}
+      if (t !== 'light' && t !== 'dark') t = root.dataset.theme;
+      if (t !== 'light' && t !== 'dark') {
+        t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+      }
+      return t;
+    }
+
     document.addEventListener('click', (event) => {
       const target = event.target instanceof Element ? event.target : null;
       const btn = target && target.closest ? target.closest('[data-theme-toggle]') : null;
       if (!btn) return;
       applyTheme(root.dataset.theme === 'light' ? 'dark' : 'light');
     });
-    document.addEventListener('astro:page-load', () => applyTheme(root.dataset.theme || 'dark'));
-    applyTheme(root.dataset.theme || 'dark');
+    document.addEventListener('astro:page-load', () => applyTheme(resolveTheme()));
+    applyTheme(resolveTheme());
   }
 </script>

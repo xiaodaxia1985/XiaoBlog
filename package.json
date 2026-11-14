@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "node scripts/gen-image-variants.mjs && node scripts/gen-og-thumb.mjs && astro build && pagefind --site dist",
+    "build": "node scripts/gen-image-variants.mjs && node scripts/gen-og-thumb.mjs && node scripts/gen-slugs.mjs && astro build && pagefind --site dist",
     "preview": "astro preview",
     "covers": "node scripts/generate-covers.mjs",
+    "gen:slugs": "node scripts/gen-slugs.mjs",
     "check:content": "node scripts/check-content.mjs",
     "astro": "astro"
   },

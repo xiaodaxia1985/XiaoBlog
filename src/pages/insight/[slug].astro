@@ -115,7 +115,7 @@ const jsonLd = {
     </div>
   )}
 
-  <main class="article-body">
+  <main id="main-content" class="article-body">
     <div class="art-inner">
       {opinionCards.length === 0 && (
         <div class="col">
@@ -272,7 +272,7 @@ const jsonLd = {
     .article-tools button{min-height:34px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text-secondary);font:inherit;font-size:11px;cursor:pointer;white-space:nowrap;}
     .article-tools button:hover,.article-tools button[aria-pressed="true"]{border-color:rgba(var(--accent-rgb),.45);color:var(--accent);background:rgba(var(--accent-rgb),.06);}
     .article-end{max-width:var(--art-w);margin:0 auto;}
-    .reading-top{position:fixed;right:24px;bottom:24px;z-index:900;width:42px;height:42px;border:1px solid var(--border);border-radius:50%;background:rgba(20,20,20,.92);color:var(--text-secondary);display:grid;place-items:center;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .2s ease,transform .2s ease,visibility .2s ease;cursor:pointer;backdrop-filter:blur(10px);}
+    .reading-top{position:fixed;right:24px;bottom:24px;z-index:900;width:42px;height:42px;border:1px solid var(--border);border-radius:50%;background:var(--surface);color:var(--text-secondary);display:grid;place-items:center;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .2s ease,transform .2s ease,visibility .2s ease;cursor:pointer;backdrop-filter:blur(10px);}
     .reading-top.is-visible{opacity:1;visibility:visible;transform:translateY(0);}
     .reading-top:hover,.reading-top:focus-visible{color:var(--accent);border-color:rgba(var(--accent-rgb),.55);}
     .article-start-anchor{height:1px;scroll-margin-top:104px;}
@@ -460,7 +460,7 @@ const jsonLd = {
       .article-tools button{min-height:38px;font-size:11px;}
       .font-tools{min-height:38px;}
       .article-toc{margin-bottom:18px;}
-      .article-toc details{background:rgba(20,20,20,.72);}
+      .article-toc details{background:var(--surface);}
       .article-toc nav{padding-top:4px;}
       .markdown blockquote{padding:16px 18px;margin:24px 0;}
       .markdown pre{padding:14px;margin:20px 0;font-size:12px;}

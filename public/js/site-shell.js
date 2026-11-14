@@ -48,6 +48,19 @@
     });
   }, true);
 
+  /* ---- 跳转链接：不只改 hash，把焦点真正移到正文 ---- */
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest ? event.target.closest('.skip-link') : null;
+    if (!link) return;
+    var id = (link.getAttribute('href') || '').slice(1);
+    var target = id && document.getElementById(id);
+    if (!target) return;
+    event.preventDefault();
+    target.setAttribute('tabindex', '-1');
+    target.focus({ preventScroll: false });
+    history.replaceState(null, '', '#' + id);
+  });
+
   // 新页首帧、后退恢复（bfcache）都清除状态。
   window.addEventListener('pageshow', hideBar);
   window.addEventListener('hashchange', hideBar);

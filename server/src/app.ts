@@ -7,7 +7,7 @@ import { registerStatsRoutes } from './routes/stats';
 import { registerEngagementRoutes } from './routes/engagement';
 
 export function buildApp(env: Env): FastifyInstance {
-  const app = Fastify({ logger: true });
+  const app = Fastify({ logger: true, trustProxy: true });
 
   app.register(cookiePlugin);
 

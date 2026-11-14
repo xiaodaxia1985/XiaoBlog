@@ -16,6 +16,7 @@
 <style>
   .site-search{position:fixed;inset:0;z-index:1300;display:grid;place-items:center;padding:var(--space-24);}
   .site-search[hidden]{display:none;}
+  body.search-open{overflow:hidden;}
   .site-search-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(2px);}
   .site-search-panel{position:relative;width:min(640px,100%);max-height:min(70vh,600px);overflow:auto;background:var(--bg-card,var(--surface,#141414));border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-24);}
   .site-search-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-16);font-size:var(--fs-14);color:var(--text-secondary);}

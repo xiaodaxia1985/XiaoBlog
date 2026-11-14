@@ -50,6 +50,6 @@ export const viewDedup = pgTable(
 
 /**
  * 预留实体（后续批次只加迁移，不改业务调用层）：
- * comments、subscribers、contact_messages、assets、audit_events。
+ * subscribers、contact_messages、assets、audit_events。
  * 当前不建表，避免空表与无业务写入；对应迁移在需要时以 forward-only 方式追加。
  */

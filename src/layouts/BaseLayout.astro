@@ -81,6 +81,7 @@ const canonical = new URL(canonicalPath, siteUrl).toString();
   <ClientRouter fallback="swap" />
 </head>
 <body class={bodyClass}>
+  <a class="skip-link" href="#main-content">跳到正文</a>
   {showNav && <Nav active={active} variant={navVariant} />}
   <slot />
   {!hideFooter && <Footer />}

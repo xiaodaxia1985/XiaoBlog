@@ -11,7 +11,12 @@ function deriveHash(value: string, salt: string): string {
   return crypto.createHmac('sha256', salt).update(value).digest('hex');
 }
 
-export function resolveVisitor(req: FastifyRequest, reply: FastifyReply, salt: string): string {
+export function resolveVisitor(
+  req: FastifyRequest,
+  reply: FastifyReply,
+  salt: string,
+  secure: boolean
+): string {
   const cookies = req.cookies ?? {};
   let vid: string | undefined = cookies[COOKIE_NAME];
 
@@ -21,7 +26,7 @@ export function resolveVisitor(req: FastifyRequest, reply: FastifyReply, salt: s
     vid = crypto.randomUUID();
     reply.setCookie(COOKIE_NAME, vid, {
       httpOnly: true,
-      secure: true,
+      secure,
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 365,

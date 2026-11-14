@@ -1,0 +1,23 @@
+[Unit]
+Description=XiaoBlog thin API (likes / dislikes / views)
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+# 专用非登录系统用户运行；脚本首次部署会创建
+User=xb
+Group=xb
+WorkingDirectory=/opt/XiaoBlog/server
+EnvironmentFile=/opt/XiaoBlog/server/.env
+ExecStart=/usr/bin/npm start
+Restart=on-failure
+RestartSec=3
+# 日志走 journald：journalctl -u xb-api -f
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
