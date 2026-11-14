@@ -1,5 +1,19 @@
 # ECS 部署踩坑记录（Alibaba Cloud Linux 3）
 
+# ⚠️⚠️⚠️ 最高优先级运维规则 ⚠️⚠️⚠️
+
+## root 执行完 setup-ecs.sh 或任何 npm 命令后，必须立即执行：
+```bash
+chown -R deployer:deployer /opt/XiaoBlog
+```
+
+**不执行的后果**：CI 以 deployer 身份运行 deploy.sh 时，npm ci 报 EACCES 失败，Deploy to ECS 必然 failure。
+
+**已内置保障**：deploy.sh 开头和结尾均自动执行 chown，双重保险。但手动以 root 操作后仍需记得执行。
+
+---
+
+
 > 适用环境：Alibaba Cloud Linux 3.2104 LTS 64-bit + GitHub Actions CI/CD
 > 最后更新：2026-11-14
 

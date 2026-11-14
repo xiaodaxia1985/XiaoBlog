@@ -2,6 +2,11 @@
 set -euo pipefail
 cd /opt/XiaoBlog
 
+# ⚠️ 关键保障：确保项目目录属主为 deployer
+# root 执行 setup-ecs.sh 或手动 npm 后属主会变 root，导致 CI EACCES 失败
+# 每次部署开头和结尾都修正，双重保险
+chown -R deployer:deployer /opt/XiaoBlog 2>/dev/null || true
+
 # 记录更新前的 commit，用于后续检测变更范围
 PREV_HEAD=$(git rev-parse HEAD)
 
@@ -25,4 +30,8 @@ else
 fi
 
 sudo systemctl reload nginx
+
+# ⚠️ 再次确保属主正确（npm ci/build 可能以当前用户创建新文件）
+chown -R deployer:deployer /opt/XiaoBlog 2>/dev/null || true
+
 echo "Deploy completed at $(date)"
