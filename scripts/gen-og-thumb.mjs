@@ -14,6 +14,8 @@ const OG_W = 1200;
 const OG_H = 630;
 const THUMB_W = 240;
 
+fs.rmSync(OG_DIR, { recursive: true, force: true });
+fs.rmSync(THUMB_DIR, { recursive: true, force: true });
 fs.mkdirSync(OG_DIR, { recursive: true });
 fs.mkdirSync(THUMB_DIR, { recursive: true });
 fs.mkdirSync(DATA_DIR, { recursive: true });

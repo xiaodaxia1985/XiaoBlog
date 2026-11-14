@@ -53,6 +53,7 @@ async function variantsFor(file) {
 }
 
 async function main() {
+  fs.rmSync(OUT_DIR, { recursive: true, force: true });
   fs.mkdirSync(OUT_DIR, { recursive: true });
   fs.mkdirSync(DATA_DIR, { recursive: true });
 
