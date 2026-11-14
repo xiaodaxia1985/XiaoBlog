@@ -1,0 +1,28 @@
+{
+  "name": "xiaoblog-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "XiaoBlog 薄 API：点赞/阅读量，业务规则、去重与限流在 API 层；凭证不进前端产物。",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/rate-limit": "^10.1.1",
+    "drizzle-orm": "^0.36.4",
+    "fastify": "^5.1.0",
+    "pg": "^8.13.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@types/pg": "^8.11.10",
+    "drizzle-kit": "^0.28.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

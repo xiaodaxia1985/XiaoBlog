@@ -12,7 +12,7 @@ import { SITE } from '../lib/site';
         <p class="author-social">抖音、小红书和微信公众号搜索「个人商业创造者」</p>
       </div>
     </section>
-    <p class="footer-legal">© 2026 个人商业创造者. 保留所有权利.</p>
+    <p class="footer-legal">© 2026 个人商业创造者 · <a href="/privacy/">隐私说明</a></p>
   </div>
 </footer>
 
@@ -29,6 +29,8 @@ import { SITE } from '../lib/site';
 
   .author-copy .author-social{margin:var(--space-8) 0 0;font-size:12.5px;color:var(--text-muted);line-height:1.7;}
   .footer-legal{margin:var(--space-16) 0 0;font-size:var(--fs-12);color:var(--text-muted);text-align:center;}
+  .footer-legal a{color:inherit;border-bottom:1px solid var(--border);}
+  .footer-legal a:hover,.footer-legal a:focus-visible{color:var(--accent);border-color:var(--accent);}
 
   @media (max-width:640px){
     .site-footer{padding:var(--space-24) var(--gutter);}

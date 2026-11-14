@@ -130,10 +130,13 @@ for (const file of files) {
   for (const m of body.matchAll(/<img[^>]+src="\/images\/([^"]+)"/g)) referenced.add(m[1]);
   for (const m of body.matchAll(/!\[[^\]]*\]\(\/images\/([^)]+)\)/g)) referenced.add(m[1]);
 }
+// 生成子目录（响应式变体、RSS 缩略图）由构建脚本维护，不参与正文孤儿扫描。
+const GENERATED_IMG_DIRS = new Set(['responsive', 'thumb']);
 if (fs.existsSync(imagesDir)) {
-  for (const img of fs.readdirSync(imagesDir)) {
-    if (img === 'logo-mark.svg') continue;
-    if (!referenced.has(img)) warnings.push(`⚠ public/images/${img}: 未被任何文章引用（待 B4 清理）`);
+  for (const img of fs.readdirSync(imagesDir, { withFileTypes: true })) {
+    if (img.isDirectory()) continue;
+    if (img.name === 'logo-mark.svg') continue;
+    if (!referenced.has(img.name)) warnings.push(`⚠ public/images/${img.name}: 未被任何文章引用（待 B4 清理）`);
   }
 }
 

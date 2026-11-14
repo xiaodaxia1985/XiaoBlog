@@ -1,0 +1,65 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../lib/site';
+---
+
+<BaseLayout
+  title="隐私说明 — 个人商业创造者"
+  description="本站收集哪些访客数据、用途、留存方式与联系方式。"
+  canonicalPath="/privacy/"
+>
+  <main class="privacy">
+    <header class="privacy-head">
+      <p class="privacy-kicker">PRIVACY</p>
+      <h1>隐私说明</h1>
+      <p class="privacy-lead">本站是个人内容站点，尽量少收集数据。下面说明会记录哪些信息、用来做什么、保留多久。</p>
+    </header>
+
+    <section class="privacy-block">
+      <h2>我们记录的信息</h2>
+      <ul>
+        <li><strong>访客哈希</strong>：由 Cookie 标识与网络信息经加盐哈希得到的不可逆字符串，无法反推到个人身份。</li>
+        <li><strong>文章标识</strong>：你访问或反馈的文章 slug（文章地址标识）。</li>
+        <li><strong>反馈记录</strong>：你点的「赞 / 踩」及其时间，用于展示文章反馈计数。</li>
+        <li><strong>阅读日期</strong>：同一访客同一天对同一篇文章只计一次阅读量。</li>
+        <li><strong>IP 与浏览器标识</strong>：仅用于接口限流与防刷票、防刷量，不长期留存。</li>
+      </ul>
+    </section>
+
+    <section class="privacy-block">
+      <h2>我们不收集的信息</h2>
+      <ul>
+        <li>不要求也不存储真实姓名、邮箱、手机号、账号密码等身份信息。</li>
+        <li>不接入第三方广告、追踪或画像 SDK；站内搜索在浏览器本地运行，检索词不上传。</li>
+        <li>不向第三方出售或共享访客个人信息。</li>
+      </ul>
+    </section>
+
+    <section class="privacy-block">
+      <h2>用途与留存</h2>
+      <ul>
+        <li>用途：统计阅读量与文章反馈，识别重复投票与刷量。</li>
+        <li>投票与计数随对应文章保留；限流相关的 IP / 浏览器信息只在短期内用于防护。</li>
+        <li>访客标识 Cookie（<code>xb_vid</code>）为 HttpOnly、SameSite=Lax，用于识别同一访客，不承载身份信息。</li>
+      </ul>
+    </section>
+
+    <section class="privacy-block">
+      <h2>联系</h2>
+      <p>如对数据处理有疑问，或要求删除相关记录，可通过邮件联系：</p>
+      <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+    </section>
+  </main>
+
+  <style is:global>
+    .privacy{max-width:720px;margin:0 auto;padding:calc(64px + 32px) 24px 64px;}
+    .privacy-kicker{font:11px 'Inter',sans-serif;letter-spacing:.14em;color:var(--text-muted);margin-bottom:10px;}
+    .privacy-head h1{font-size:clamp(26px,2.4vw,32px);font-weight:700;line-height:1.3;}
+    .privacy-lead{margin-top:12px;font-size:15px;color:var(--text-secondary);line-height:1.8;}
+    .privacy-block{margin-top:36px;}
+    .privacy-block h2{font-size:16px;font-weight:600;margin-bottom:12px;color:var(--text);}
+    .privacy-block ul{display:flex;flex-direction:column;gap:10px;padding-left:1.2em;color:var(--body);font-size:14px;line-height:1.8;}
+    .privacy-block code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background:var(--overlay-strong);padding:1px 5px;border-radius:4px;}
+    .privacy-block a{color:var(--accent);border-bottom:1px solid rgba(var(--accent-rgb),.4);}
+  </style>
+</BaseLayout>

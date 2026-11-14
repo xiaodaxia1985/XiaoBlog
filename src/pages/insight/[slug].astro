@@ -3,6 +3,7 @@ import { getCollection, getEntry, render } from 'astro:content';
 import { getPublishedPosts, getRelatedPosts, toPost } from '../../lib/insights';
 import { shade, INK } from '../../lib/cover-palette.mjs';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleEngagement from '../../components/ArticleEngagement.astro';
 import { SITE } from '../../lib/site';
 
 export async function getStaticPaths() {
@@ -34,6 +35,7 @@ const inkVars = `--oc-ink:${INK.strong};--oc-body:${INK.body};--oc-soft:${INK.so
 const draftLabel = post.draft ? '草稿 · 未发布' : '';
 const canonical = new URL(post.url, Astro.site ?? SITE.url).toString();
 const coverUrl = new URL(post.cover, Astro.site ?? SITE.url).toString();
+const ogImageUrl = new URL(post.ogImage, Astro.site ?? SITE.url).toString();
 const dateIso = post.date.replace(/\./g, '-');
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -56,7 +58,7 @@ const jsonLd = {
   description={post.excerpt}
   canonicalPath={post.url}
   ogType="article"
-  ogImage={coverUrl}
+  ogImage={ogImageUrl}
   robots={post.draft ? 'noindex,nofollow' : undefined}
   active="focus"
   navVariant="article"
@@ -169,6 +171,8 @@ const jsonLd = {
                 <p class="author-social">抖音、小红书和微信公众号搜索「个人商业创造者」</p>
               </div>
             </section>
+
+            {!post.draft && <ArticleEngagement slug={post.slug} />}
 
             {(prevPost || nextPost) && (
               <nav class="article-nav" aria-label="同栏目文章">

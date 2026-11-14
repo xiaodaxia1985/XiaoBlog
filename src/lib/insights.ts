@@ -1,7 +1,21 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
+import fs from 'node:fs';
 import path from 'node:path';
 import defaultCover from '../assets/covers/_default.svg';
+
+// OG 1200×630 与 RSS 缩略图清单（构建前由 scripts/gen-og-thumb.mjs 生成）。
+const ogManifest = (() => {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(process.cwd(), 'public', 'data', 'og-manifest.json'), 'utf8')) as {
+      default: string;
+      og: Record<string, string>;
+      thumb: Record<string, string>;
+    };
+  } catch {
+    return { default: '', og: {}, thumb: {} };
+  }
+})();
 
 type InsightEntry = CollectionEntry<'insights'>;
 
@@ -35,6 +49,8 @@ export type Post = {
   readTime: string;
   excerpt: string;
   cover: string;
+  ogImage: string;
+  thumb: string;
   takeaways: string[];
   tags: string[];
 };
@@ -130,6 +146,8 @@ export function toPost(entry: InsightEntry): Post {
     readTime: readingTime(body),
     excerpt: deriveExcerpt(body, entry.data.excerpt),
     cover,
+    ogImage: ogManifest.og[entry.id] ?? ogManifest.default,
+    thumb: ogManifest.thumb[entry.id] ?? '',
     takeaways: entry.data.takeaways ?? [],
     tags: entry.data.tags ?? [],
   };

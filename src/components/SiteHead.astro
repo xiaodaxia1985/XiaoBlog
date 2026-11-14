@@ -19,7 +19,8 @@ const {
   twitterCard,
 } = Astro.props;
 
-const card = twitterCard ?? (ogImage ? 'summary_large_image' : 'summary');
+const ogImg = ogImage ?? new URL('/og/default-og.webp', SITE.url).toString();
+const card = twitterCard ?? 'summary_large_image';
 ---
 
 <title>{title}</title>
@@ -31,9 +32,9 @@ const card = twitterCard ?? (ogImage ? 'summary_large_image' : 'summary');
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:url" content={canonical} />
-{ogImage && <meta property="og:image" content={ogImage} />}
+<meta property="og:image" content={ogImg} />
 
 <meta name="twitter:card" content={card} />
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
-{ogImage && <meta name="twitter:image" content={ogImage} />}
+<meta name="twitter:image" content={ogImg} />

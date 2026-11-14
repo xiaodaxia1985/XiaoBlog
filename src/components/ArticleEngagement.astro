@@ -1,0 +1,111 @@
+---
+interface Props {
+  slug: string;
+}
+const { slug } = Astro.props;
+const API_BASE = (import.meta.env.PUBLIC_API_BASE as string | undefined) ?? '';
+---
+
+<section class="engagement" data-engagement data-slug={slug} data-api-base={API_BASE} aria-label="文章反馈">
+  <div class="engage-stats">
+    <span class="engage-view" data-view="0">0</span>
+    <span class="engage-label">阅读</span>
+  </div>
+  <div class="engage-actions">
+    <button type="button" class="engage-btn" data-vote="like" aria-pressed="false">
+      <span aria-hidden="true">赞</span>
+      <span data-like="0">0</span>
+    </button>
+    <button type="button" class="engage-btn" data-vote="dislike" aria-pressed="false">
+      <span aria-hidden="true">踩</span>
+      <span data-dislike="0">0</span>
+    </button>
+  </div>
+</section>
+
+<style>
+  .engagement{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-12);padding:var(--space-16) 0;margin-top:var(--space-24);border-top:1px solid var(--border);}
+  .engage-stats{display:flex;align-items:baseline;gap:6px;color:var(--text-secondary);font-size:13px;}
+  .engage-view{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:16px;font-weight:600;color:var(--text);}
+  .engage-label{color:var(--text-muted);font-size:12px;}
+  .engage-actions{display:flex;gap:8px;}
+  .engage-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text-secondary);font:inherit;font-size:12.5px;cursor:pointer;}
+  .engage-btn span:last-child{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;}
+  .engage-btn:hover,.engage-btn:focus-visible{border-color:rgba(var(--accent-rgb),.45);color:var(--accent);}
+  .engage-btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:rgba(var(--accent-rgb),.08);}
+  /* API 不可用：隐藏操作按钮，保留默认计数，不留死按钮、不报错。 */
+  .engagement.is-degraded .engage-actions{display:none;}
+</style>
+
+<script is:inline data-astro-rerun>
+  (function () {
+    const root = document.querySelector('[data-engagement]');
+    if (!root || root.dataset.bound === '1') return;
+    root.dataset.bound = '1';
+
+    const slug = root.dataset.slug;
+    const API_BASE = root.dataset.apiBase ?? '';
+    const viewEl = root.querySelector('[data-view]');
+    const likeEl = root.querySelector('[data-like]');
+    const dislikeEl = root.querySelector('[data-dislike]');
+    const buttons = Array.from(root.querySelectorAll('[data-vote]'));
+
+    const setState = (data) => {
+      if (viewEl) viewEl.textContent = String(data.views ?? 0);
+      if (likeEl) likeEl.textContent = String(data.likes ?? 0);
+      if (dislikeEl) dislikeEl.textContent = String(data.dislikes ?? 0);
+      buttons.forEach((btn) => {
+        const active = btn.dataset.vote === data.voted;
+        btn.setAttribute('aria-pressed', String(active));
+      });
+    };
+
+    const degrade = () => {
+      root.classList.add('is-degraded');
+    };
+
+    const request = async (path, options) => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 4000);
+      try {
+        const res = await fetch(`${API_BASE}${path}`, {
+          ...options,
+          signal: controller.signal,
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+      } finally {
+        clearTimeout(timer);
+      }
+    };
+
+    const load = async () => {
+      try {
+        const data = await request(`/api/stats/${slug}`);
+        setState(data);
+      } catch {
+        degrade();
+      }
+    };
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const choice = btn.dataset.vote;
+        try {
+          const data = await request(`/api/vote/${slug}`, {
+            method: 'POST',
+            body: JSON.stringify({ choice }),
+          });
+          setState(data);
+        } catch {
+          degrade();
+        }
+      });
+    });
+
+    // 阅读上报：失败静默，不计入错误。
+    request(`/api/view/${slug}`, { method: 'POST' }).catch(() => {});
+    load();
+  })();
+</script>

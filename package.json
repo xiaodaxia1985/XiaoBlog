@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build && pagefind --site dist",
+    "build": "node scripts/gen-image-variants.mjs && node scripts/gen-og-thumb.mjs && astro build && pagefind --site dist",
     "preview": "astro preview",
     "covers": "node scripts/generate-covers.mjs",
     "check:content": "node scripts/check-content.mjs",

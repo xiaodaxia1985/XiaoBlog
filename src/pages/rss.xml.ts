@@ -28,6 +28,8 @@ export async function GET({ site }) {
       const ext = cover.split('.').pop()?.toLowerCase();
       const mime = ext === 'png' ? 'image/png' : ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : ext === 'svg' ? 'image/svg+xml' : 'image/webp';
       const enclosure = `<enclosure url="${escapeXml(cover)}" type="${mime}"/>`;
+      const thumbUrl = post.thumb ? new URL(post.thumb, origin).toString() : '';
+      const thumbnail = thumbUrl ? `<media:thumbnail url="${escapeXml(thumbUrl)}"/>` : '';
       return [
         '<item>',
         `<title>${escapeXml(post.title)}</title>`,
@@ -37,6 +39,7 @@ export async function GET({ site }) {
         `<description>${escapeXml(post.excerpt)}</description>`,
         `<category>${escapeXml(post.category)}</category>`,
         enclosure,
+        thumbnail,
         '</item>',
       ]
         .filter(Boolean)
@@ -46,7 +49,7 @@ export async function GET({ site }) {
 
   const lastBuild = posts.length ? toRfc822(posts[0].date) : '';
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
   <channel>
     <title>${escapeXml(SITE.title)}</title>
     <link>${escapeXml(origin)}</link>
