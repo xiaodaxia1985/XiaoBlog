@@ -12,6 +12,10 @@ const { active = '', variant = 'main' } = Astro.props;
       个人商业创造者
     </a>
     <div class="site-nav-actions">
+      <button type="button" class="site-nav-action" data-theme-toggle aria-label="切换明暗主题" aria-pressed="false">
+        <svg data-icon-moon width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"></path></svg>
+        <svg data-icon-sun width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+      </button>
       <button type="button" class="site-nav-action" data-search-open aria-label="站内搜索">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
       </button>
@@ -28,7 +32,7 @@ const { active = '', variant = 'main' } = Astro.props;
 </nav>
 
 <style>
-  .site-nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:0 var(--gutter);background:rgba(12,12,12,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+  .site-nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:0 var(--gutter);background:var(--surface);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
   .site-nav-inner{max-width:var(--container-w);margin:0 auto;width:100%;height:64px;display:flex;align-items:center;justify-content:space-between;gap:var(--space-24);}
   .site-logo{display:inline-flex;align-items:center;gap:var(--space-8);font-size:var(--fs-16);font-weight:600;color:var(--text);}
   .site-logo-mark{width:24px;height:24px;flex-shrink:0;display:block;}
@@ -136,5 +140,35 @@ const { active = '', variant = 'main' } = Astro.props;
     });
 
     document.addEventListener('astro:before-swap', () => closeMenu(false));
+  }
+
+  // 明暗主题切换：持久化到 localStorage，同步 <html data-theme>、theme-color 与图标。
+  if (!window.__themeDelegationInstalled) {
+    window.__themeDelegationInstalled = true;
+    const root = document.documentElement;
+
+    function applyTheme(t) {
+      root.dataset.theme = t;
+      try { localStorage.setItem('xm-theme', t); } catch (e) {}
+      const btn = document.querySelector('[data-theme-toggle]');
+      if (btn) {
+        btn.setAttribute('aria-pressed', String(t === 'light'));
+        const moon = btn.querySelector('[data-icon-moon]');
+        const sun = btn.querySelector('[data-icon-sun]');
+        if (moon) moon.hidden = t === 'light';
+        if (sun) sun.hidden = t !== 'light';
+      }
+      const m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.setAttribute('content', t === 'light' ? '#F6F6F2' : '#0C0C0C');
+    }
+
+    document.addEventListener('click', (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      const btn = target && target.closest ? target.closest('[data-theme-toggle]') : null;
+      if (!btn) return;
+      applyTheme(root.dataset.theme === 'light' ? 'dark' : 'light');
+    });
+    document.addEventListener('astro:page-load', () => applyTheme(root.dataset.theme || 'dark'));
+    applyTheme(root.dataset.theme || 'dark');
   }
 </script>

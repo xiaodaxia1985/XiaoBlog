@@ -111,7 +111,7 @@ const description = '90 天个人商业实践的四个阶段：目标、产出�
     :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px;}
     ::-webkit-scrollbar{width:8px;}
     ::-webkit-scrollbar-track{background:var(--bg);}
-    ::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:4px;}
+    ::-webkit-scrollbar-thumb{background:var(--scrollbar);border-radius:4px;}
 
     .wrap{max-width:var(--container-w);margin:0 auto;padding:0 var(--gutter);}
 
@@ -122,16 +122,16 @@ const description = '90 天个人商业实践的四个阶段：目标、产出�
     .page-hero h1{font-size:var(--fs-48);font-weight:600;line-height:1.18;letter-spacing:0;text-wrap:balance;}
     .page-hero .intro{max-width:640px;margin-top:var(--space-12);font-size:var(--fs-16);color:var(--text-secondary);}
     .hero-meta{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-8);margin-top:var(--space-24);font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);}
-    .hero-meta .sep{color:rgba(255,255,255,.2);}
+    .hero-meta .sep{color:var(--border);}
     .hero-meta .day{color:var(--text);}
     .hero-meta .state{display:inline-flex;align-items:center;gap:var(--space-8);color:var(--text-secondary);}
     .hero-meta .state::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;}
     .hero-actions{display:flex;flex-wrap:wrap;gap:var(--space-12);margin-top:var(--space-24);}
     .btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-8);padding:var(--space-12) var(--space-24);border-radius:var(--radius-sm);font-size:var(--fs-14);font-weight:500;cursor:pointer;border:1px solid transparent;transition:background-color .2s ease,border-color .2s ease,color .2s ease;}
     .btn-primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
-    .btn-primary:hover,.btn-primary:focus-visible{background:#E4F98C;border-color:#E4F98C;}
+    .btn-primary:hover,.btn-primary:focus-visible{background:var(--accent-hover);border-color:var(--accent-hover);}
     .btn-secondary{background:transparent;color:var(--text);border-color:var(--border);}
-    .btn-secondary:hover,.btn-secondary:focus-visible{background:var(--surface);border-color:rgba(216,242,107,.5);color:var(--accent);}
+    .btn-secondary:hover,.btn-secondary:focus-visible{background:var(--surface);border-color:rgba(var(--accent-rgb),.5);color:var(--accent);}
 
     /* ===== 阶段列表 ===== */
     .stage-list{display:flex;flex-direction:column;gap:var(--space-24);padding:var(--space-40) 0 var(--space-56);}
@@ -142,8 +142,8 @@ const description = '90 天个人商业实践的四个阶段：目标、产出�
     .tracking-rule{margin:var(--space-8) 0 0;font-size:var(--fs-13);color:var(--text-secondary);}
     .tracking-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:var(--space-24);margin-top:var(--space-24);}
     .tracking-col{display:flex;flex-direction:column;gap:var(--space-16);}
-    .tracking-step{display:grid;grid-template-columns:auto 1fr auto;gap:var(--space-12);padding:var(--space-14) var(--space-16);background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--radius-sm);}
-    .tracking-step.is-done{border-color:rgba(216,242,107,.28);}
+    .tracking-step{display:grid;grid-template-columns:auto 1fr auto;gap:var(--space-12);padding:var(--space-14) var(--space-16);background:var(--overlay-soft);border:1px solid var(--border);border-radius:var(--radius-sm);}
+    .tracking-step.is-done{border-color:rgba(var(--accent-rgb),.28);}
     .tracking-step-date{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);white-space:nowrap;}
     .tracking-step-body h3{font-size:var(--fs-14);font-weight:500;color:var(--text);margin:0 0 4px;}
     .tracking-step-body p{margin:0;font-size:var(--fs-12);color:var(--text-secondary);line-height:1.7;}
@@ -151,12 +151,12 @@ const description = '90 天个人商业实践的四个阶段：目标、产出�
     .tracking-step-status{margin-left:auto;font-size:var(--fs-11);color:var(--text-muted);white-space:nowrap;}
     .tracking-step.is-done .tracking-step-status{color:var(--accent);}
     .acceptance-metrics{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-12);}
-    .acceptance-metric{padding:var(--space-14) var(--space-16);background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--radius-sm);}
+    .acceptance-metric{padding:var(--space-14) var(--space-16);background:var(--overlay-soft);border:1px solid var(--border);border-radius:var(--radius-sm);}
     .acceptance-metric strong{display:block;font-size:var(--fs-16);font-weight:550;letter-spacing:0;}
     .acceptance-metric span{display:block;margin-top:4px;font-size:var(--fs-12);color:var(--text-muted);line-height:1.6;}
     .disclosure{font-size:var(--fs-13);color:var(--text-secondary);line-height:1.8;}
     .stage-card{padding:var(--space-32);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
-    .stage-card.is-current{border-color:rgba(216,242,107,.35);}
+    .stage-card.is-current{border-color:rgba(var(--accent-rgb),.35);}
     .stage-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-12);margin-bottom:var(--space-12);}
     .stage-no{font-size:var(--fs-12);color:var(--text);}
     .stage-range{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);}
@@ -167,7 +167,7 @@ const description = '90 天个人商业实践的四个阶段：目标、产出�
     .stage-goal{font-size:var(--fs-14);color:var(--text-secondary);margin-bottom:var(--space-24);}
     .stage-label{font-size:var(--fs-14);font-weight:500;color:var(--text-muted);margin-bottom:var(--space-12);}
     .outputs{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-12);margin-bottom:var(--space-24);}
-    .outputs li{display:flex;gap:var(--space-12);padding:var(--space-12) var(--space-16);background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:var(--fs-14);color:var(--text-secondary);line-height:var(--lh-tight);}
+    .outputs li{display:flex;gap:var(--space-12);padding:var(--space-12) var(--space-16);background:var(--overlay-soft);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:var(--fs-14);color:var(--text-secondary);line-height:var(--lh-tight);}
     .outputs .num{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);flex-shrink:0;}
     .records{display:flex;flex-direction:column;gap:var(--space-8);padding-top:var(--space-16);border-top:1px solid var(--border);}
     .record{display:flex;align-items:baseline;gap:var(--space-12);font-size:var(--fs-14);color:var(--text);}

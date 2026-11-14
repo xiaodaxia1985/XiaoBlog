@@ -174,7 +174,7 @@ const description = '个人商业创造者的简历：18 年 IT 与产业数字�
     .tl{display:grid;grid-template-columns:116px minmax(0,1fr);column-gap:48px;padding:17px 0;}
     .tl-year{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:12px;color:var(--text-muted);padding-top:4px;text-align:right;white-space:nowrap;}
     .tl-body{position:relative;padding-left:24px;}
-    .tl-body::before{content:'';position:absolute;left:-3px;top:8px;width:7px;height:7px;border-radius:50%;background:#555;border:2px solid var(--bg);box-shadow:0 0 0 1px #555;}
+    .tl-body::before{content:'';position:absolute;left:-3px;top:8px;width:7px;height:7px;border-radius:50%;background:var(--text-muted);border:2px solid var(--bg);box-shadow:0 0 0 1px var(--text-muted);}
     .tl:first-child .tl-body::before{background:var(--accent);box-shadow:0 0 0 1px var(--accent);}
     .tl-body h3{font-size:16px;font-weight:600;line-height:1.6;color:var(--text);margin-bottom:6px;}
     .tl-duty{max-width:680px;font-size:14px;line-height:1.85;color:var(--text-secondary);}
@@ -199,9 +199,9 @@ const description = '个人商业创造者的简历：18 年 IT 与产业数字�
     .now-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;}
     .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:background-color .2s ease,border-color .2s ease,color .2s ease;}
     .btn-primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
-    .btn-primary:hover,.btn-primary:focus-visible{background:#E4F98C;border-color:#E4F98C;}
+    .btn-primary:hover,.btn-primary:focus-visible{background:var(--accent-hover);border-color:var(--accent-hover);}
     .btn-secondary{background:transparent;color:var(--text);border-color:var(--border);}
-    .btn-secondary:hover,.btn-secondary:focus-visible{background:var(--surface);border-color:rgba(216,242,107,.5);color:var(--accent);}
+    .btn-secondary:hover,.btn-secondary:focus-visible{background:var(--surface);border-color:rgba(var(--accent-rgb),.5);color:var(--accent);}
     .btn svg{width:15px;height:15px;stroke-width:1.5;}
     .now-period{font-family:'Inter',sans-serif;font-size:11px;color:var(--text-muted);white-space:nowrap;padding-top:5px;}
     @media(max-width:768px){
