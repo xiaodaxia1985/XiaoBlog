@@ -217,7 +217,9 @@ cp "$REPO_DIR/deploy/systemd/xb-api.service" /etc/systemd/system/xb-api.service
 cp "$REPO_DIR/deploy/systemd/xb-backup.service" /etc/systemd/system/xb-backup.service
 cp "$REPO_DIR/deploy/systemd/xb-backup.timer" /etc/systemd/system/xb-backup.timer
 systemctl daemon-reload
-systemctl enable --now xb-api
+# restart 而非 enable --now：对已在运行的服务，--now 不会重载新代码/新环境，必须重启才生效。
+systemctl enable xb-api
+systemctl restart xb-api
 systemctl enable --now xb-backup.timer
 
 # ----------------------------- 6. nginx 反代 -----------------------------
