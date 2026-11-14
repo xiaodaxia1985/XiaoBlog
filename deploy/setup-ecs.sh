@@ -39,6 +39,8 @@ BUILD_FRONTEND="1"                   # 1=在仓库目录重新构建 dist 与 sl
 
 API_ENV="$REPO_DIR/server/.env"
 SVC_USER="xb"
+# CI/部署所用的非 root 用户（deploy.sh 以该用户 SSH 进入并执行 sudo）
+DEPLOY_USER="deployer"
 NGINX_SITE="xiaoblog.conf"
 
 regen_secrets=0
@@ -221,6 +223,15 @@ systemctl daemon-reload
 systemctl enable xb-api
 systemctl restart xb-api
 systemctl enable --now xb-backup.timer
+
+# CI 部署用户免密执行必要的 systemctl：deploy.sh 以该用户非交互 SSH 进入，
+# 无法输入 sudo 密码；只放行重启薄 API 与 reload nginx 两条命令。
+SYSTEMCTL_BIN="$(command -v systemctl)"
+cat > /etc/sudoers.d/xb-deployer <<EOF
+$DEPLOY_USER ALL=(root) NOPASSWD: $SYSTEMCTL_BIN restart xb-api, $SYSTEMCTL_BIN reload nginx
+EOF
+chmod 440 /etc/sudoers.d/xb-deployer
+visudo -c -f /etc/sudoers.d/xb-deployer
 
 # ----------------------------- 6. nginx 反代 -----------------------------
 c_info "6/8 写入 nginx 站点配置并 reload"

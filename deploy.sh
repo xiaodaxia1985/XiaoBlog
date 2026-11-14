@@ -18,16 +18,18 @@ GIT_SSH_COMMAND="ssh -i /home/deployer/.ssh/github_deploy_key_pem -o IdentitiesO
 npm ci --production=false
 npm run build
 
-# 若 server/ 有变更则重装依赖并重启薄 API
+# server/ 有变更才重装后端依赖；但无论是否变更都重启一次 xb-api。
+# 不能用「git diff 含 server/」决定是否重启：若上次部署在重启前失败、源码已被 pull 更新，
+# 重跑时 diff 为空会跳过重启，导致磁盘是新源码、进程仍跑旧代码。
 if git diff --name-only "$PREV_HEAD" HEAD | grep -q '^server/'; then
-  echo "[deploy] server/ 有变更，重装后端依赖并重启 xb-api"
-  cd /opt/XiaoBlog/server
-  npm ci --omit=dev --no-audit --no-fund
-  sudo systemctl restart xb-api
-  cd /opt/XiaoBlog
+  echo "[deploy] server/ 有变更，重装后端依赖"
+  (cd /opt/XiaoBlog/server && npm ci --omit=dev --no-audit --no-fund)
 else
-  echo "[deploy] server/ 无变更，跳过 xb-api 重启"
+  echo "[deploy] server/ 无变更，跳过后端依赖重装"
 fi
+
+echo "[deploy] 重启 xb-api"
+sudo systemctl restart xb-api
 
 sudo systemctl reload nginx
 
