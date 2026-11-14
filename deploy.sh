@@ -5,7 +5,9 @@ cd /opt/XiaoBlog
 # 记录更新前的 commit，用于后续检测变更范围
 PREV_HEAD=$(git rev-parse HEAD)
 
-git pull origin main
+# deployer 用户使用 GitHub deploy key 拉取代码
+GIT_SSH_COMMAND="ssh -i /home/deployer/.ssh/github_deploy_key_pem -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" \
+  git pull origin main
 
 # 前端构建
 npm ci --production=false
