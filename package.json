@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "build": "astro build && pagefind --site dist",
     "preview": "astro preview",
     "covers": "node scripts/generate-covers.mjs",
     "check:content": "node scripts/check-content.mjs",
@@ -16,6 +16,7 @@
     "lucide-astro": "^0.454.0"
   },
   "devDependencies": {
+    "pagefind": "^1.6.0",
     "sharp": "^0.34.5"
   }
 }

@@ -1,0 +1,84 @@
+---
+// 站内搜索：Pagefind 预构建 UI。索引由 `pagefind --site dist` 在构建后生成；
+// 弹窗按需加载 /pagefind/pagefind-ui.js 与 CSS，无 JS 时按钮退化为不可见。
+---
+<div class="site-search" id="siteSearch" hidden>
+  <div class="site-search-backdrop" data-search-close></div>
+  <div class="site-search-panel" role="dialog" aria-modal="true" aria-label="站内搜索">
+    <div class="site-search-head">
+      <span>站内搜索</span>
+      <button type="button" class="site-search-close" data-search-close aria-label="关闭搜索">×</button>
+    </div>
+    <div id="pagefind-search"></div>
+  </div>
+</div>
+
+<style>
+  .site-search{position:fixed;inset:0;z-index:1300;display:grid;place-items:center;padding:var(--space-24);}
+  .site-search[hidden]{display:none;}
+  .site-search-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(2px);}
+  .site-search-panel{position:relative;width:min(640px,100%);max-height:min(70vh,600px);overflow:auto;background:var(--bg-card,var(--surface,#141414));border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-24);}
+  .site-search-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-16);font-size:var(--fs-14);color:var(--text-secondary);}
+  .site-search-close{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:18px;line-height:1;padding:4px 10px;cursor:pointer;}
+  .site-search :global(.pagefind-ui__search-input){width:100%;}
+</style>
+
+<script>
+  (function () {
+    if (window.__siteSearchDelegationInstalled) return;
+    window.__siteSearchDelegationInstalled = true;
+    const overlay = document.getElementById('siteSearch');
+    if (!overlay) return;
+
+    let uiLoaded = false;
+    function loadUi() {
+      if (uiLoaded || window.PagefindUI) { if (window.PagefindUI) init(); return; }
+      uiLoaded = true;
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = '/pagefind/pagefind-ui.css';
+      document.head.appendChild(css);
+      const js = document.createElement('script');
+      js.src = '/pagefind/pagefind-ui.js';
+      js.onload = init;
+      document.head.appendChild(js);
+    }
+
+    function init() {
+      const el = document.getElementById('pagefind-search');
+      if (!el || el.dataset.inited === '1' || !window.PagefindUI) return;
+      el.dataset.inited = '1';
+      new window.PagefindUI({
+        element: '#pagefind-search',
+        showSubResults: true,
+        showFilters: false,
+        resetOnNewTerms: false,
+        translations: { placeholder: '搜索文章标题、摘要或正文…' }
+      });
+    }
+
+    function open() {
+      overlay.hidden = false;
+      document.body.classList.add('search-open');
+      loadUi();
+      requestAnimationFrame(() => {
+        const input = overlay.querySelector('.pagefind-ui__search-input');
+        input ? input.focus() : overlay.querySelector('.site-search-close')?.focus();
+      });
+    }
+    function close() {
+      overlay.hidden = true;
+      document.body.classList.remove('search-open');
+    }
+
+    document.addEventListener('click', (e) => {
+      const t = e.target instanceof Element ? e.target : null;
+      if (t?.closest('[data-search-open]')) { e.preventDefault(); open(); }
+      else if (t?.closest('[data-search-close]')) close();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !overlay.hidden) close();
+    });
+    document.addEventListener('astro:before-swap', close);
+  })();
+</script>

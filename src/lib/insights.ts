@@ -147,3 +147,24 @@ export async function getAllPosts(): Promise<Post[]> {
 export async function getPublishedPosts(): Promise<Post[]> {
   return (await getAllPosts()).filter((post) => !post.draft);
 }
+
+/**
+ * 相关阅读：同专题优先（+2），其次共享标签（每个 +1），同分按日期新到旧；排除自身。
+ * 无匹配时返回空数组，调用方不渲染该区块。
+ */
+export function getRelatedPosts(post: Post, all: Post[], limit = 3): Post[] {
+  const sharedTopics = (a: Post, b: Post) => a.topics.some((t) => b.topics.includes(t));
+  const score = (p: Post): number => {
+    let s = 0;
+    if (sharedTopics(post, p)) s += 2;
+    s += p.tags.filter((t) => post.tags.includes(t)).length;
+    return s;
+  };
+  return all
+    .filter((p) => p.slug !== post.slug)
+    .map((p) => ({ p, s: score(p) }))
+    .filter((x) => x.s > 0)
+    .sort((a, b) => (b.s - a.s) || b.p.sortKey.localeCompare(a.p.sortKey))
+    .slice(0, limit)
+    .map((x) => x.p);
+}

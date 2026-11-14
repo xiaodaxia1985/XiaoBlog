@@ -126,7 +126,7 @@ Dan Koe 说，他做自由职业时最痛恨的就是冷开发（cold outreach�
 
 我把它们和他的三件事拼在一起，画成了一张七层图。从下往上，条件、机会、最小产品是地基，他没展开；品牌表达、内容系统、获客变现是他全文的主体；最顶上是复制交付，也就是这套东西能不能变成生意的分界线。
 
-<img src="/images/personal-business-seven-layers.png" alt="个人商业系统的七层架构：01 条件在最下，07 复制交付在最上，层与层之间是向上供给的输入" style="display:block;max-width:100%;height:auto;margin:0 auto" width="1200" height="1460" loading="lazy" decoding="async">
+<img src="/images/personal-business-seven-layers.webp" alt="个人商业系统的七层架构：01 条件在最下，07 复制交付在最上，层与层之间是向上供给的输入" style="display:block;max-width:100%;height:auto;margin:0 auto" width="1200" height="1460" loading="lazy" decoding="async">
 
 <br />
 

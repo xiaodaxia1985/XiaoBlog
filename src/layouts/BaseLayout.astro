@@ -3,6 +3,7 @@ import { ClientRouter } from 'astro:transitions';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import SiteHead from '../components/SiteHead.astro';
+import SiteSearch from '../components/SiteSearch.astro';
 import { SITE } from '../lib/site';
 
 interface Props {
@@ -68,6 +69,7 @@ const canonical = new URL(canonicalPath, siteUrl).toString();
   {showNav && <Nav active={active} variant={navVariant} />}
   <slot />
   {!hideFooter && <Footer />}
+  <SiteSearch />
   <slot name="scripts" />
 </body>
 </html>
