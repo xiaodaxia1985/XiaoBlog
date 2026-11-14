@@ -133,6 +133,27 @@ END
 \$\$;
 SQL
 
+# RHEL 系（ALinux3 PG13 默认 ident 认证 + md5 口令加密）：把本机 TCP 口令登录对齐
+# scram-sha-256，避免应用用密码连 127.0.0.1 被拒。改前备份 pg_hba，重载后重存角色口令。
+if [ "$DISTRO" = rhel ]; then
+  PG_HBA="$(psql_as_postgres -tAc 'SHOW hba_file' | tr -d '[:space:]')"
+  PG_CONF="$(psql_as_postgres -tAc 'SHOW config_file' | tr -d '[:space:]')"
+  if [ -f "$PG_HBA" ]; then
+    cp -a "$PG_HBA" "$PG_HBA.bak.$(date +%s)"
+    awk -v OFS=' ' '/^host/ && ($4=="127.0.0.1/32" || $4=="::1/128") { $5="scram-sha-256" } { print }' \
+      "$PG_HBA" > "$PG_HBA.tmp" && mv "$PG_HBA.tmp" "$PG_HBA"
+  fi
+  if [ -f "$PG_CONF" ]; then
+    if grep -qE '^[[:space:]]*#?[[:space:]]*password_encryption' "$PG_CONF"; then
+      sed -i -E 's/^[[:space:]]*#?[[:space:]]*password_encryption[[:space:]]*=.*/password_encryption = scram-sha-256/' "$PG_CONF"
+    else
+      echo "password_encryption = scram-sha-256" >> "$PG_CONF"
+    fi
+  fi
+  systemctl reload postgresql
+  psql_as_postgres -c "ALTER ROLE ${DB_USER_API} LOGIN PASSWORD '${API_PW}'"
+fi
+
 psql_as_postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME_API'" | grep -q 1 \
     || psql_as_postgres -c "CREATE DATABASE $DB_NAME_API OWNER $DB_USER_API"
 

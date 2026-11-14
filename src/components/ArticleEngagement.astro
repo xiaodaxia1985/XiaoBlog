@@ -68,10 +68,12 @@ const API_BASE = (import.meta.env.PUBLIC_API_BASE as string | undefined) ?? '';
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 4000);
       try {
+        // 仅在有请求体时带 JSON 头；空 body 的 POST（如阅读上报）不带，避免服务端按空 JSON 解析报 400。
+        const headers = options?.body ? { 'Content-Type': 'application/json' } : {};
         const res = await fetch(`${API_BASE}${path}`, {
           ...options,
           signal: controller.signal,
-          headers: { 'Content-Type': 'application/json' },
+          headers,
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return await res.json();

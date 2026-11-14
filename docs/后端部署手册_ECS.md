@@ -73,6 +73,7 @@ sudo bash deploy/setup-ecs.sh
 | --- | --- | --- |
 | 包管理器 | `apt-get` | `dnf` |
 | PostgreSQL 包 | `postgresql` / `postgresql-contrib` | `postgresql-server` / `postgresql-contrib`，首次 `postgresql-setup --initdb` 初始化数据簇 |
+| PG 本机认证 | 默认口令登录即可 | 默认 ident + md5；脚本自动把 `127.0.0.1/32`、`::1/128` 对齐 `scram-sha-256`，设 `password_encryption=scram-sha-256` 并重存角色口令（改前备份 `pg_hba.conf`） |
 | Node 22 | NodeSource deb 源 | NodeSource rpm 源 |
 | 防火墙 | `ufw` | `firewalld`（`firewall-cmd`） |
 | nginx 站点 | `sites-available/` + `sites-enabled/` 软链 | `/etc/nginx/conf.d/xiaoblog.conf` |
@@ -164,6 +165,7 @@ nginx -t && systemctl reload nginx   # 改 nginx 后校验重载
 | 写入接口 404 `not_found` | slug 不在白名单（草稿未发布，或构建后未重出 `slugs.json`） |
 | 502 / 504 | 上游 Node 服务未起或崩溃；先 `systemctl status` 看服务，再查日志 |
 | PG 起不来 / `psql: command not found` | RHEL 系装的是 `postgresql-server`；首次需 `postgresql-setup --initdb`（脚本已处理）；`systemctl status postgresql` 看日志 |
+| 应用连 PG 报 `Peer authentication failed` / `password authentication failed` | RHEL 系默认 ident 认证 + md5；脚本已自动改 `scram-sha-256`。若仍报错：核对 `pg_hba.conf` 本机 host 行方法为 `scram-sha-256`、`postgresql.conf` 的 `password_encryption=scram-sha-256`，`systemctl reload postgresql` 后重设角色口令 |
 | 对外 80/443 不通 | 先查阿里云安全组是否放行；本机再查防火墙：Ubuntu `ufw status`，RHEL 系 `firewall-cmd --list-services` |
 | Node 版本偏低 | 脚本经 NodeSource 升到 22；若源未识别，手动核对 `node -v` 后按 NodeSource 文档重装 |
 
