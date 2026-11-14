@@ -10,6 +10,7 @@ export async function GET({ site }) {
     '/insights/',
     '/about/',
     '/90-days/',
+    '/rss.xml',
     ...topics.map((topic) => `/topics/${topic.slug}/`),
     ...posts.map((post) => post.url),
   ];

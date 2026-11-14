@@ -48,6 +48,7 @@ const canonical = new URL(canonicalPath, siteUrl).toString();
   <meta name="color-scheme" content="dark" />
   {robots && <meta name="robots" content={robots} />}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="alternate" type="application/rss+xml" title={SITE.title} href="/rss.xml" />
   <link rel="stylesheet" href="/fonts/fonts.css" />
   <link rel="stylesheet" href="/css/tokens.css" />
   <script is:inline data-astro-rerun>document.documentElement.classList.add('js');</script>

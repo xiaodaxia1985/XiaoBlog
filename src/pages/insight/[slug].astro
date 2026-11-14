@@ -33,12 +33,15 @@ const inkVars = `--oc-ink:${INK.strong};--oc-body:${INK.body};--oc-soft:${INK.so
 const draftLabel = post.draft ? '草稿 · 未发布' : '';
 const canonical = new URL(post.url, Astro.site ?? SITE.url).toString();
 const coverUrl = new URL(post.cover, Astro.site ?? SITE.url).toString();
+const dateIso = post.date.replace(/\./g, '-');
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
   headline: post.title,
-  datePublished: post.date.replace(/\./g, '-'),
-  author: { '@type': 'Person', name: SITE.name },
+  datePublished: dateIso,
+  dateModified: dateIso,
+  author: { '@type': 'Person', name: SITE.name, url: SITE.url },
+  publisher: { '@type': 'Organization', name: SITE.name, url: SITE.url },
   description: post.excerpt,
   image: coverUrl,
   mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
@@ -60,7 +63,8 @@ const jsonLd = {
 >
   <Fragment slot="head">
     <meta property="article:section" content={post.category} />
-    <meta property="article:published_time" content={post.date.replace(/\./g, '-')} />
+    <meta property="article:published_time" content={dateIso} />
+    <meta property="article:modified_time" content={dateIso} />
     <meta name="twitter:url" content={canonical} />
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
   </Fragment>

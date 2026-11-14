@@ -1,6 +1,9 @@
 import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
 import path from 'node:path';
 import defaultCover from '../assets/covers/_default.svg';
+
+type InsightEntry = CollectionEntry<'insights'>;
 
 // 自动查找 src/assets/covers/<slug>.{webp,jpg,png}
 const coverModules = import.meta.glob('../assets/covers/*.{webp,jpg,png}', {
@@ -102,7 +105,7 @@ function resolveCover(slug: string, override?: string): string {
   return coversBySlug[`${slug}-1`] ?? coversBySlug[slug] ?? assetUrl(defaultCover);
 }
 
-export function toPost(entry: any): Post {
+export function toPost(entry: InsightEntry): Post {
   const body: string = entry.body ?? '';
   const date = resolveDate(entry.data.date);
   const rawTopic = entry.data.topic;
