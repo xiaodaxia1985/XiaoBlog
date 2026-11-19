@@ -10,6 +10,7 @@
     "covers": "node scripts/generate-covers.mjs",
     "gen:slugs": "node scripts/gen-slugs.mjs",
     "check:content": "node scripts/check-content.mjs",
+    "dy:add": "node scripts/add-douyin-video.mjs",
     "astro": "astro"
   },
   "dependencies": {

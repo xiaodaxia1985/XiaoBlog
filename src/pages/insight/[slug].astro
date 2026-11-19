@@ -4,6 +4,7 @@ import { getPublishedPosts, getRelatedPosts, toPost } from '../../lib/insights';
 import { shade, INK } from '../../lib/cover-palette.mjs';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleEngagement from '../../components/ArticleEngagement.astro';
+import DouyinEmbed from '../../components/DouyinEmbed.astro';
 import { SITE } from '../../lib/site';
 
 export async function getStaticPaths() {
@@ -80,7 +81,7 @@ const jsonLd = {
         <div class="meta-line">
           <span>{post.date}</span><span class="dot">·</span>
           <span>{post.category}</span><span class="dot">·</span>
-          <span>{post.readTime}</span>
+          <span>{post.video ? '视频' : post.readTime}</span>
           {draftLabel && <span class="article-status">{draftLabel}</span>}
         </div>
         <h1 class="article-title">{post.title}</h1>
@@ -117,7 +118,7 @@ const jsonLd = {
 
   <main id="main-content" class="article-body">
     <div class="art-inner">
-      {opinionCards.length === 0 && (
+      {opinionCards.length === 0 && !post.video && (
         <div class="col">
           <div class="article-cover">
             <img src={post.cover} alt={post.title} width="1600" height="1000" loading="eager" decoding="async">
@@ -151,6 +152,14 @@ const jsonLd = {
             <button type="button" class="top-toggle" data-back-top>回到顶部 ↑</button>
           </div>
           <div class="article-start-anchor" id="article-start" aria-hidden="true"></div>
+          {post.video && (
+            <DouyinEmbed
+              id={post.video.id}
+              ratio={post.video.ratio}
+              url={post.video.url}
+              title={post.title}
+            />
+          )}
           <article class="markdown">
             <Content />
           </article>

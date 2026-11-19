@@ -30,13 +30,17 @@ export async function GET({ site }) {
       const enclosure = `<enclosure url="${escapeXml(cover)}" type="${mime}"/>`;
       const thumbUrl = post.thumb ? new URL(post.thumb, origin).toString() : '';
       const thumbnail = thumbUrl ? `<media:thumbnail url="${escapeXml(thumbUrl)}"/>` : '';
+      // 视频文章的正文是解读，正文不长；描述里附上 TikTok 之外的原始播放地址，方便直接看视频。
+      const description = post.video
+        ? `${post.excerpt}（含视频，可在抖音观看：${post.video.url || `https://www.douyin.com/video/${post.video.id}`}）`
+        : post.excerpt;
       return [
         '<item>',
         `<title>${escapeXml(post.title)}</title>`,
         `<link>${escapeXml(link)}</link>`,
         `<guid isPermaLink="true">${escapeXml(link)}</guid>`,
         pubDate && `<pubDate>${pubDate}</pubDate>`,
-        `<description>${escapeXml(post.excerpt)}</description>`,
+        `<description>${escapeXml(description)}</description>`,
         `<category>${escapeXml(post.category)}</category>`,
         enclosure,
         thumbnail,

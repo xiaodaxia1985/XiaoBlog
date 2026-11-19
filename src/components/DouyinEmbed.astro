@@ -1,0 +1,104 @@
+---
+/**
+ * 抖音官方播放器嵌入组件。
+ * 只用官方开放播放器 open.douyin.com/player/video（已实测：无 X-Frame-Options / 无 frame-ancestors，可跨站嵌入）。
+ * 分享页 www.douyin.com/video/{id} 带 X-Frame-Options: DENY，不可嵌入，故仅作"去抖音观看"外链。
+ *
+ * 尺寸结论（实测）：播放器内部是手机竖屏布局，内容宽度固定在 360px 左右；
+ * 容器更宽只会在右侧多出黑边，更矮则内部出现竖向滚动条。
+ * 故统一 360px 竖框、高度按 360:664 留约 4% 余量。
+ */
+interface Props {
+  id: string;
+  /** '9:16' | '16:9' | '1:1' | '4:3' | '3:4' | 'auto'；仅用于语义与后续 SEO，不驱动布局 */
+  ratio?: string;
+  title?: string;
+  /** 原始分享链接，缺省按 video_id 拼 douyin.com */
+  url?: string;
+}
+
+const { id, ratio = 'auto', title = '抖音视频', url } = Astro.props;
+
+const playerSrc = `https://open.douyin.com/player/video?vid=${id}&autoplay=0`;
+const watchUrl = url?.trim() || `https://www.douyin.com/video/${id}`;
+---
+
+<div class="dy-embed" data-ratio={ratio} style={`--dy-aspect:${ratio.replace(':', ' / ')}`}>
+  <div class="dy-frame">
+    <iframe
+      src={playerSrc}
+      title={title}
+      allowfullscreen
+      scrolling="no"
+      referrerpolicy="unsafe-url"
+      allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+    ></iframe>
+  </div>
+  <p class="dy-note">
+    <span class="dy-badge">抖音</span>
+    <span>视频来自抖音，播放器由抖音提供</span>
+    <a href={watchUrl} target="_blank" rel="noopener noreferrer">在抖音观看 ↗</a>
+  </p>
+</div>
+
+<style>
+  .dy-embed {
+    margin: 0 auto var(--space-32, 32px);
+    max-width: 360px;
+  }
+  .dy-frame {
+    position: relative;
+    width: 100%;
+    /* 竖屏比例再留约 3% 余量：播放器内部按容器宽度等比排版，余量不足会出现竖向滚动条 */
+    aspect-ratio: 360 / 690;
+    background: #0f0f0f;
+    border: 1px solid var(--border, #2a2a2a);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .dy-frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+  .dy-note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0 0;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-muted, #888);
+  }
+  .dy-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    border: 1px solid var(--border, #2a2a2a);
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--text-secondary, #aaa);
+    letter-spacing: .02em;
+  }
+  .dy-note a {
+    color: var(--accent, #c8e64a);
+    border-bottom: 1px solid transparent;
+    text-decoration: none;
+  }
+  .dy-note a:hover,
+  .dy-note a:focus-visible {
+    border-bottom-color: currentColor;
+  }
+  @media (max-width: 720px) {
+    .dy-embed {
+      max-width: 100%;
+    }
+  }
+  @media print {
+    .dy-embed { display: none; }
+  }
+</style>

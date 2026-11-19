@@ -35,6 +35,15 @@ const coversBySlug: Record<string, string> = Object.fromEntries(
   ]),
 );
 
+export type PostVideo = {
+  provider: 'douyin';
+  id: string;
+  /** 画幅：'9:16' | '16:9' | '1:1' | '4:3' | '3:4'；'auto' 时前端回退竖版 */
+  ratio: string;
+  /** 原始分享链接，可能为空 */
+  url: string;
+};
+
 export type Post = {
   slug: string;
   url: string;
@@ -53,6 +62,8 @@ export type Post = {
   thumb: string;
   takeaways: string[];
   tags: string[];
+  /** 非视频文章为 null；视频文章带播放器所需参数 */
+  video: PostVideo | null;
 };
 
 function stripMarkdown(md: string): string {
@@ -132,6 +143,15 @@ export function toPost(entry: InsightEntry): Post {
   if (!entry.data.draft && !explicitCover?.trim() && cover === assetUrl(defaultCover)) {
     console.warn(`[cover] 文章「${entry.data.title}」缺少封面，已回退默认图`);
   }
+  const rawVideoId = entry.data.videoId?.trim();
+  const video: PostVideo | null = rawVideoId
+    ? {
+        provider: 'douyin',
+        id: rawVideoId,
+        ratio: entry.data.videoRatio ?? 'auto',
+        url: entry.data.videoUrl?.trim() ?? '',
+      }
+    : null;
   return {
     slug: entry.id,
     url: `/insight/${entry.id}/`,
@@ -150,6 +170,7 @@ export function toPost(entry: InsightEntry): Post {
     thumb: ogManifest.thumb[entry.id] ?? '',
     takeaways: entry.data.takeaways ?? [],
     tags: entry.data.tags ?? [],
+    video,
   };
 }
 

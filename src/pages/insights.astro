@@ -48,10 +48,13 @@ const description = '记录从信息消费者到商业创造者的真实过程�
     <div class="post-grid" id="insightGrid">
       {posts.map((post) => (
         <a href={post.url} class="post-card" data-category={post.category} data-topics={post.topics.join(' ')}>
-          <span class="post-tag">{post.category}</span>
+          <div class="post-tags">
+            <span class="post-tag">{post.category}</span>
+            {post.video && <span class="post-tag post-tag-video">视频</span>}
+          </div>
           <h2>{post.title}</h2>
           <p class="post-excerpt">{post.excerpt}</p>
-          <span class="post-meta">{post.date} · {post.readTime}</span>
+          <span class="post-meta">{post.date} · {post.video ? '视频' : post.readTime}</span>
           <span class="post-view">阅读全文<span aria-hidden="true">→</span></span>
         </a>
       ))}
@@ -110,7 +113,9 @@ const description = '记录从信息消费者到商业创造者的真实过程�
     .post-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-24);}
     .post-card{display:flex;flex-direction:column;gap:var(--space-8);min-height:232px;padding:var(--space-24);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);transition:transform .2s ease;}
     .post-card:hover,.post-card:focus-visible{background:var(--surface-2);border-color:rgba(var(--accent-rgb),.42);transform:translateY(-2px);}
+    .post-tags{display:flex;flex-wrap:wrap;gap:6px;}
     .post-tag{align-self:flex-start;padding:2px 6px;border:1px solid var(--border);border-radius:4px;font-size:var(--fs-12);color:var(--text-muted);}
+    .post-tag-video{border-color:rgba(var(--accent-rgb),.45);color:var(--accent);}
     .post-card h2{font-size:var(--fs-20);font-weight:600;line-height:1.4;letter-spacing:0;}
     .post-excerpt{flex:1;font-size:var(--fs-14);line-height:var(--lh-tight);color:var(--text-secondary);}
     .post-meta{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);}

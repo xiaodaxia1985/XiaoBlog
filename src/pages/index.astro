@@ -88,7 +88,7 @@ const countByTopic = (topic) => posts.filter((post) => post.topics.includes(topi
           <div class="article-list">
             {latest.map((post) => (
               <a class="article" href={post.url}>
-                <div class="article-meta"><span class="article-category">{post.category}</span><span>{post.date} · {post.readTime}</span></div>
+                <div class="article-meta"><span class="article-category">{post.video ? `${post.category} · 视频` : post.category}</span><span>{post.date} · {post.video ? '视频' : post.readTime}</span></div>
                 <div class="article-body"><h3>{post.title}</h3><p>{post.excerpt}</p></div>
                 <span class="article-arrow" aria-hidden="true">↗</span>
               </a>

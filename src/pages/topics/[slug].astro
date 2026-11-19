@@ -46,10 +46,10 @@ const siblings = topics.filter((t) => t.slug !== topic.slug);
           {posts.map((post) => (
             <a class="post-row" href={post.url}>
               <span>
-                <span class="post-tag">{post.category}</span>
+                <span class="post-tag">{post.video ? `${post.category} · 视频` : post.category}</span>
                 <h3 class="post-title">{post.title}</h3>
                 <span class="post-excerpt">{post.excerpt}</span>
-                <span class="post-meta">{post.date} · {post.readTime}</span>
+                <span class="post-meta">{post.date} · {post.video ? '视频' : post.readTime}</span>
               </span>
               <span class="post-arrow" aria-hidden="true">→</span>
             </a>

@@ -12,6 +12,8 @@ const coversDir = path.join(root, 'src', 'assets', 'covers');
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const DATE_RE = /^\d{4}[.-]\d{1,2}[.-]\d{1,2}$/;
+const VIDEO_ID_RE = /^\d{15,20}$/;
+const VIDEO_RATIOS = ['9:16', '16:9', '1:1', '4:3', '3:4', 'auto'];
 
 const errors = [];
 const warnings = [];
@@ -91,6 +93,9 @@ for (const file of files) {
   const topics = Array.isArray(topicRaw) ? topicRaw.filter(Boolean) : topicRaw ? [topicRaw] : [];
   const draft = fm.draft === true;
   const takeaways = Array.isArray(fm.takeaways) ? fm.takeaways : [];
+const videoId = typeof fm.videoId === 'string' ? fm.videoId.trim() : '';
+const videoRatio = typeof fm.videoRatio === 'string' ? fm.videoRatio.trim() : '';
+const videoUrl = typeof fm.videoUrl === 'string' ? fm.videoUrl.trim() : '';
 
   if (!title) err(file, '缺少 title');
   if (!category) err(file, '缺少 category');
@@ -106,10 +111,20 @@ for (const file of files) {
   if (!draft) {
     publishedSlugs.add(slug);
     if (!topics.length) err(file, '已发布文章缺少 topic');
-    if (!takeaways.length) err(file, '已发布文章缺少 takeaways（观点卡无内容）');
+    // 视频文章以播放器为主体，正文是解读，不再是"必须有三条观点卡"的图文形态。
+    if (!takeaways.length && !videoId) err(file, '已发布文章缺少 takeaways（观点卡无内容）');
     if (!coverExists(slug, fm.cover)) warn(file, '未找到封面资源，将回退默认图');
   } else if (!topics.length) {
     warn(file, '草稿暂无 topic');
+  }
+
+  // 视频字段：有 videoId 即视频文章，校验 id 格式与画幅枚举。
+  if (videoId) {
+    if (!VIDEO_ID_RE.test(videoId)) err(file, `videoId 应为 15–20 位数字：${videoId}`);
+    if (videoRatio && !VIDEO_RATIOS.includes(videoRatio)) err(file, `videoRatio 不在枚举内：${videoRatio}`);
+    if (videoUrl && !/^https?:\/\//.test(videoUrl)) err(file, `videoUrl 应为完整 http(s) 链接：${videoUrl}`);
+  } else if (videoRatio && videoRatio !== 'auto') {
+    warn(file, `有 videoRatio 却无 videoId，将被忽略：${videoRatio}`);
   }
 
   // 正文图片（裸 <img> 与 markdown 图片）本地存在性

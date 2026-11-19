@@ -18,6 +18,11 @@ const insights = defineCollection({
     excerpt: z.string().optional(),
     takeaways: z.array(z.string()).optional(),
     tags: z.array(z.string()).optional(),
+    // 视频文章：有 videoId 即视为视频文章，详情页嵌入抖音官方播放器。
+    // 扁平键而非嵌套对象，是为了兼容 scripts/check-content.mjs 的轻量 frontmatter 解析器。
+    videoId: z.string().regex(/^\d{15,20}$/, 'videoId 应为抖音 video_id 数字串').optional(),
+    videoRatio: z.enum(['9:16', '16:9', '1:1', '4:3', '3:4', 'auto']).default('auto'),
+    videoUrl: z.string().optional(),
   }),
 });
 
