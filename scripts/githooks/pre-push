@@ -16,12 +16,15 @@ target="refs/heads/main"
 zero="0000000000000000000000000000000000000000"
 
 range=""
+remote_before=""
 if [ -t 0 ]; then
   range="origin/main...HEAD"
+  remote_before=$(git rev-parse origin/main 2>/dev/null)
 else
   while read -r local_ref local_sha remote_ref remote_sha; do
     [ "$remote_ref" = "$target" ] || continue
     [ "$local_sha" = "$zero" ] && continue
+    remote_before="$remote_sha"
     if [ "$remote_sha" = "$zero" ]; then
       range="$local_sha"
     else
@@ -33,6 +36,39 @@ fi
 
 added=$(git diff --diff-filter=A --name-only $range -- src/content/insights 2>/dev/null)
 edited=$(git diff --diff-filter=M --name-only $range -- src/content/insights 2>/dev/null)
+[ -n "$added$edited" ] || exit 0
+
+# 视频文章（frontmatter 含 videoId）不参与三平台图文产物，记录时直接排除。
+is_video_article() {
+  _file="$1"
+  _in_fm=0
+  while IFS= read -r _line; do
+    case "$_line" in
+      ---)
+        if [ "$_in_fm" = "0" ]; then _in_fm=1; else break; fi
+        ;;
+      *)
+        [ "$_in_fm" = "1" ] || continue
+        case "$_line" in
+          videoId:*) return 0;;
+        esac
+        ;;
+    esac
+  done < "$_file"
+  return 1
+}
+
+filter_text_articles() {
+  _keep=""
+  for _f in $1; do
+    is_video_article "$_f" && continue
+    _keep="$_keep $_f"
+  done
+  printf '%s' "$_keep"
+}
+
+added=$(filter_text_articles "$added")
+edited=$(filter_text_articles "$edited")
 [ -n "$added$edited" ] || exit 0
 
 list_slugs() {
@@ -53,11 +89,11 @@ branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
 ts=$(date '+%Y-%m-%dT%H:%M:%S' 2>/dev/null)
 [ -n "$ts" ] || ts=$(git log -1 --format=%cd --date=format:'%Y-%m-%dT%H:%M:%S' 2>/dev/null)
 
-[ -f "$LOG" ] || printf '# time\tsha\tbranch\tremote\tnew_articles\tedited_articles\n' > "$LOG"
-printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$ts" "$sha" "$branch" "$remote" "$new_slugs" "$edit_slugs" >> "$LOG"
+[ -f "$LOG" ] || printf '# time\tsha\tbranch\tremote\tnew_articles\tedited_articles\tremote_before\n' > "$LOG"
+printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$ts" "$sha" "$branch" "$remote" "$new_slugs" "$edit_slugs" "$remote_before" >> "$LOG"
 
 [ -n "$new_slugs" ] && echo "[publish-watch] new: $new_slugs" >&2
 [ -n "$edit_slugs" ] && echo "[publish-watch] edited: $edit_slugs" >&2
-echo "[publish-watch] after this push lands, (re)run the three-platform pass." >&2
+# 三平台图文联动已暂停（2026-11-19）：本 hook 只记录文本文章变更，不再提示触发三平台产物。
 
 exit 0
