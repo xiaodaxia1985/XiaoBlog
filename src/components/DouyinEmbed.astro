@@ -36,7 +36,6 @@ const watchUrl = url?.trim() || `https://www.douyin.com/video/${id}`;
   </div>
   <p class="dy-note">
     <span class="dy-badge">抖音</span>
-    <span>视频来自抖音，播放器由抖音提供</span>
     <a href={watchUrl} target="_blank" rel="noopener noreferrer">在抖音观看 ↗</a>
   </p>
 </div>
@@ -59,6 +58,8 @@ const watchUrl = url?.trim() || `https://www.douyin.com/video/${id}`;
   .dy-frame iframe {
     position: absolute;
     inset: 0;
+    /* 官方播放器内部内容宽约为容器的 85%，右侧留一条黑带。
+       实测放大裁边（118%/130%/145%）会连封面顶部一起裁掉，故不采用，保持 100%。 */
     width: 100%;
     height: 100%;
     border: 0;
@@ -94,8 +95,14 @@ const watchUrl = url?.trim() || `https://www.douyin.com/video/${id}`;
     border-bottom-color: currentColor;
   }
   @media (max-width: 720px) {
+    /* 手机端：播放器撑满正文版心，不要比版心窄出一截 */
     .dy-embed {
-      max-width: 100%;
+      max-width: none;
+      width: 100%;
+    }
+    .dy-frame {
+      /* 内部内容宽约为容器宽的 85%，靠加宽容器弥补不了，故按实心比例给高度 */
+      aspect-ratio: 360 / 690;
     }
   }
   @media print {
