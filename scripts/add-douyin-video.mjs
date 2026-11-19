@@ -1,11 +1,13 @@
-// 抖音视频 → 文章骨架。
+// 抖音视频 → 文章（标题 + 正文 + 话题自动取自抖音文案）。
 // 用法：
 //   npm run dy:add -- "https://v.douyin.com/xxxx/" --slug my-article --date 2026.11.19 --category "AI 与产品"
 //   npm run dy:add -- "https://www.douyin.com/video/7709149690415140159"
-//   npm run dy:add -- 7709149690415140159 --slug my-article
+//   npm run dy:add -- 7709149690415140159 --slug my-article --topics "个人商业创造,AI与产品创造"
 //
-// 做的事：解析链接拿 video_id → 调官方免鉴权接口取标题/画幅 → 生成 src/content/insights/<slug>.md 骨架。
-// 不做的事：不写正文（正文由人审定）、不出封面、不发布。
+// 数据来源：open.douyin.com 免鉴权接口 get_iframe_by_video。
+// 它的 video_title 实际是整条文案：首行=标题、中间=正文段落、末尾=纯话题行。
+// 默认据此自动拆出 title / 正文 / tags；--title、--tagline 可覆盖。
+// 默认 draft: true，正文沿用抖音原文，审定后自行改 false。
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,10 +29,8 @@ function hasFlag(name) {
 async function resolveVideoId(input) {
   const raw = (input || '').trim();
   if (ID_RE.test(raw)) return raw;
-  // douyin.com/video/<id>、iesdouyin.com/share/video/<id>、modal_id=<id>
   const direct = raw.match(/(?:video\/|modal_id=|aweme_id=)(\d{15,20})/);
   if (direct) return direct[1];
-  // 短链：跟随 302 拿最终地址
   if (/^https?:\/\//.test(raw)) {
     const res = await fetch(raw, { redirect: 'follow', headers: { 'user-agent': 'Mozilla/5.0' } });
     const finalUrl = res.url || '';
@@ -40,7 +40,7 @@ async function resolveVideoId(input) {
   throw new Error(`无法从输入里取到 video_id：${raw}`);
 }
 
-/** 官方免鉴权接口，返回标题与画幅。 */
+/** 官方免鉴权接口。video_title 是整条文案，不是单纯标题。 */
 async function fetchMeta(id) {
   const url = `https://open.douyin.com/api/douyin/v1/video/get_iframe_by_video?video_id=${id}`;
   const res = await fetch(url);
@@ -49,10 +49,52 @@ async function fetchMeta(id) {
   if (json.err_no !== 0) throw new Error(`视频不可用（err_no=${json.err_no}）：${json.err_msg || '未知错误'}`);
   const d = json.data ?? {};
   return {
-    title: (d.video_title ?? '').trim(),
+    caption: (d.video_title ?? '').trim(),
     width: Number(d.video_width) || 0,
     height: Number(d.video_height) || 0,
   };
+}
+
+/**
+ * 从抖音文案里拆出 标题 / 正文段落 / 话题。
+ * 规则：末尾整行都是话题的，并入 tags；首行作标题，并剥掉其中夹带的话题；其余行作正文。
+ */
+function splitCaption(caption) {
+  const lines = caption
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (!lines.length) return { title: '', body: [], tags: [] };
+
+  const hashtagOnly = (s) => /^(#[^\s#]+[\s]*)+$/u.test(s);
+  const tags = [];
+
+  while (lines.length > 1 && hashtagOnly(lines[lines.length - 1])) {
+    tags.unshift(...extractTags(lines.pop()));
+  }
+
+  let title = lines.shift() ?? '';
+  const titleTags = extractTags(title);
+  if (titleTags.length) {
+    tags.unshift(...titleTags);
+    title = title.replace(/[#＃][^\s#]+/gu, '').replace(/\s{2,}/gu, ' ').trim();
+  }
+
+  return { title, body: lines, tags: unique(tags) };
+}
+
+function extractTags(text) {
+  const out = [];
+  for (const m of String(text).matchAll(/[#＃]([^\s#，。,.!！?？、]+)/gu)) {
+    const t = m[1].trim();
+    if (t) out.push(t);
+  }
+  return out;
+}
+
+function unique(list) {
+  return [...new Set(list.map((s) => s.trim()).filter(Boolean))];
 }
 
 /** 宽高 → 画幅枚举（最近档）。 */
@@ -104,15 +146,20 @@ async function main() {
     console.error(`✗ ${e.message}`);
     console.error('   （离线或接口异常时可加 --offline 跳过元数据，仅写 id）');
     if (!hasFlag('offline')) process.exit(1);
-    meta = { title: '', width: 0, height: 0 };
+    meta = { caption: '', width: 0, height: 0 };
   }
 
+  const parsed = splitCaption(meta.caption);
   const ratio = hasFlag('offline') ? 'auto' : ratioOf(meta.width, meta.height);
-  const slug = arg('slug') || slugify(meta.title) || `douyin-${id}`;
+  const slug = arg('slug') || slugify(parsed.title) || `douyin-${id}`;
   const date = arg('date');
   const category = arg('category', 'AI 与产品');
+  const topics = unique(arg('topics').split(','));
   const topic = arg('topic');
-  const title = arg('title') || meta.title.split(/[#＃]/)[0].trim() || `抖音视频 ${id}`;
+  const allTopics = topics.length ? topics : topic ? [topic] : [];
+  const title = arg('title') || parsed.title || `抖音视频 ${id}`;
+  const tagline = arg('tagline');
+  const sourceUrl = input.startsWith('http') ? input : `https://www.douyin.com/video/${id}`;
 
   if (!date) {
     console.error('✗ 缺少 --date（如 2026.11.19）。日期决定排序，必须由你确认。');
@@ -129,27 +176,34 @@ async function main() {
     process.exit(1);
   }
 
-  const lines = [
+  const fm = [
     '---',
     `title: ${yamlString(title)}`,
-    'tagline: ""',
+    `tagline: ${yamlString(tagline)}`,
     `category: ${yamlString(category)}`,
-    ...(topic ? [`topic: ${yamlString(topic)}`] : []),
+    ...(allTopics.length
+      ? [`topic: ${allTopics.length > 1 ? `[${allTopics.map(yamlString).join(', ')}]` : yamlString(allTopics[0])}`]
+      : []),
     `date: ${yamlString(date)}`,
     'draft: true',
     `videoId: ${yamlString(id)}`,
     `videoRatio: ${yamlString(ratio)}`,
-    `videoUrl: ${yamlString(input.startsWith('http') ? input : `https://www.douyin.com/video/${id}`)}`,
+    `videoUrl: ${yamlString(sourceUrl)}`,
+    ...(parsed.tags.length ? [`tags: [${parsed.tags.map(yamlString).join(', ')}]`] : []),
     '---',
-    '',
-    '<!-- TODO 正文：在这条视频的基础上写解读，审定后再把 draft 改为 false -->',
-    '',
   ];
 
-  fs.writeFileSync(target, lines.join('\n'), 'utf8');
+  const bodyLines = parsed.body.length
+    ? parsed.body.flatMap((p) => [p, ''])
+    : ['<!-- TODO 正文：接口没有返回文案，需自行补写 -->', ''];
+
+  fs.writeFileSync(target, [...fm, '', ...bodyLines].join('\n'), 'utf8');
+
   console.log(`✓ 已生成 src/content/insights/${slug}.md`);
+  console.log(`  标题：${title}`);
+  console.log(`  正文：${parsed.body.length} 段，话题：${parsed.tags.length} 个（${parsed.tags.join(' ')}）`);
   console.log(`  画幅 ${ratio}（${meta.width}x${meta.height}），draft: true`);
-  console.log('   下一步：写正文 → 出封面 → 补 topic/takeaways → npm run check:content → 改 draft: false');
+  console.log('   下一步：放封面 src/assets/covers/<slug>-1.webp → npm run check:content → 审正文 → draft: false');
 }
 
 main().catch((e) => {
