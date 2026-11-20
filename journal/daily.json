@@ -1,57 +1,451 @@
 {
   "entries": [
     {
+      "date": "2026-11-20",
+      "commits": 12,
+      "theme": "站名收口，首页重做",
+      "summary": "口径统一成「个人成长实践者」之后，首页才算真的在讲「做什么、凭什么」。",
+      "items": [
+        {
+          "face": "站点",
+          "title": "首页重做：首屏改成「把经验，变成能交付的东西」，加数据带与方向子议题；删掉与方向卡重复的板块换成站内四入口，同天把默认主题改浅色、页脚 logo 居中、数据带与版心对齐",
+          "commits": 6
+        },
+        {
+          "face": "产线",
+          "title": "Dan Koe 第 3 集成片，19 镜 + 三段封面 Composition 入库",
+          "commits": 1
+        },
+        {
+          "face": "产线",
+          "title": "产线清单补两条：空镜合并（一句撑不起一镜就并进相邻句），P6 第四条判据",
+          "commits": 1
+        }
+      ],
+      "posts": [],
+      "activities": [],
+      "milestones": [
+        {
+          "text": "完成 ICP 备案（黔 ICP 备 2026022310 号），站点进入可对外推广状态"
+        },
+        {
+          "text": "首页重构：首屏讲清做什么与凭什么"
+        }
+      ],
+      "verified": true,
+      "verifiedAt": "2026-11-20"
+    },
+    {
+      "date": "2026-11-19",
+      "commits": 30,
+      "theme": "视频成了文章，前两集交付",
+      "summary": "抖音的一条视频，第一次成了站点上的一篇文章。",
+      "items": [
+        {
+          "face": "站点",
+          "title": "发布监视钩子调整，三平台图文联动暂停；视频文章不计入发布监视",
+          "commits": 1
+        },
+        {
+          "face": "内容",
+          "title": "首篇抖音视频文章《2027 年最赚钱的 AI 生意，是抓注意力》上线，走站点的入稿链路",
+          "commits": 4
+        },
+        {
+          "face": "产线",
+          "title": "Dan Koe 第 1 集成片交付，88.2 秒竖版 + 三画幅封面 + 抖音文案；同日竖版底座成型：vbase/epbase 图元、自有圆环片头片尾、垫乐合成",
+          "commits": 9
+        },
+        {
+          "face": "产线",
+          "title": "第 2 集成片交付，两轮版式返工；饭碗内边距、判词卡撑满下半幅、START 卡不压边、裂缝线移出字身、双栏底文对齐",
+          "commits": 6
+        },
+        {
+          "face": "产线",
+          "title": "产线与入库规则定版：每镜必须有结构件、页脚不放页码、垫乐固定极简钢琴 −13dB、封面三画幅用不透明底",
+          "commits": 11
+        }
+      ],
+      "posts": [
+        {
+          "slug": "dankoe-2027-ai-business-ep01",
+          "title": "2027 年最赚钱的AI生意，是抓注意力",
+          "url": "/insight/dankoe-2027-ai-business-ep01/"
+        }
+      ],
+      "activities": [],
+      "milestones": [
+        {
+          "text": "首篇抖音视频文章上线，详情页嵌官方播放器（不自存视频、回源播放）"
+        }
+      ],
+      "verified": true,
+      "verifiedAt": "2026-11-20"
+    },
+    {
+      "date": "2026-11-18",
+      "commits": 5,
+      "theme": "一镜一组件，长片不再雷同",
+      "summary": "把每个镜头变成可复用的零件，长片的版式才有得换。",
+      "items": [
+        {
+          "face": "内容",
+          "title": "新增《一句话记一笔销售：入口先变，系统再跟》，同日两次改题；副标题收成「一句话记一笔账，交互方式先变，原有系统不用变」，末节标题收为「我的判断」",
+          "commits": 3
+        },
+        {
+          "face": "内容",
+          "title": "录了一条自然语言 CRM 小程序的体验视频",
+          "commits": 0
+        },
+        {
+          "face": "产线",
+          "title": "a2e 图元定成「一镜一组件」，补 P6 三条静态判据：首帧不空壳、零长线不留痕、标签左边界 ≥96",
+          "commits": 1
+        },
+        {
+          "face": "产线",
+          "title": "构图、画法、闸门三件套规范化，解决长片各集版式雷同",
+          "commits": 1
+        }
+      ],
+      "posts": [
+        {
+          "slug": "natural-language-sales-entry",
+          "title": "自然语言交互是改造现有旧系统的第一步",
+          "url": "/insight/natural-language-sales-entry/"
+        }
+      ],
+      "activities": [],
+      "milestones": [],
+      "verified": true,
+      "verifiedAt": "2026-11-20"
+    },
+    {
+      "date": "2026-11-17",
+      "commits": 5,
+      "theme": "口播稿有了通则，时长不再卡死",
+      "summary": "写法先定下来，时长才有资格被放松。",
+      "items": [
+        {
+          "face": "内容",
+          "title": "新增《腾讯要 AI 再创业，百度要建智能组织，AI 之后的组织长什么样》",
+          "commits": 1
+        },
+        {
+          "face": "产线",
+          "title": "口播稿正文通则十条，跨体裁通用；短稿去 AI 味必须显式关闭字数下限，版式先查官方，每镜开头不留空屏",
+          "commits": 3
+        },
+        {
+          "face": "产线",
+          "title": "时长口径松绑：90–120 秒只报 WARN，超过 120 秒才 FAIL；WARN 里直接给 1.2 / 1.5 倍速折算",
+          "commits": 1
+        }
+      ],
+      "posts": [
+        {
+          "slug": "tencent-baidu-ai-organization",
+          "title": "腾讯要AI再创业，百度要建智能组织，AI之后的组织长什么样",
+          "url": "/insight/tencent-baidu-ai-organization/"
+        }
+      ],
+      "activities": [],
+      "milestones": [],
+      "verified": true,
+      "verifiedAt": "2026-11-20"
+    },
+    {
+      "date": "2026-11-16",
+      "commits": 16,
+      "theme": "给视频定规矩，比做片子更花时间",
+      "summary": "这一天没动站点，全在定版式和闸门——先把什么算合格说清楚。",
+      "items": [
+        {
+          "face": "内容",
+          "title": "新增《AI 下一个十年，最稀缺的是如何验证、谁负责》",
+          "commits": 1
+        },
+        {
+          "face": "产线",
+          "title": "宽条族版式 S1–S12 定稿，立「一屏只留一套字」硬规矩；一页两拍、编号换角、帧号直通 script",
+          "commits": 5
+        },
+        {
+          "face": "产线",
+          "title": "出片段改成 Remotion 元素级动画，补时点口径；口播稿层开始有闸门——结构体检 + 去 AI 味",
+          "commits": 4
+        },
+        {
+          "face": "产线",
+          "title": "图解页张数由文章结构算出，不靠人挑；逐页做块级覆盖校验，收进 3:4 竖版页壳与第一篇完整样例",
+          "commits": 5
+        }
+      ],
+      "posts": [
+        {
+          "slug": "next-decade-verify-and-own",
+          "title": "AI下一个十年，最稀缺的是如何验证、谁负责",
+          "url": "/insight/next-decade-verify-and-own/"
+        }
+      ],
+      "activities": [],
+      "milestones": [],
+      "verified": true,
+      "verifiedAt": "2026-11-20"
+    },
+    {
+      "date": "2026-11-15",
+      "commits": 7,
+      "theme": "引擎独立成仓，源码和规则分家",
+      "summary": "把视频引擎从技能仓库里提出来——要量产，先得有自己的房子。",
+      "items": [
+        {
+          "face": "站点",
+          "title": "去掉卡片背景与边框的挂载过渡，消除换页的灰黑闪",
+          "commits": 1
+        },
+        {
+          "face": "内容",
+          "title": "新增《李彦宏说「下一幕」是智能组织，我关心的是验证和追责》；同日收窄免责与站位，删掉指标归属、出处辨析、推断声明",
+          "commits": 2
+        },
+        {
+          "face": "产线",
+          "title": "引擎提为仓库根 engine/，技能仓库收成 references/；源码与规则从此分仓",
+          "commits": 1
+        },
+        {
+          "face": "产线",
+          "title": "数字卡 metric 进 schema、校验与灰模；两份交付说明合成一份，content.json 与 script.json 一起交",
+          "commits": 3
+        }
+      ],
+      "posts": [
+        {
+          "slug": "li-yanhong-next-act",
+          "title": "李彦宏说「下一幕」是智能组织，我关心的是验证和追责",
+          "url": "/insight/li-yanhong-next-act/"
+        }
+      ],
+      "activities": [],
+      "milestones": [],
+      "verified": true,
+      "verifiedAt": "2026-11-20"
+    },
+    {
+      "date": "2026-11-14",
+      "commits": 20,
+      "theme": "备案启动，工程一次推完",
+      "summary": "备案开始的同一天，把上线运维该补的一起补完了。",
+      "items": [
+        {
+          "face": "站点",
+          "title": "上线运维一次补齐：ECS 适配 Alibaba Cloud Linux 3 与一键 setup、部署免密、部署后重启 API、定时备份与 swap、私有页 Basic Auth",
+          "commits": 9
+        },
+        {
+          "face": "站点",
+          "title": "移动端导航改成顶部全宽下拉，链接居中、抽屉收窄；顺带修全局限流绑不到路由",
+          "commits": 2
+        },
+        {
+          "face": "产线",
+          "title": "新增 card-video 技能，出视频统一走「卡片 → 视频」一条路线",
+          "commits": 1
+        }
+      ],
+      "posts": [],
+      "activities": [],
+      "milestones": [],
+      "verified": true,
+      "verifiedAt": "2026-11-20"
+    },
+    {
+      "date": "2026-11-13",
+      "commits": 12,
+      "theme": "站点进 B 阶段，视频开始长",
+      "summary": "站点开始工程化，同一天视频的第一层视觉也落地了。",
+      "items": [
+        {
+          "face": "站点",
+          "title": "B1 布局地基与缺陷修复；详情页去掉多余返回按钮与整站页脚，底部改成上下篇导航",
+          "commits": 2
+        },
+        {
+          "face": "内容",
+          "title": "定稿《一小时把项目部署上线：阿里云的自然语言交互，不懂运维也能做好》；Dan Koe 那篇发布日期校正为 11-12",
+          "commits": 2
+        },
+        {
+          "face": "产线",
+          "title": "视频视觉第一层落地，转场与翻牌板镜头进来；补滑动转场与手绘荧光笔、环图与数字卡环、bars 强调",
+          "commits": 4
+        },
+        {
+          "face": "产线",
+          "title": "配音换成本地 VoxCPM1.5 设计音色，补 Windows 逐字对齐；引言与收尾重排，收住版式掉档，去掉标题镜的模糊圆斑",
+          "commits": 4
+        }
+      ],
+      "posts": [],
+      "activities": [],
+      "milestones": [],
+      "verified": true,
+      "verifiedAt": "2026-11-20"
+    },
+    {
+      "date": "2026-11-12",
+      "commits": 19,
+      "theme": "产线开仓，部署交给机器",
+      "summary": "内容产线正式开仓库，站点部署也从手动改成自动。",
+      "items": [
+        {
+          "face": "站点",
+          "title": "发布触发装置上线，pre-push 写三平台触发日志；钩子锁 LF 换行，避免重克隆后失效",
+          "commits": 2
+        },
+        {
+          "face": "内容",
+          "title": "发文《用自然语言在阿里云上部署博客》",
+          "commits": 1
+        },
+        {
+          "face": "内容",
+          "title": "发文《读完 Dan Koe〈2027 年最赚钱的 AI 生意〉，我发现他只讲了「认清自己」的一半》；附七层架构配图与封面，当天改成新版全文",
+          "commits": 3
+        },
+        {
+          "face": "产线",
+          "title": "产线立项，决定从图文开始；从 article2media 整套导入技能与引擎（卡片母版、版式规划、角色映射、QA）",
+          "commits": 3
+        },
+        {
+          "face": "产线",
+          "title": "图卡能力第一批修正：张数上限按平台判（抖音 12→30），多比例校准；新增系列长文精读卡片流程与真人封面照取图脚本",
+          "commits": 4
+        }
+      ],
+      "posts": [
+        {
+          "slug": "natural-language-deploy-blog",
+          "title": "一小时把项目部署上线：阿里云的自然语言交互，不懂运维也能做好",
+          "url": "/insight/natural-language-deploy-blog/"
+        },
+        {
+          "slug": "dankoe-2027-ai-business",
+          "title": "读完 Dan Koe《2027 年最赚钱的 AI 生意》，我发现他只讲了「认清自己」的一半",
+          "url": "/insight/dankoe-2027-ai-business/"
+        }
+      ],
+      "activities": [],
+      "milestones": [],
+      "verified": true,
+      "verifiedAt": "2026-11-20"
+    },
+    {
+      "date": "2026-11-11",
+      "commits": 4,
+      "theme": "一篇文章，能挂两个方向",
+      "summary": "先把「它到底属于哪一块」这件事松开，后面写起来才不别扭。",
+      "items": [
+        {
+          "face": "站点",
+          "title": "方向归属支持多值，一篇可同时归入两个方向；解决一篇文章只能挂一个方向的问题",
+          "commits": 1
+        }
+      ],
+      "posts": [],
+      "activities": [],
+      "milestones": [],
+      "verified": true,
+      "verifiedAt": "2026-11-20"
+    },
+    {
+      "date": "2026-11-10",
+      "commits": 5,
+      "theme": "有了台阶，站才算有名字",
+      "summary": "logo 立起来、页脚补齐，第三篇实战也跟着发了出去。",
+      "items": [
+        {
+          "face": "站点",
+          "title": "启用「台阶」logo，页脚按作者卡版式重建；补联系方式，账号引导句与邮箱并成一块",
+          "commits": 3
+        },
+        {
+          "face": "内容",
+          "title": "发布第三篇实战《21 套主题收成 3 套》；挂进第一阶段相关记录",
+          "commits": 2
+        }
+      ],
+      "posts": [
+        {
+          "slug": "micro-innovation-better-world",
+          "title": "微创新让世界更美好",
+          "url": "/insight/micro-innovation-better-world/"
+        }
+      ],
+      "activities": [],
+      "milestones": [],
+      "verified": true,
+      "verifiedAt": "2026-11-20"
+    },
+    {
+      "date": "2026-11-09",
+      "commits": 117,
+      "theme": "域名挂上，站点才算真开张",
+      "summary": "这一天把站点从「能用」推到「能看、能被找到」。",
+      "items": [
+        {
+          "face": "站点",
+          "title": "页面结构按编辑层级重做，旧路由与旧 ID 全部 301；项目档案搬进关于页改成可抓取的静态详情页，长文阅读页重做（目录跟随滚动、专注模式、要点卡分页、字号控制）",
+          "commits": 38
+        },
+        {
+          "face": "站点",
+          "title": "SEO 成套补齐：canonical 与分享元数据、结构化数据加厚、sitemap 与 robots、草稿 noindex 口径",
+          "commits": 23
+        },
+        {
+          "face": "文档",
+          "title": "合规与收尾：去掉遗留物流敏感细节，README 按现状重写；加生产构建校验，清理未用依赖与遗留文件",
+          "commits": 26
+        }
+      ],
+      "posts": [],
+      "activities": [],
+      "milestones": [
+        {
+          "text": "xiaomaker.top 上线（ECS 自托管 + GitHub Actions 部署）"
+        },
+        {
+          "text": "90 天追踪页首次公开"
+        }
+      ],
+      "verified": true,
+      "verifiedAt": "2026-11-20"
+    },
+    {
       "date": "2026-11-08",
       "commits": 18,
       "theme": "版式定死，第一篇也发出去了",
       "summary": "今天最实在的一件事，是第一次有了「不用再改」的底气。",
       "items": [
         {
-          "face": "内容",
-          "title": "第一篇实战文发出去，讲的是零服务器上线；配 6 张图，标题与成本口径当天改准——域名十余元、以最低成本验证",
-          "commits": 2,
-          "hashes": [
-            "03fb0af",
-            "9e2b6f8",
-            "ee85b9e"
-          ]
-        },
-        {
-          "face": "站点",
-          "title": "一套绿灰配色和字号定死，往后每页照抄；graphite + 高亮笔设计系统，C 杂志式排版，整体降一档字号，正文收到 15px",
-          "commits": 5,
-          "hashes": [
-            "401abb2",
-            "03aef05",
-            "c025b88",
-            "6f51470",
-            "1ab229f"
-          ]
-        },
-        {
           "face": "站点",
           "title": "首页第一屏从「介绍我」改成「我判断过什么」；每条观点生成一张纯色大字封面，卡片只留其余条目，恢复原句标题",
-          "commits": 6,
-          "hashes": [
-            "33551f7",
-            "c3a4bff",
-            "fa19e09",
-            "f3893f5",
-            "6869f19",
-            "21f750b"
-          ]
+          "commits": 6
         },
         {
           "face": "站点",
-          "title": "阅读版式先出三套对比再定稿；用《18 年》全文真排、1440 与 390 长图比对，第四节补引用卡断开长段，深色底常驻消除白屏",
-          "commits": 5,
-          "hashes": [
-            "270e60e",
-            "25e8ca4",
-            "ba92732",
-            "6bb1317",
-            "f3893f5"
-          ]
+          "title": "阅读版式先出 A/B/C 三方案再定稿；用《18 年》全文真排、1440 与 390 长图比对，第四节补引用卡断开长段，深色底常驻消除白屏",
+          "commits": 5
+        },
+        {
+          "face": "内容",
+          "title": "第一篇实战发出去，讲零服务器挂自有域名；配 6 张图，标题与成本口径当天改准——域名十余元、以最低成本验证",
+          "commits": 2
         }
       ],
       "posts": [
@@ -76,24 +470,8 @@
       "items": [
         {
           "face": "站点",
-          "title": "先把「我凭什么值得看」讲清楚；价值链七步并入 hero 卡，履历专利区换成项目真实专利",
-          "commits": 6,
-          "hashes": [
-            "96cfc08",
-            "de2ae74",
-            "8801f73",
-            "a9aeda7"
-          ]
-        },
-        {
-          "face": "站点",
-          "title": "品牌表达 v1 落地，顺手把 12 篇种子稿排进新结构；重建信息架构与经历页，含 90 天计划示范稿",
-          "commits": 3,
-          "hashes": [
-            "ba82fa6",
-            "9bb1eae",
-            "3a0b1ee"
-          ]
+          "title": "品牌表达 v1 落地，重建信息架构与经历页；同批导入 12 篇示范稿",
+          "commits": 3
         }
       ],
       "posts": [],

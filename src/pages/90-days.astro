@@ -81,33 +81,38 @@ journalEntries.forEach((entry) => {
   entry.open = entry.date === journalLatestDate;
 });
 
-// 按阶段分组：当前阶段整段展开，已结束阶段与筹备期先压成一行，点开才展开阶段内的日期
+// 阶段视图：筹备期 + 四个阶段各一张卡，每天的记录挂在所属阶段卡里（时间顺序：筹备期在前）
 const stageOfDate = (date) => stages.find((stage) => date >= stage.startDate && date <= stage.endDate) ?? null;
 
-const journalGroups = (() => {
-  const buckets = new Map();
-  journalEntries.forEach((entry) => {
-    const key = stageOfDate(entry.date)?.id ?? 0;
-    if (!buckets.has(key)) buckets.set(key, []);
-    buckets.get(key).push(entry);
+const stageViews = (() => {
+  const prepEntries = journalEntries.filter((entry) => stageOfDate(entry.date) === null);
+  const views = [];
+
+  stages.forEach((s) => {
+    const entries = journalEntries.filter((entry) => stageOfDate(entry.date)?.id === s.id);
+    // 筹备期（正式开始之前）的记录并入第一阶段，不单独成块
+    if (s.id === 1 && prepEntries.length > 0) entries.push(...prepEntries);
+    views.push({
+      key: `stage-${s.id}`,
+      title: `第${cnNums[s.id - 1]}阶段`,
+      name: s.name,
+      range: `${s.range.start} — ${s.range.end} · ${s.days} 天`,
+      status: s.status,
+      isCurrent: s.status === '当前',
+      goal: s.goal,
+      outputs: s.outputs,
+      days: entries.length,
+      commits: entries.reduce((sum, entry) => sum + (entry.commits ?? 0), 0),
+      startDate: s.startDate,
+      endDate: s.endDate,
+      entries,
+      // 有记录的段可以折叠；当前阶段默认展开，其余带记录的段默认收起
+      collapsible: entries.length > 0,
+      open: entries.length > 0 ? s.status === '当前' : true,
+    });
   });
-  const keys = [...buckets.keys()].sort((a, b) => (a === 0 ? 99 : a) - (b === 0 ? 99 : b));
-  return keys.map((key) => {
-    const list = buckets.get(key);
-    const stage = stages.find((s) => s.id === key) ?? null;
-    return {
-      key: stage ? `stage-${stage.id}` : 'prep',
-      title: stage ? `第${cnNums[stage.id - 1]}阶段` : '筹备期',
-      name: stage ? stage.name : '正式开始之前',
-      range: stage ? `${stage.range.start} – ${stage.range.end} · ${stage.days} 天` : (list[0].range ?? '正式开始前'),
-      status: stage ? stage.status : '',
-      isCurrent: stage?.status === '当前',
-      open: stage ? stage.status === '当前' : false,
-      days: list.length,
-      commits: list.reduce((sum, entry) => sum + (entry.commits ?? 0), 0),
-      entries: list,
-    };
-  });
+
+  return views;
 })();
 
 const journalDays = journalEntries.length;
@@ -164,119 +169,124 @@ const journalHasMilestone = journalEntries.some((entry) => (entry.milestones?.le
         <button type="button" class="journal-expand" data-expand-all>全部展开</button>
       </div>
 
-      {journalGroups.map((group) => (
-        <section class="stage-block" data-stage-key={group.key} data-open={group.open ? '1' : '0'}>
-          <button type="button" class="stage-band" data-stage-toggle aria-expanded={group.open ? 'true' : 'false'}>
-            <span class="band-title">{group.title}</span>
-            <span class="band-name">{group.name}</span>
-            <span class="band-range">{group.range}</span>
-            <span class="band-meta">{group.days} 天记录 · {group.commits} 提交</span>
-            {group.status && <span class={`band-state${group.isCurrent ? ' is-current' : ''}`}>{group.status}</span>}
-            <span class="band-caret" aria-hidden="true">{group.open ? '收起' : '展开'}</span>
-          </button>
-
-          <ol class="journal-list">
-            {group.entries.map((entry) => (
-          <li class="log-day" data-date={entry.date} data-faces={entry.faces.join(' ')} data-milestone={entry.milestones?.length ? '1' : '0'} data-open={entry.open ? '1' : '0'}>
-            <div class="log-rail">
-              <span class="log-dot" aria-hidden="true"></span>
-              <span class="log-no">{entry.dayNo ?? entry.label}</span>
-              <span class="log-date">{entry.range ?? entry.shortDate}</span>
-              {!entry.range && <span class="log-week">{entry.week}</span>}
-            </div>
-
-            <button type="button" class="log-fold" data-fold aria-expanded="false">
-              <span class="fold-theme">{entry.theme}</span>
-              <span class="fold-meta">{entry.commits} 提交</span>
-              <span class="fold-caret" aria-hidden="true">展开</span>
-            </button>
-
-            <div class="log-card">
-              <div class="log-top">
-                <span class="log-kicker">{entry.range ? '筹备期' : `${entry.shortDate} ${entry.week}`}</span>
-                <span class="log-count">{entry.commits} 个提交</span>
+      <div class="stage-list">
+        {stageViews.map((view) => (
+          <article
+            class={`stage-card${view.isCurrent ? ' is-current' : ''}`}
+            id={view.key}
+            data-stage-key={view.key}
+            data-open={view.open ? '1' : '0'}
+            data-practice-stage={view.startDate ? '' : undefined}
+            data-stage-start={view.startDate}
+            data-stage-end={view.endDate}
+          >
+            {view.collapsible ? (
+              <button type="button" class="stage-head is-toggle" data-stage-toggle aria-expanded={view.open ? 'true' : 'false'}>
+                <span class="stage-no">{view.title}</span>
+                <span class="stage-range" data-stage-range>{view.range}</span>
+                <span class="stage-count">{view.days} 天记录 · {view.commits} 提交</span>
+                {view.status && <span class={`stage-state${view.isCurrent ? ' is-current' : ''}`} data-stage-status>{view.status}</span>}
+                <span class="stage-caret" aria-hidden="true">{view.open ? '收起 ⌃' : '展开 ⌄'}</span>
+              </button>
+            ) : (
+              <div class="stage-head">
+                <span class="stage-no">{view.title}</span>
+                <span class="stage-range" data-stage-range>{view.range}</span>
+                <span class="stage-count">这一段还没有记录</span>
+                {view.status && <span class={`stage-state${view.isCurrent ? ' is-current' : ''}`} data-stage-status>{view.status}</span>}
               </div>
-              {entry.theme && <h3 class="log-theme">{entry.theme}</h3>}
-              {entry.summary && <p class="log-sum">{entry.summary}</p>}
+            )}
 
-              {entry.milestones?.length > 0 && (
-                <div class="milestones">
-                  {entry.milestones.map((m) => (
-                    <p class="milestone">{m.text}</p>
-                  ))}
-                </div>
+            <div class="stage-body">
+              <h2>{view.name}</h2>
+              {view.goal && <p class="stage-goal">{view.goal}</p>}
+
+              {view.outputs && (
+                <>
+                  <h3 class="stage-label">阶段产出</h3>
+                  <ol class="outputs">
+                    {view.outputs.map((o, i) => (
+                      <li><span class="num">{String(i + 1).padStart(2, '0')}</span><span>{o}</span></li>
+                    ))}
+                  </ol>
+                </>
               )}
 
-              {entry.groups.map((group) => (
-                <div class="log-group">
-                  <div class="log-group-head">
-                    <span class="g-pill">{group.face}</span>
-                    <span class="g-count">{group.commits} 提交</span>
-                  </div>
-                  <ul class="log-lines">
-                    {group.lines.map((line) => (
-                      <li>
-                        <span class="line-main">{line.main}</span>
-                        {line.rest.length > 0 && <span class="line-rest">{line.rest.join('；')}</span>}
+              {view.entries.length > 0 && (
+                <div class="stage-record">
+                  <h3 class="stage-label">这一段记录</h3>
+                  <ol class="journal-list">
+                    {view.entries.map((entry) => (
+                      <li class="log-day" data-date={entry.date} data-faces={entry.faces.join(' ')} data-milestone={entry.milestones?.length ? '1' : '0'} data-open={entry.open ? '1' : '0'}>
+                        <div class="log-rail">
+                          <span class="log-dot" aria-hidden="true"></span>
+                          <span class="log-no">{entry.dayNo ?? entry.label}</span>
+                          <span class="log-date">{entry.range ?? entry.shortDate}</span>
+                          {!entry.range && <span class="log-week">{entry.week}</span>}
+                        </div>
+
+                        <button type="button" class="log-fold" data-fold aria-expanded="false">
+                          <span class="fold-theme">{entry.theme}</span>
+                          <span class="fold-meta">{entry.commits} 提交</span>
+                          <span class="fold-caret" aria-hidden="true">展开</span>
+                        </button>
+
+                        <div class="log-card">
+                          <div class="log-top">
+                            <span class="log-kicker">{entry.range ? '筹备期' : `${entry.shortDate} ${entry.week}`}</span>
+                            <span class="log-count">{entry.commits} 个提交</span>
+                          </div>
+                          {entry.theme && <h3 class="log-theme">{entry.theme}</h3>}
+                          {entry.summary && <p class="log-sum">{entry.summary}</p>}
+
+                          {entry.milestones?.length > 0 && (
+                            <div class="milestones">
+                              {entry.milestones.map((m) => (
+                                <p class="milestone">{m.text}</p>
+                              ))}
+                            </div>
+                          )}
+
+                          {entry.groups.map((group) => (
+                            <div class="log-group">
+                              <div class="log-group-head">
+                                <span class="g-pill">{group.face}</span>
+                                <span class="g-count">{group.commits} 提交</span>
+                              </div>
+                              <ul class="log-lines">
+                                {group.lines.map((line) => (
+                                  <li>
+                                    <span class="line-main">{line.main}</span>
+                                    {line.rest.length > 0 && <span class="line-rest">{line.rest.join('；')}</span>}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+
+                          {entry.posts?.length > 0 && (
+                            <div class="log-posts">
+                              {entry.posts.map((post) => (
+                                <a class="log-post" href={post.url}>
+                                  <span class="log-post-tag">发文</span>
+                                  <span class="log-post-title">{post.title}</span>
+                                  <span class="log-post-arrow" aria-hidden="true">↗</span>
+                                </a>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </li>
                     ))}
-                  </ul>
+                  </ol>
                 </div>
-              ))}
-
-              {entry.posts?.length > 0 && (
-                <div class="log-posts">
-                  {entry.posts.map((post) => (
-                    <a class="log-post" href={post.url}>
-                      <span class="log-post-tag">发文</span>
-                      <span class="log-post-title">{post.title}</span>
-                      <span class="log-post-arrow" aria-hidden="true">↗</span>
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          </li>
-            ))}
-          </ol>
-        </section>
-      ))}
-      <p class="journal-note">记录来自三个仓库的实际提交，加上每天自己补的判断、失误与活动。只记已发生的事，不写计划。</p>
-    </section>
-
-    <div class="stage-list">
-      {stages.map((s) => {
-        const posts = s.postIds.map(postOf).filter(Boolean).slice(0, 3);
-        return (
-          <article class={`stage-card${s.status === '当前' ? ' is-current' : ''}`} id={`stage-${s.id}`} data-practice-stage data-stage-start={s.startDate} data-stage-end={s.endDate}>
-            <div class="stage-head">
-              <span class="stage-no">第{cnNums[s.id - 1]}阶段</span>
-              <span class="stage-range" data-stage-range>{s.range.start} — {s.range.end} · {s.days} 天</span>
-              <span class={`stage-state${s.status === '当前' ? ' is-current' : ''}`} data-stage-status>{s.status}</span>
-            </div>
-            <h2>{s.name}</h2>
-            <p class="stage-goal">{s.goal}</p>
-            <h3 class="stage-label">阶段产出</h3>
-            <ol class="outputs">
-              {s.outputs.map((o, i) => (
-                <li><span class="num">{String(i + 1).padStart(2, '0')}</span><span>{o}</span></li>
-              ))}
-            </ol>
-            <div class="records">
-              <h3 class="stage-label">相关记录</h3>
-              {posts.length ? posts.map((p) => (
-                <a class="record" href={p.url}>
-                  <span class="record-date">{p.date}</span>
-                  <span class="record-title">{p.title}</span>
-                </a>
-              )) : (
-                <p class="record-empty">随实践更新</p>
               )}
             </div>
           </article>
-        );
-      })}
-    </div>
+        ))}
+      </div>
+      <p class="journal-note">记录来自三个仓库的实际提交，加上每天自己补的判断、失误与活动。只记已发生的事，不写计划。</p>
+    </section>
 
     <section class="acceptance" aria-label="验收指标与披露规则">
       <div class="acceptance-head">
@@ -339,20 +349,6 @@ const journalHasMilestone = journalEntries.some((entry) => (entry.milestones?.le
     .journal-filter button:hover{border-color:rgba(var(--accent-rgb),.5);color:var(--accent);}
     .journal-filter button.is-on{background:var(--text);border-color:var(--text);color:var(--bg);}
     .journal-filter button.journal-expand{margin-left:auto;border-color:transparent;color:var(--text-secondary);}
-
-    /* 阶段分段：当前阶段整段展开，已结束阶段压成一行 */
-    .stage-block{margin-top:var(--space-40);padding-top:var(--space-16);border-top:1px solid var(--border);}
-    .stage-block:first-of-type{margin-top:var(--space-24);padding-top:0;border-top:0;}
-    .stage-band{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--space-12);width:100%;padding:0 0 var(--space-16);text-align:left;background:none;border:0;cursor:pointer;}
-    .stage-band:hover .band-name{color:var(--text);}
-    .band-title{font-size:13px;font-weight:600;color:var(--text);letter-spacing:.01em;}
-    .band-name{font-size:13px;color:var(--text-secondary);}
-    .band-range{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11px;color:var(--text-muted);}
-    .band-meta{margin-left:auto;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11px;color:var(--text-muted);}
-    .band-state{font-size:11px;color:var(--text-muted);}
-    .band-state.is-current{color:var(--accent);}
-    .band-caret{font-size:11px;color:var(--text-muted);}
-    .stage-block[data-open="0"] .journal-list{display:none;}
 
     .journal-list{display:flex;flex-direction:column;gap:18px;margin-top:0;}
     .log-day{display:grid;grid-template-columns:104px minmax(0,1fr);grid-template-rows:auto;align-items:start;}
@@ -419,13 +415,24 @@ const journalHasMilestone = journalEntries.some((entry) => (entry.milestones?.le
     .disclosure strong{flex-shrink:0;font-weight:500;color:var(--text);}
 
     /* ===== 阶段列表 ===== */
-    .stage-list{display:flex;flex-direction:column;gap:var(--space-24);padding:var(--space-40) 0 var(--space-8);}
-    .stage-card{padding:var(--space-32);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
+    .stage-list{display:flex;flex-direction:column;gap:var(--space-24);margin-top:var(--space-32);}
+    .stage-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
     .stage-card.is-current{border-color:rgba(var(--accent-rgb),.35);}
-    .stage-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-12);margin-bottom:var(--space-12);}
-    .stage-no{font-size:var(--fs-12);color:var(--text);}
+    .stage-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-12);width:100%;padding:18px var(--space-32);text-align:left;background:none;border:0;border-bottom:1px solid var(--border);}
+    .stage-head.is-toggle{cursor:pointer;}
+    .stage-head.is-toggle:hover{background:var(--overlay-hover);}
+    .stage-caret{font-size:11px;color:var(--text-secondary);}
+    .stage-count{margin-left:auto;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11px;color:var(--text-muted);}
+    .stage-body{padding:var(--space-24) var(--space-32) var(--space-32);}
+    .stage-card[data-open="0"] .stage-body{display:none;}
+    .stage-record{margin-top:var(--space-24);padding-top:var(--space-24);border-top:1px solid var(--border);}
+    .stage-record .journal-list{margin-top:var(--space-8);}
+    .stage-no{font-size:13px;font-weight:600;color:var(--text);letter-spacing:-.01em;}
     .stage-range{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);}
-    .stage-state{margin-left:auto;display:inline-flex;align-items:center;gap:var(--space-8);font-size:var(--fs-12);color:var(--text-muted);}
+    .stage-state{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);}
+    .stage-state::before{content:'';width:1px;height:10px;margin-right:6px;background:var(--border);}
+    .stage-state.is-current{color:var(--accent);}
+    .stage-state.is-current::before{background:rgba(var(--accent-rgb),.35);}
     .stage-state.is-current{color:var(--text-secondary);}
     .stage-state.is-current::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;}
     .stage-card h2{font-size:var(--fs-20);font-weight:600;line-height:1.4;letter-spacing:0;margin-bottom:var(--space-8);}
@@ -474,14 +481,17 @@ const journalHasMilestone = journalEntries.some((entry) => (entry.milestones?.le
       .log-posts{margin-top:var(--space-20);}
       .acceptance{padding:var(--space-20);}
       .acceptance-metrics{grid-template-columns:1fr 1fr;}
-      .stage-card{padding:var(--space-24);}
+      .stage-head{padding:var(--space-16);}
+      .stage-body{padding:var(--space-16);}
+      .stage-state{margin-left:auto;}
       .outputs{grid-template-columns:1fr;}
     }
     @media(max-width:720px){
       .hero-actions{flex-direction:column;}
       .hero-actions .btn{width:100%;}
-      .stage-card{padding:var(--space-16);}
-      .stage-state{margin-left:0;}
+      .stage-head{padding:var(--space-16);}
+      .stage-state{margin-left:auto;}
+      .stage-state::before{display:none;}
     }
   </style>
 
@@ -512,7 +522,7 @@ const journalHasMilestone = journalEntries.some((entry) => (entry.milestones?.le
           });
         });
         // 整个阶段都没有命中，就把这一段收起，不留空标题
-        document.querySelectorAll('.stage-block').forEach((block) => {
+        document.querySelectorAll('.stage-card').forEach((block) => {
           block.hidden = !Array.from(block.querySelectorAll('.log-day')).some((day) => !day.hidden);
         });
       };
@@ -527,21 +537,21 @@ const journalHasMilestone = journalEntries.some((entry) => (entry.milestones?.le
 
       // 折叠：默认只展开最近一天，其余日子压成一行折叠条；阶段层面同理，当前阶段整段展开
       const expandAll = document.querySelector('.journal-expand');
-      const stageBlocks = Array.from(document.querySelectorAll('.stage-block'));
+      const stageBlocks = Array.from(document.querySelectorAll('.stage-card')).filter((card) => card.querySelector('[data-stage-toggle]'));
 
       const setOpen = (day, open) => {
         day.dataset.open = open ? '1' : '0';
         day.querySelectorAll('[data-fold]').forEach((btn) => btn.setAttribute('aria-expanded', open ? 'true' : 'false'));
         const caret = day.querySelector('.fold-caret');
-        if (caret) caret.textContent = open ? '收起' : '展开';
+        if (caret) caret.textContent = open ? '收起 ⌃' : '展开 ⌄';
       };
 
       const setStageOpen = (block, open) => {
         block.dataset.open = open ? '1' : '0';
         const band = block.querySelector('[data-stage-toggle]');
         if (band) band.setAttribute('aria-expanded', open ? 'true' : 'false');
-        const caret = block.querySelector('.band-caret');
-        if (caret) caret.textContent = open ? '收起' : '展开';
+        const caret = block.querySelector('.stage-caret');
+        if (caret) caret.textContent = open ? '收起 ⌃' : '展开 ⌄';
       };
 
       const syncExpandAll = () => {
@@ -577,7 +587,7 @@ const journalHasMilestone = journalEntries.some((entry) => (entry.milestones?.le
             days.forEach((day) => setOpen(day, true));
           } else {
             stageBlocks.forEach((block) => {
-              const isCurrent = block.querySelector('.band-state.is-current') !== null;
+              const isCurrent = block.querySelector('.stage-state.is-current') !== null;
               setStageOpen(block, isCurrent);
             });
             days.forEach((day) => setOpen(day, day.dataset.date === latest));
