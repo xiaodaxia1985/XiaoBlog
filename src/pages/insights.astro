@@ -8,12 +8,12 @@ const countOf = (c) => posts.filter((p) => p.category === c).length;
 const topicCountOf = (t) => posts.filter((p) => p.topics.includes(t)).length;
 const description = '记录从信息消费者到商业创造者的真实过程：90 天实战、产业数字化、AI 与产品、技术与管理。';
 ---
-<BaseLayout title="洞察 — 个人商业创造者" description={description} canonicalPath="/insights/" active="insights">
+<BaseLayout title="洞察 — 个人成长实践者" description={description} canonicalPath="/insights/" active="insights">
   <header class="page-hero">
     <div class="wrap">
       <p class="eyebrow">洞察</p>
       <h1>我的洞察</h1>
-      <p class="page-intro">这里记录我的判断与实践：产业数字化、AI 与产品、技术与管理，以及正在进行的个人商业创造过程。{posts.length > 0 && (
+      <p class="page-intro">这里记录我的判断与实践：产业数字化、AI 与产品、技术与管理，以及正在进行的个人成长实践过程。{posts.length > 0 && (
         <span class="count">共 <span id="insightCount">{posts.length}</span> 篇。</span>
       )}</p>
     </div>
@@ -65,9 +65,9 @@ const description = '记录从信息消费者到商业创造者的真实过程�
         <h2>第一批文章正在整理</h2>
         <p>可以先从三个方向了解我在做什么。</p>
         <div class="empty-links">
-          <a href="/topics/personal-business">个人商业创造<span aria-hidden="true">→</span></a>
+          <a href="/topics/personal-business">个人成长实践<span aria-hidden="true">→</span></a>
           <a href="/topics/ai-product">AI与产品创造<span aria-hidden="true">→</span></a>
-          <a href="/topics/business-system">个人商业系统<span aria-hidden="true">→</span></a>
+          <a href="/topics/business-system">个人成长体系<span aria-hidden="true">→</span></a>
         </div>
       </div>
     )}
