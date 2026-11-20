@@ -1,7 +1,7 @@
 ---
 title: "大模型进产业：先找 ROI 最高的三个场景"
 category: "AI 与产品"
-topic: "AI与产品创造"
+topic: "AI与产品探索"
 date: "2026.10.28"
 draft: true
 excerpt: "智能饲喂、健康预警、OCR 报告识别 —— 我在近 200 个家庭农场做过的成本收益测算与取舍。"

@@ -6,7 +6,7 @@ export const topics = [
   {
     slug: 'personal-business',
     num: '01 · PERSONAL BUSINESS',
-    title: '个人商业创造',
+    title: '个人成长实践',
     point: '从一次交付，到可复用的产品',
     definition: '把专业经验转化为产品与资产，让能力产生持续回报。',
     lens: {
@@ -38,7 +38,7 @@ export const topics = [
   {
     slug: 'business-system',
     num: '03 · BUSINESS SYSTEM',
-    title: '个人商业系统',
+    title: '个人成长体系',
     point: '先跑通最小闭环，再逐步放大',
     definition: '让品牌、内容、产品与收入连成持续运转的闭环。',
     lens: {

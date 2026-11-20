@@ -2,7 +2,7 @@
 title: "抖音视频嵌入试点：一条链接就是一篇洞察"
 tagline: "验证「视频文章」链路用的试点页，不对外发布"
 category: "AI 与产品"
-topic: "AI与产品创造"
+topic: "AI与产品探索"
 date: "2026.11.19"
 draft: true
 videoId: "7709149690415140159"

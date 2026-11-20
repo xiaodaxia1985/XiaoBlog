@@ -2,10 +2,10 @@
 // 不再在各页面硬编码。
 export const SITE = {
   url: 'https://xiaomaker.top',
-  name: '个人商业创造者',
-  title: '个人商业创造者｜把能力变成自己的商业资产',
+  name: '个人成长实践者',
+  title: '个人成长实践者｜个人成长与技术实践记录',
   description:
-    '记录一个人如何借助 AI，把专业经验转化为产品、内容与可持续的商业资产。关注个人商业创造、AI 产品与个人商业系统。',
+    '记录个人借助 AI 学习与成长的实践过程，分享技术探索和经验心得。',
   email: 'cronaldo.yang@outlook.com',
   locale: 'zh_CN',
 } as const;
