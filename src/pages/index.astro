@@ -2,6 +2,7 @@
 import { getPublishedPosts } from '../lib/insights';
 import { getPracticeSnapshot } from '../data/stages.mjs';
 import { topics } from '../data/topics.mjs';
+import { projectEntries } from '../data/projects.mjs';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../lib/site';
 
@@ -79,44 +80,37 @@ const countByTopic = (topic) => posts.filter((post) => post.topics.includes(topi
       </div>
     </section>
 
-    <section class="section" id="notes">
+    <section class="section" id="site-map">
       <div class="wrap">
-        <div class="note-split">
-          <div class="note-intro">
-            <p class="section-kicker">HOW A NOTE IS BUILT</p>
-            <h2>一篇记录里有什么</h2>
-            <p class="note-intro-copy">不写结论式的经验总结。每篇都把当时面对的条件、做过的动作和付的代价留在里面，读者可以自己复核这段经验还适不适用。</p>
-          </div>
-          <ol class="note-list">
-            <li class="note-item">
-              <span class="note-num">01</span>
-              <div class="note-body">
-                <h3>背景与约束</h3>
-                <p>当时手上有什么、缺什么、被什么条件限制住。同一个做法在别的条件下未必成立。</p>
-              </div>
-            </li>
-            <li class="note-item">
-              <span class="note-num">02</span>
-              <div class="note-body">
-                <h3>做了什么</h3>
-                <p>具体动作与取舍，包括中途改过的地方。只写走过的路，不写想象中更好的路。</p>
-              </div>
-            </li>
-            <li class="note-item">
-              <span class="note-num">03</span>
-              <div class="note-body">
-                <h3>代价</h3>
-                <p>花了多少时间，返工几次，哪一步判断错了。这一项最容易被省掉，也最能看出经验值不值。</p>
-              </div>
-            </li>
-            <li class="note-item">
-              <span class="note-num">04</span>
-              <div class="note-body">
-                <h3>边界</h3>
-                <p>验证过什么、没验证什么。不把一次结果说成通用方法，也不替读者下结论。</p>
-              </div>
-            </li>
-          </ol>
+        <div class="section-heading">
+          <div><p class="section-kicker">SITE OVERVIEW</p><h2>站内有什么</h2></div>
+          <p class="section-desc">四个入口，按你现在的目的选：想知道我在关注什么、想看一次完整实践、想读具体记录，还是先看看人。</p>
+        </div>
+        <div class="site-map-grid">
+          <a class="site-map-card" href="#topics">
+            <span class="site-map-kicker">DIRECTIONS</span>
+            <h3>三个方向</h3>
+            <p>需求判断、交付设计、经验沉淀：一条链上的三段，各自有独立的专题页。</p>
+            <div class="site-map-stat"><strong>{topics.length}</strong><span>个专题方向</span></div>
+          </a>
+          <a class="site-map-card" href="/90-days">
+            <span class="site-map-kicker">PRACTICE</span>
+            <h3>90 天实践</h3>
+            <p>从真实需求出发做一次完整的事，阶段划分、每日进展与失误都记在里面。</p>
+            <div class="site-map-stat"><strong>Day {practice.dayNumber}</strong><span>第{currentStage.id}阶段 · 共 90 天</span></div>
+          </a>
+          <a class="site-map-card" href="/insights">
+            <span class="site-map-kicker">NOTES</span>
+            <h3>全部记录</h3>
+            <p>按方向与栏目归类，可以筛着读：哪些在讲需求，哪些在讲实现，哪些在讲代价。</p>
+            <div class="site-map-stat"><strong>{posts.length}</strong><span>篇 · 最近 {latest[0]?.date ?? '—'}</span></div>
+          </a>
+          <a class="site-map-card" href="/projects">
+            <span class="site-map-kicker">PROJECTS</span>
+            <h3>项目与经历</h3>
+            <p>18 年里做过的底层系统、集团数字化与产业平台，以及各自解决的具体问题。</p>
+            <div class="site-map-stat"><strong>{projectEntries.length}</strong><span>个代表项目</span></div>
+          </a>
         </div>
       </div>
     </section>
@@ -193,8 +187,8 @@ const countByTopic = (topic) => posts.filter((post) => post.topics.includes(topi
     .aside-link{display:inline-flex;align-items:center;gap:8px;margin-top:22px;font-size:12px;color:var(--accent);transition:gap .18s ease,color .18s ease;}
     .aside-link:hover,.aside-link:focus-visible{gap:12px;color:var(--accent-hover);}
 
-    .stat-strip{border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--overlay-soft);}
-    .stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));}
+    .stat-strip{padding:0;}
+    .stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--overlay-soft);}
     .stat{display:flex;flex-direction:column;gap:4px;padding:22px 24px 22px 0;}
     .stat+.stat{border-left:1px solid var(--border);padding-left:24px;}
     .stat strong{font-family:'Inter',sans-serif;font-size:clamp(20px,2.2vw,26px);font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums;}
@@ -219,14 +213,15 @@ const countByTopic = (topic) => posts.filter((post) => post.topics.includes(topi
     .topic-arrow{font-size:18px;color:var(--text-secondary);transition:transform .2s ease,color .2s ease;}
     .topic:hover .topic-arrow{transform:translate(3px,-3px);color:var(--accent);}
 
-    .note-split{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(32px,5vw,72px);align-items:start;}
-    .note-intro h2{font-size:clamp(25px,3vw,32px);font-weight:600;letter-spacing:-.025em;line-height:1.35;}
-    .note-intro-copy{margin-top:16px;max-width:380px;color:var(--text-secondary);font-size:13px;line-height:1.9;}
-    .note-list{list-style:none;margin:0;padding:0;border-top:1px solid var(--border);}
-    .note-item{display:grid;grid-template-columns:34px minmax(0,1fr);gap:14px;padding:18px 0;border-bottom:1px solid var(--border);}
-    .note-num{font-family:'Inter',sans-serif;font-size:12px;letter-spacing:.08em;color:var(--accent);line-height:1.9;}
-    .note-item h3{font-size:16px;font-weight:600;line-height:1.5;}
-    .note-item p{margin-top:6px;color:var(--text-secondary);font-size:13px;line-height:1.85;max-width:520px;}
+    .site-map-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;}
+    .site-map-card{display:flex;flex-direction:column;gap:10px;min-height:196px;padding:20px 18px;border:1px solid var(--border);border-radius:6px;background:var(--surface);transition:border-color .2s ease,background .2s ease,transform .2s ease;}
+    .site-map-card:hover,.site-map-card:focus-visible{border-color:rgba(var(--accent-rgb),.5);background:rgba(var(--accent-rgb),.03);transform:translateY(-2px);}
+    .site-map-kicker{font-size:10px;letter-spacing:.14em;color:var(--accent);}
+    .site-map-card h3{font-size:16px;font-weight:600;line-height:1.5;}
+    .site-map-card p{font-size:12px;line-height:1.8;color:var(--text-secondary);}
+    .site-map-stat{margin-top:auto;padding-top:14px;display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;}
+    .site-map-stat strong{font-family:'Inter',sans-serif;font-size:20px;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums;}
+    .site-map-stat span{font-size:11px;color:var(--text-muted);}
 
     .practice{padding:34px 38px;background:linear-gradient(120deg,rgba(var(--accent-rgb),.07),var(--overlay-soft) 55%);border:1px solid var(--border);border-radius:8px;}
     .practice-top{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;}
@@ -264,8 +259,7 @@ const countByTopic = (topic) => posts.filter((post) => post.topics.includes(topi
       .topic-grid{grid-template-columns:1fr;}
       .topic{min-height:0;padding:24px 0;border-bottom:0;}
       .topic+.topic{border-left:0;border-top:1px solid var(--border);padding-left:0;}
-      .note-split{grid-template-columns:1fr;gap:26px;}
-      .note-intro-copy{max-width:560px;}
+      .site-map-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
       .topic-label{margin-bottom:10px;}
       .topic-foot{padding-top:16px;}
       .section-heading{align-items:flex-start;flex-direction:column;}
@@ -292,6 +286,8 @@ const countByTopic = (topic) => posts.filter((post) => post.topics.includes(topi
       .article-body h3{font-size:15px;}
       .article-body p{font-size:12px;}
       .article-arrow{grid-column:2;grid-row:1 / span 2;}
+      .site-map-grid{grid-template-columns:1fr;}
+      .site-map-card{min-height:0;padding:18px 16px;}
     }
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.primary-link,.topic-arrow,.article-arrow,.article,.topic{transition:none}}
   </style>
