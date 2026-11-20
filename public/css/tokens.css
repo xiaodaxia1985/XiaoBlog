@@ -51,6 +51,8 @@
   --overlay-strong:rgba(255,255,255,.06);
   --overlay-hover:rgba(255,255,255,.035);
   --scrollbar:#2A2A2A;
+  /* 观点卡主色稀释比例：深色主题保留满色（页面唯一亮块），浅色主题再稀释 */
+  --oc-card-mix:100%;
 
   /* 圆角 */
   --radius:12px;
@@ -77,6 +79,8 @@
   --overlay-strong:rgba(0,0,0,.06);
   --overlay-hover:rgba(0,0,0,.05);
   --scrollbar:#D5D5CC;
+  /* 观点卡主色稀释比例：浅色主题里把荧光主色混进纸色，只留一点色相 */
+  --oc-card-mix:30%;
 }
 
 /* ===== 全局基础：重置与页面默认（各页面不再重复声明） ===== */

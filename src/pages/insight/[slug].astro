@@ -352,11 +352,11 @@ const jsonLd = {
     @media(max-width:1060px){.related-grid{grid-template-columns:1fr;}}
 
     /* 核心观点卡：手动切换，不自动轮播，避免打断阅读。 */
-    .opinion-card{position:relative;width:100%;margin:0 0 var(--space-24);background:var(--card-bg);border:1px solid var(--oc-rule);border-radius:var(--radius);overflow:hidden;touch-action:pan-y;cursor:grab;transition:background-color .3s ease;}
+    .opinion-card{position:relative;width:100%;margin:0 0 var(--space-24);background:var(--card-bg);background:color-mix(in srgb,var(--card-bg) var(--oc-card-mix,30%),var(--surface));border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;touch-action:pan-y;cursor:grab;transition:background-color .3s ease;}
     .opinion-card:active{cursor:grabbing;}
     .js .opinion-card{min-height:240px;}
     .opinion-card:focus-visible{outline:2px solid var(--oc-ink);outline-offset:2px;}
-    .opinion-slide{display:flex;flex-direction:column;gap:var(--space-16);padding:var(--space-32);background:var(--card-bg);}
+    .opinion-slide{display:flex;flex-direction:column;gap:var(--space-16);padding:var(--space-32);background:var(--card-bg);background:color-mix(in srgb,var(--card-bg) var(--oc-card-mix,30%),var(--surface));}
     .opinion-slide + .opinion-slide{border-top:1px solid var(--oc-rule);}
     .js .opinion-slide{display:none;position:relative;inset:auto;opacity:1;border-top:0;pointer-events:auto;}
     .js .opinion-slide.is-active{display:flex;opacity:1;animation:oc-fade .3s ease;}
