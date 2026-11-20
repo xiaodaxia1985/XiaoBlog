@@ -9,7 +9,7 @@ const { active = '', variant = 'main' } = Astro.props;
   <div class="site-nav-bg" aria-hidden="true"></div>
   <div class="site-nav-inner">
     <a href="/" class="site-logo">
-      <img class="site-logo-mark" src="/images/logo-mark.svg" alt="" decoding="async" width="24" height="24">
+      <span class="site-logo-badge" aria-hidden="true"><img class="site-logo-mark" src="/images/logo-mark.svg" alt="" decoding="async" width="22" height="22"></span>
       个人成长实践者
     </a>
     <div class="site-nav-actions">
@@ -39,7 +39,8 @@ const { active = '', variant = 'main' } = Astro.props;
   .site-nav-bg{position:absolute;inset:0;background:var(--surface);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
   .site-nav-inner{position:relative;max-width:var(--container-w);margin:0 auto;width:100%;height:64px;display:flex;align-items:center;justify-content:space-between;gap:var(--space-24);}
   .site-logo{display:inline-flex;align-items:center;gap:var(--space-8);font-size:var(--fs-16);font-weight:600;color:var(--text);}
-  .site-logo-mark{width:24px;height:24px;flex-shrink:0;display:block;}
+  .site-logo-mark{width:22px;height:22px;flex-shrink:0;display:block;}
+  .site-logo-badge{width:32px;height:32px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);display:grid;place-items:center;flex-shrink:0;overflow:hidden;}
   .site-nav-actions{display:flex;align-items:center;gap:var(--space-8);}
   .site-nav-action{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text-secondary);cursor:pointer;}
   .site-nav-action:hover,.site-nav-action:focus-visible{color:var(--accent);border-color:var(--accent);}
