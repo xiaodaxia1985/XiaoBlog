@@ -16,22 +16,11 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "${{ secrets.ECS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}" '
-            echo "=== server_name line ==="
-            grep -n "server_name" /etc/nginx/conf.d/xiaoblog.conf
-            echo "=== letsencrypt tree ==="
-            ls -la /etc/letsencrypt/ 2>&1
-            ls -la /etc/letsencrypt/live/ 2>&1
-            ls -la /etc/letsencrypt/renewal/ 2>&1
-            echo "=== renewal conf ==="
-            cat /etc/letsencrypt/renewal/*.conf 2>&1
-            echo "=== certbot location ==="
-            ls /snap/bin 2>&1 | head
-            find / -maxdepth 5 -name "certbot*" -not -path "*/proc/*" 2>/dev/null | head -10
-            python3 -m certbot --version 2>&1 | head -3
-            echo "=== renewal timers ==="
-            crontab -l 2>&1 | head -20
-            systemctl list-timers --all 2>/dev/null | head -15
-            ls -la /etc/cron.d/ 2>&1
-            echo "=== cert expiry on disk ==="
-            openssl x509 -in /etc/letsencrypt/live/xiaomaker.top/cert.pem -noout -subject -dates -ext subjectAltName 2>&1
+            echo "=== whoami ==="; whoami; id
+            echo "=== sudo -n ==="; sudo -n true && echo "sudo NOPASSWD OK" || echo "sudo needs password or denied"
+            echo "=== deploy.sh ==="; cat /opt/XiaoBlog/deploy.sh
+            echo "=== certbot bin ==="; command -v certbot; ls -l /usr/bin/certbot 2>&1; sudo -n certbot --version 2>&1 | head -3
+            echo "=== http server block (80) ==="
+            sed -n "55,80p" /etc/nginx/conf.d/xiaoblog.conf
+            echo "=== dist webroot ==="; ls -ld /opt/XiaoBlog/dist; ls /opt/XiaoBlog/dist | head -5
           '
