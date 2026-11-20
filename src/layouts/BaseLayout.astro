@@ -41,25 +41,23 @@ const canonical = new URL(canonicalPath, siteUrl).toString();
 ---
 
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0c0c0c" />
-  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#f6f6f2" />
+  <meta name="color-scheme" content="light dark" />
   <script is:inline>
-    // 首屏前定主题：优先本地持久化，其次系统偏好，默认深色；避免刷新/切换时白闪。
+    // 首屏前定主题：优先本地持久化，否则默认浅色（不跟随系统深色）；避免刷新/切换时闪烁。
     (function () {
       try {
         var t = localStorage.getItem('xm-theme');
-        if (t !== 'light' && t !== 'dark') {
-          t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
-        }
+        if (t !== 'light' && t !== 'dark') t = 'light';
         var r = document.documentElement;
         r.dataset.theme = t;
         var m = document.querySelector('meta[name="theme-color"]');
         if (m) m.setAttribute('content', t === 'light' ? '#F6F6F2' : '#0C0C0C');
-      } catch (e) { document.documentElement.dataset.theme = 'dark'; }
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
     })();
   </script>
   {robots && <meta name="robots" content={robots} />}

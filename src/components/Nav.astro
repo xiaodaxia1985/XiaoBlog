@@ -173,9 +173,7 @@ const { active = '', variant = 'main' } = Astro.props;
       let t = null;
       try { t = localStorage.getItem('xm-theme'); } catch (e) {}
       if (t !== 'light' && t !== 'dark') t = root.dataset.theme;
-      if (t !== 'light' && t !== 'dark') {
-        t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
-      }
+      if (t !== 'light' && t !== 'dark') t = 'light';
       return t;
     }
 
