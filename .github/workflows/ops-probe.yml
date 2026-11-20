@@ -16,11 +16,13 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "${{ secrets.ECS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}" '
-            echo "=== whoami ==="; whoami; id
-            echo "=== sudo -n ==="; sudo -n true && echo "sudo NOPASSWD OK" || echo "sudo needs password or denied"
-            echo "=== deploy.sh ==="; cat /opt/XiaoBlog/deploy.sh
-            echo "=== certbot bin ==="; command -v certbot; ls -l /usr/bin/certbot 2>&1; sudo -n certbot --version 2>&1 | head -3
-            echo "=== http server block (80) ==="
-            sed -n "55,80p" /etc/nginx/conf.d/xiaoblog.conf
-            echo "=== dist webroot ==="; ls -ld /opt/XiaoBlog/dist; ls /opt/XiaoBlog/dist | head -5
+            echo "=== sudo -n -l ==="
+            sudo -n -l 2>&1 | tail -40
+            echo "=== sudoers.d ==="
+            ls -la /etc/sudoers.d/ 2>&1
+            cat /etc/sudoers.d/* 2>&1 | head -40
+            echo "=== can we reload nginx without password ==="
+            sudo -n systemctl reload nginx --dry-run 2>&1 | head -3
+            echo "=== can we run certbot without password ==="
+            sudo -n certbot --version 2>&1 | head -2
           '
