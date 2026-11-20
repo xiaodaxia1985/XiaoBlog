@@ -226,6 +226,7 @@ const journalHasMilestone = journalEntries.some((entry) => (entry.milestones?.le
                         </div>
 
                         <button type="button" class="log-fold" data-fold aria-expanded="false">
+                          <span class="fold-kicker">{entry.range ?? `${entry.shortDate} ${entry.week}`}</span>
                           <span class="fold-theme">{entry.theme}</span>
                           <span class="fold-meta">{entry.commits} 提交</span>
                           <span class="fold-caret" aria-hidden="true">展开</span>
@@ -275,6 +276,7 @@ const journalHasMilestone = journalEntries.some((entry) => (entry.milestones?.le
                               ))}
                             </div>
                           )}
+                          <button type="button" class="log-collapse" data-fold aria-expanded="true">收起 ⌃</button>
                         </div>
                       </li>
                     ))}
@@ -350,7 +352,7 @@ const journalHasMilestone = journalEntries.some((entry) => (entry.milestones?.le
     .journal-filter button.is-on{background:var(--text);border-color:var(--text);color:var(--bg);}
     .journal-filter button.journal-expand{margin-left:auto;border-color:transparent;color:var(--text-secondary);}
 
-    .journal-list{display:flex;flex-direction:column;gap:18px;margin-top:0;}
+    .journal-list{display:flex;flex-direction:column;gap:22px;margin-top:0;}
     .log-day{display:grid;grid-template-columns:104px minmax(0,1fr);grid-template-rows:auto;align-items:start;}
     .log-rail{grid-column:1;grid-row:1;position:relative;display:flex;flex-direction:column;align-items:flex-end;gap:3px;padding:22px 38px 0 0;}
     .log-rail span{white-space:nowrap;}
@@ -363,13 +365,16 @@ const journalHasMilestone = journalEntries.some((entry) => (entry.milestones?.le
     .log-week{font-size:11px;color:var(--text-muted);}
 
     /* 折叠条：未展开的日子压成一行，仍挂在同一条时间脊柱上 */
-    .log-fold{grid-column:2;grid-row:1;display:flex;align-items:center;gap:var(--space-12);width:100%;padding:15px 20px;background:var(--overlay-soft);border:1px solid var(--border);border-radius:12px;text-align:left;cursor:pointer;}
+    .log-fold{grid-column:2;grid-row:1;display:flex;align-items:center;gap:var(--space-12);width:100%;padding:15px 20px 15px 18px;background:var(--overlay-soft);border:1px solid var(--border);border-left:3px solid rgba(var(--accent-rgb),.34);border-radius:6px 12px 12px 6px;text-align:left;cursor:pointer;}
     .log-fold:hover{border-color:rgba(var(--accent-rgb),.45);}
     .fold-theme{font-size:14px;color:var(--text);line-height:1.5;}
     .fold-meta{margin-left:auto;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11px;color:var(--text-muted);flex-shrink:0;}
     .fold-caret{flex-shrink:0;font-size:11px;color:var(--text-muted);}
+    .fold-kicker{display:none;flex-shrink:0;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11px;color:var(--text-muted);}
+    .log-collapse{display:inline-flex;align-items:center;gap:6px;margin-top:var(--space-16);padding:6px 0 0;background:none;border:0;border-top:1px solid var(--border);width:100%;justify-content:flex-end;font-size:11px;color:var(--text-muted);cursor:pointer;transition:color .2s ease;}
+    .log-collapse:hover{color:var(--accent);}
 
-    .log-card{grid-column:2;grid-row:1;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:var(--space-24) 24px;box-shadow:0 1px 2px rgba(15,23,32,.03);}
+    .log-card{grid-column:2;grid-row:1;position:relative;padding:var(--space-24) 24px var(--space-16) 22px;background:var(--surface);border:1px solid var(--border);border-left:3px solid rgba(var(--accent-rgb),.45);border-radius:6px 14px 14px 6px;box-shadow:0 1px 2px rgba(15,23,32,.03);}
     .log-day[data-open="1"] .log-fold{display:none;}
     .log-day[data-open="0"] .log-card{display:none;}
     .log-top{display:flex;align-items:center;justify-content:space-between;gap:var(--space-12);margin-bottom:var(--space-12);}
@@ -468,13 +473,17 @@ const journalHasMilestone = journalEntries.some((entry) => (entry.milestones?.le
       .band-caret{order:3;margin-left:auto;font-size:11px;}
       .band-state{display:none;}
       .log-day{grid-template-columns:1fr;grid-template-rows:auto auto;}
-      .log-rail{grid-column:1;grid-row:1;flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:var(--space-8);padding:0 0 var(--space-8) 0;}
+      .log-rail{display:none;}
       .log-rail::before,.log-dot{display:none;}
       .log-card,.log-fold{grid-column:1;grid-row:2;}
-      .log-card{margin-left:0;padding:var(--space-16);border-radius:12px;}
-      .log-fold{padding:12px 14px;border-radius:10px;gap:var(--space-8);}
-      .fold-theme{font-size:13px;}
-      .log-top{display:none;}
+      .log-card{margin-left:0;padding:18px 18px 14px;border-radius:6px 12px 12px 6px;}
+      .stage-record .journal-list{margin-inline:-16px;}
+      .fold-kicker{display:inline-block;padding:2px 6px;border-radius:4px;background:rgba(var(--accent-rgb),.09);color:var(--text-secondary);letter-spacing:.02em;}
+      .log-fold{border-left-color:rgba(var(--accent-rgb),.42);}
+      .log-fold{padding:12px 14px;border-radius:8px 10px 10px 8px;gap:var(--space-8);}
+      .fold-theme{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .line-main{font-size:13.5px;}
+      .log-top{margin-bottom:var(--space-8);}
       .log-sum{font-size:14px;margin-bottom:var(--space-16);padding-left:12px;}
       .log-theme{font-size:18px;}
       .log-group{margin-top:var(--space-24);}
@@ -498,7 +507,11 @@ const journalHasMilestone = journalEntries.some((entry) => (entry.milestones?.le
   <script slot="scripts" is:inline src="/js/practice-clock.js" defer></script>
 
   <script slot="scripts" is:inline>
-    (() => {
+    const initJournal = () => {
+      // ClientRouter 换页后 inline script 不会重跑，这里按容器打标记，保证每次换页只绑一次
+      const stageList = document.querySelector('.stage-list');
+      if (!stageList || stageList.dataset.bound === '1') return;
+      stageList.dataset.bound = '1';
       const filterButtons = Array.from(document.querySelectorAll('.journal-filter button[data-filter]'));
       const days = Array.from(document.querySelectorAll('.log-day'));
       if (!days.length) return;
@@ -598,6 +611,13 @@ const journalHasMilestone = journalEntries.some((entry) => (entry.milestones?.le
 
       syncExpandAll();
       if (location.hash === '#journal') apply();
-    })();
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initJournal);
+    } else {
+      initJournal();
+    }
+    document.addEventListener('astro:page-load', initJournal);
   </script>
 </BaseLayout>
