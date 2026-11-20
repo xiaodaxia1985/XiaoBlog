@@ -1,0 +1,29 @@
+name: ops probe (read only)
+
+# 临时只读勘查工作流：列 nginx 配置与证书现状，不修改任何文件。
+# 用完即删（2026-11-20）。
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe server read-only
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ECS_SSH_KEY }}" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.ECS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}" '
+            set -e
+            echo "=== host ==="; hostname; cat /etc/os-release | head -3
+            echo "=== conf.d ==="; ls -la /etc/nginx/conf.d/ 2>/dev/null || true
+            echo "=== sites-enabled ==="; ls -la /etc/nginx/sites-enabled/ 2>/dev/null || true
+            echo "=== nginx -T (filtered) ==="
+            nginx -T 2>/dev/null | grep -v -E "ssl_certificate_key|ssl_trusted|password" | head -300
+            echo "=== certbot ==="; certbot certificates 2>/dev/null || echo "no certbot"
+            echo "=== listen ==="; ss -lntp 2>/dev/null | grep -E ":80 |:443 " || true
+            echo "=== /opt/XiaoBlog ==="; ls -la /opt/XiaoBlog 2>/dev/null | head -20
+            echo "=== certs dir ==="; ls -la /etc/letsencrypt/live/ 2>/dev/null || true
+          '
