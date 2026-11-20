@@ -133,7 +133,7 @@ curl -i http://39.96.115.35/
 1. 薄 API：改 `server/.env` 的 `SITE_URL=https://xiaomaker.top`，`systemctl restart xb-api`。
 2. 前端：仓库 `.env` 的 `PUBLIC_API_BASE=https://xiaomaker.top`，重新 `npm run build` 出产物。
 3. nginx：主站加 443 与证书（fullchain / privkey）。
-4. HSTS 下沉到 nginx；停用 EdgeOne Pages 兜底后再切 DNS A 记录。
+4. HSTS 下沉到 nginx；DNS 由 CNAME 改为 A 记录指向 ECS 公网 IP。
 
 ## 9. 备份、回滚与运维
 
