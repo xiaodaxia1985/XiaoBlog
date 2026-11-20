@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "node scripts/gen-image-variants.mjs && node scripts/gen-og-thumb.mjs && node scripts/gen-slugs.mjs && astro build && pagefind --site dist",
+    "build": "node scripts/gen-image-variants.mjs && node scripts/gen-og-thumb.mjs && node scripts/gen-slugs.mjs && node scripts/gen-redirects.mjs && astro build && pagefind --site dist",
+    "gen:redirects": "node scripts/gen-redirects.mjs",
     "preview": "astro preview",
     "covers": "node scripts/generate-covers.mjs",
     "gen:slugs": "node scripts/gen-slugs.mjs",
