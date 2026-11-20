@@ -12,6 +12,8 @@ const practice = getPracticeSnapshot();
 const stages = practice.stages;
 const currentStage = stages.find((stage) => stage.id === practice.currentStageId) ?? stages[0];
 const countByTopic = (topic) => posts.filter((post) => post.topics.includes(topic.title)).length;
+const categoryCounts = posts.reduce((acc, post) => { acc[post.category] = (acc[post.category] || 0) + 1; return acc; }, {});
+const topCategories = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
 ---
 
 <BaseLayout title={SITE.title} description={SITE.description} canonicalPath="/" active="home">
@@ -90,25 +92,37 @@ const countByTopic = (topic) => posts.filter((post) => post.topics.includes(topi
           <a class="site-map-card" href="#topics">
             <span class="site-map-kicker">DIRECTIONS</span>
             <h3>三个方向</h3>
-            <p>需求判断、交付设计、经验沉淀：一条链上的三段，各自有独立的专题页。</p>
+            <p>需求判断、交付设计、经验沉淀：一条链上的三段，各自有独立的专题页与记录。</p>
+            <ul class="site-map-list">
+              {topics.map((t) => <li><span>{t.title}</span><em>{String(countByTopic(t)).padStart(2, '0')} 篇</em></li>)}
+            </ul>
             <div class="site-map-stat"><strong>{topics.length}</strong><span>个专题方向</span></div>
           </a>
           <a class="site-map-card" href="/90-days">
             <span class="site-map-kicker">PRACTICE</span>
             <h3>90 天实践</h3>
-            <p>从真实需求出发做一次完整的事，阶段划分、每日进展与失误都记在里面。</p>
+            <p>从真实需求出发做一次完整的事，阶段划分、每日进展与判断失误都记在里面。</p>
+            <ul class="site-map-list">
+              {stages.map((s) => <li><span>第{s.id}阶段 · {s.name}</span><em>{s.days} 天</em></li>)}
+            </ul>
             <div class="site-map-stat"><strong>Day {practice.dayNumber}</strong><span>第{currentStage.id}阶段 · 共 90 天</span></div>
           </a>
           <a class="site-map-card" href="/insights">
             <span class="site-map-kicker">NOTES</span>
             <h3>全部记录</h3>
             <p>按方向与栏目归类，可以筛着读：哪些在讲需求，哪些在讲实现，哪些在讲代价。</p>
+            <ul class="site-map-list">
+              {topCategories.map(([name, n]) => <li><span>{name}</span><em>{String(n).padStart(2, '0')} 篇</em></li>)}
+            </ul>
             <div class="site-map-stat"><strong>{posts.length}</strong><span>篇 · 最近 {latest[0]?.date ?? '—'}</span></div>
           </a>
           <a class="site-map-card" href="/projects">
             <span class="site-map-kicker">PROJECTS</span>
             <h3>项目与经历</h3>
             <p>18 年里做过的底层系统、集团数字化与产业平台，以及各自解决的具体问题。</p>
+            <ul class="site-map-list">
+              {projectEntries.slice(0, 3).map((p) => <li><span>{p.title}</span><em>{p.category}</em></li>)}
+            </ul>
             <div class="site-map-stat"><strong>{projectEntries.length}</strong><span>个代表项目</span></div>
           </a>
         </div>
@@ -213,12 +227,16 @@ const countByTopic = (topic) => posts.filter((post) => post.topics.includes(topi
     .topic-arrow{font-size:18px;color:var(--text-secondary);transition:transform .2s ease,color .2s ease;}
     .topic:hover .topic-arrow{transform:translate(3px,-3px);color:var(--accent);}
 
-    .site-map-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;}
-    .site-map-card{display:flex;flex-direction:column;gap:10px;min-height:196px;padding:20px 18px;border:1px solid var(--border);border-radius:6px;background:var(--surface);transition:border-color .2s ease,background .2s ease,transform .2s ease;}
+    .site-map-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;}
+    .site-map-card{display:flex;flex-direction:column;gap:12px;min-height:252px;padding:24px 22px;border:1px solid var(--border);border-radius:8px;background:var(--surface);transition:border-color .2s ease,background .2s ease,transform .2s ease;}
     .site-map-card:hover,.site-map-card:focus-visible{border-color:rgba(var(--accent-rgb),.5);background:rgba(var(--accent-rgb),.03);transform:translateY(-2px);}
     .site-map-kicker{font-size:10px;letter-spacing:.14em;color:var(--accent);}
-    .site-map-card h3{font-size:16px;font-weight:600;line-height:1.5;}
-    .site-map-card p{font-size:12px;line-height:1.8;color:var(--text-secondary);}
+    .site-map-card h3{font-size:19px;font-weight:600;line-height:1.45;}
+    .site-map-card p{font-size:13px;line-height:1.85;color:var(--text-secondary);max-width:460px;}
+    .site-map-list{list-style:none;margin:0;padding:14px 0 0;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:9px;}
+    .site-map-list li{display:flex;align-items:baseline;justify-content:space-between;gap:14px;font-size:12.5px;color:var(--text-secondary);}
+    .site-map-list li span{min-width:0;}
+    .site-map-list em{font-style:normal;font-size:11px;color:var(--text-muted);white-space:nowrap;flex-shrink:0;}
     .site-map-stat{margin-top:auto;padding-top:14px;display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;}
     .site-map-stat strong{font-family:'Inter',sans-serif;font-size:20px;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums;}
     .site-map-stat span{font-size:11px;color:var(--text-muted);}
@@ -259,7 +277,7 @@ const countByTopic = (topic) => posts.filter((post) => post.topics.includes(topi
       .topic-grid{grid-template-columns:1fr;}
       .topic{min-height:0;padding:24px 0;border-bottom:0;}
       .topic+.topic{border-left:0;border-top:1px solid var(--border);padding-left:0;}
-      .site-map-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+      .site-map-card p{max-width:none;}
       .topic-label{margin-bottom:10px;}
       .topic-foot{padding-top:16px;}
       .section-heading{align-items:flex-start;flex-direction:column;}
