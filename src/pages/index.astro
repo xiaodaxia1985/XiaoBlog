@@ -203,8 +203,9 @@ const topCategories = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])
 
     .stat-strip{padding:0;}
     .stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--overlay-soft);}
-    .stat{display:flex;flex-direction:column;gap:4px;padding:22px 24px 22px 0;}
-    .stat+.stat{border-left:1px solid var(--border);padding-left:24px;}
+    /* 四格统一左右内边距：文字离格线有留白，不贴边 */
+    .stat{display:flex;flex-direction:column;gap:4px;padding:22px 24px;}
+    .stat+.stat{border-left:1px solid var(--border);}
     .stat strong{font-family:'Inter',sans-serif;font-size:clamp(20px,2.2vw,26px);font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums;}
     .stat span{font-size:11px;color:var(--text-muted);letter-spacing:.02em;}
 
@@ -272,7 +273,7 @@ const topCategories = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])
       .hero-grid{grid-template-columns:1fr;gap:38px;}
       .hero-aside{max-width:600px;}
       .stat-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-      .stat:nth-child(3){border-left:0;padding-left:0;}
+      .stat:nth-child(3){border-left:0;}
       .stat:nth-child(3),.stat:nth-child(4){border-top:1px solid var(--border);}
       .topic-grid{grid-template-columns:1fr;}
       .topic{min-height:0;padding:24px 0;border-bottom:0;}
@@ -289,13 +290,7 @@ const topCategories = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])
       .hero-deck{font-size:15px;margin-top:20px;}
       .hero-actions{gap:18px;margin-top:26px;flex-wrap:wrap;}
       .hero-aside{padding:18px 0 0 18px;}
-      .stat{padding:16px 16px 16px 0;}
-      .stat+.stat{padding-left:16px;}
-      /* 两列布局里第 3 格回到首列起点，否则「10」会比「18」右移一格内距。
-         选择器必须带 .stat+ 前缀：Astro 给每个复合选择器加 data-astro-cid，
-         .stat+.stat 的权重比 .stat:nth-child(3) 高，裸写会被它压掉。 */
-      .stat+.stat:nth-child(3){padding-left:0;}
-      .stat:nth-child(2),.stat:nth-child(4){padding-left:16px;}
+      .stat{padding:16px;}
       .stat strong{font-size:19px;}
       .section{padding:50px 0;}
       .section-heading{margin-bottom:22px;}
