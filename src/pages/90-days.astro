@@ -1,8 +1,9 @@
 ---
-import { getPracticeSnapshot } from '../data/stages.mjs';
+import { getPracticeSnapshot, practiceStartDate } from '../data/stages.mjs';
 import { getPublishedPosts } from '../lib/insights';
 import { tracking } from '../data/practice-tracking.mjs';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import daily from '../../journal/daily.json';
 
 const practice = getPracticeSnapshot();
 const stages = practice.stages;
@@ -11,6 +12,110 @@ const postOf = (slug) => published.find((p) => p.slug === slug);
 const archiveCount = published.filter((p) => p.category === '90天实战').length;
 const cnNums = ['一', '二', '三', '四'];
 const description = '90 天个人商业实践的四个阶段：目标、产出与公开记录。';
+
+// ---- 每日记录（数据源 journal/daily.json，经用户审核才写入）----
+// 内容是重点，站点是施工日志：渲染顺序固定为 内容 → 产线 → 文档 → 站点，不依赖 json 的数组顺序
+const FACES = ['内容', '产线', '文档', '站点'];
+const WEEK = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+const toUTC = (value) => {
+  const [y, m, d] = value.split('-').map(Number);
+  return Date.UTC(y, m - 1, d);
+};
+const dayIndexOf = (value) => Math.floor((toUTC(value) - toUTC(practiceStartDate)) / 86400000) + 1;
+const shortOf = (value) => {
+  const [, m, d] = value.split('-');
+  return `${m}.${d}`;
+};
+const weekOf = (value) => {
+  const [y, m, d] = value.split('-').map(Number);
+  return WEEK[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+};
+
+// 一条记录拆成「主句 + 细节」：主句一行讲完，细节降到小字，避免整条糊成一段
+const splitLine = (text) => {
+  const t = String(text).trim();
+  const marks = ['；', ';', '。'].map((ch) => {
+    const i = t.indexOf(ch);
+    return i < 0 ? Infinity : i;
+  });
+  const cut = Math.min(...marks);
+  if (cut !== Infinity && cut <= 56) {
+    const main = t.slice(0, cut);
+    const rest = t
+      .slice(cut + 1)
+      .split(/[；;]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    return { main, rest };
+  }
+  return { main: t, rest: [] };
+};
+
+const journalEntries = (daily.entries ?? [])
+  .slice()
+  .sort((a, b) => b.date.localeCompare(a.date))
+  .map((entry) => ({
+  ...entry,
+  dayNo: entry.label ? null : `Day ${dayIndexOf(entry.date)}`,
+  shortDate: shortOf(entry.date),
+  week: weekOf(entry.date),
+  groups: FACES.filter((face) => entry.items?.some((item) => item.face === face)).map((face) => {
+    const items = entry.items.filter((item) => item.face === face);
+    return {
+      face,
+      commits: items.reduce((sum, item) => sum + (item.commits ?? 0), 0),
+      lines: items.map((item) => splitLine(item.title)),
+    };
+  }),
+}));
+journalEntries.forEach((entry) => {
+  entry.faces = entry.groups.map((group) => group.face);
+});
+
+// 默认只展开最近一天：今天有记录就今天，今天没有就退到有记录的最近一天
+const journalLatestDate = journalEntries.length
+  ? journalEntries.reduce((max, entry) => (entry.date > max ? entry.date : max), journalEntries[0].date)
+  : null;
+journalEntries.forEach((entry) => {
+  entry.open = entry.date === journalLatestDate;
+});
+
+// 按阶段分组：当前阶段整段展开，已结束阶段与筹备期先压成一行，点开才展开阶段内的日期
+const stageOfDate = (date) => stages.find((stage) => date >= stage.startDate && date <= stage.endDate) ?? null;
+
+const journalGroups = (() => {
+  const buckets = new Map();
+  journalEntries.forEach((entry) => {
+    const key = stageOfDate(entry.date)?.id ?? 0;
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(entry);
+  });
+  const keys = [...buckets.keys()].sort((a, b) => (a === 0 ? 99 : a) - (b === 0 ? 99 : b));
+  return keys.map((key) => {
+    const list = buckets.get(key);
+    const stage = stages.find((s) => s.id === key) ?? null;
+    return {
+      key: stage ? `stage-${stage.id}` : 'prep',
+      title: stage ? `第${cnNums[stage.id - 1]}阶段` : '筹备期',
+      name: stage ? stage.name : '正式开始之前',
+      range: stage ? `${stage.range.start} – ${stage.range.end} · ${stage.days} 天` : (list[0].range ?? '正式开始前'),
+      status: stage ? stage.status : '',
+      isCurrent: stage?.status === '当前',
+      open: stage ? stage.status === '当前' : false,
+      days: list.length,
+      commits: list.reduce((sum, entry) => sum + (entry.commits ?? 0), 0),
+      entries: list,
+    };
+  });
+})();
+
+const journalDays = journalEntries.length;
+const journalCommits = journalEntries.reduce((sum, entry) => sum + (entry.commits ?? 0), 0);
+const journalLast = journalLatestDate;
+const journalPosts = journalEntries.reduce((sum, entry) => sum + (entry.posts?.length ?? 0), 0);
+const journalFaces = FACES.filter((face) => journalEntries.some((entry) => entry.faces.includes(face)));
+const journalHasMilestone = journalEntries.some((entry) => (entry.milestones?.length ?? 0) > 0);
 ---
 <BaseLayout title="90天创造者实践 — 个人成长实践者" description={description} canonicalPath="/90-days/" active="focus">
   <header class="page-hero">
@@ -33,6 +138,112 @@ const description = '90 天个人商业实践的四个阶段：目标、产出�
   </header>
 
   <main id="main-content" class="wrap">
+    <div class="log-strip">
+      <div class="log-stat"><strong>{journalDays}</strong><span>已记录天数</span></div>
+      <div class="log-stat"><strong>{journalCommits}</strong><span>累计提交</span></div>
+      <div class="log-stat"><strong>{journalPosts}</strong><span>公开文章</span></div>
+      <div class="log-stat"><strong>{`Day ${practice.dayNumber}`}</strong><span>当前进度 / 90</span></div>
+    </div>
+
+    <section class="journal" id="journal" aria-label="每日记录">
+      <div class="journal-head">
+        <h2>每日记录</h2>
+        <p class="journal-meta">
+          {journalLast && <span>记录到 {shortOf(journalLast)}</span>}
+          <span class="sep" aria-hidden="true">·</span>
+          <span>{journalDays} 天</span>
+          <span class="sep" aria-hidden="true">·</span>
+          <span>{journalCommits} 个提交</span>
+        </p>
+      </div>
+      <p class="journal-lead">一天一张卡。左边是日期，卡里是那天真正发生的事：改了什么、发了什么、留下了什么。</p>
+      <div class="journal-filter" role="group" aria-label="按内容面筛选">
+        <button type="button" class="is-on" data-filter="all">全部</button>
+        {journalFaces.map((face) => <button type="button" data-filter={face}>{face}</button>)}
+        {journalHasMilestone && <button type="button" data-filter="里程碑">里程碑</button>}
+        <button type="button" class="journal-expand" data-expand-all>全部展开</button>
+      </div>
+
+      {journalGroups.map((group) => (
+        <section class="stage-block" data-stage-key={group.key} data-open={group.open ? '1' : '0'}>
+          <button type="button" class="stage-band" data-stage-toggle aria-expanded={group.open ? 'true' : 'false'}>
+            <span class="band-title">{group.title}</span>
+            <span class="band-name">{group.name}</span>
+            <span class="band-range">{group.range}</span>
+            <span class="band-meta">{group.days} 天记录 · {group.commits} 提交</span>
+            {group.status && <span class={`band-state${group.isCurrent ? ' is-current' : ''}`}>{group.status}</span>}
+            <span class="band-caret" aria-hidden="true">{group.open ? '收起' : '展开'}</span>
+          </button>
+
+          <ol class="journal-list">
+            {group.entries.map((entry) => (
+          <li class="log-day" data-date={entry.date} data-faces={entry.faces.join(' ')} data-milestone={entry.milestones?.length ? '1' : '0'} data-open={entry.open ? '1' : '0'}>
+            <div class="log-rail">
+              <span class="log-dot" aria-hidden="true"></span>
+              <span class="log-no">{entry.dayNo ?? entry.label}</span>
+              <span class="log-date">{entry.range ?? entry.shortDate}</span>
+              {!entry.range && <span class="log-week">{entry.week}</span>}
+            </div>
+
+            <button type="button" class="log-fold" data-fold aria-expanded="false">
+              <span class="fold-theme">{entry.theme}</span>
+              <span class="fold-meta">{entry.commits} 提交</span>
+              <span class="fold-caret" aria-hidden="true">展开</span>
+            </button>
+
+            <div class="log-card">
+              <div class="log-top">
+                <span class="log-kicker">{entry.range ? '筹备期' : `${entry.shortDate} ${entry.week}`}</span>
+                <span class="log-count">{entry.commits} 个提交</span>
+              </div>
+              {entry.theme && <h3 class="log-theme">{entry.theme}</h3>}
+              {entry.summary && <p class="log-sum">{entry.summary}</p>}
+
+              {entry.milestones?.length > 0 && (
+                <div class="milestones">
+                  {entry.milestones.map((m) => (
+                    <p class="milestone">{m.text}</p>
+                  ))}
+                </div>
+              )}
+
+              {entry.groups.map((group) => (
+                <div class="log-group">
+                  <div class="log-group-head">
+                    <span class="g-pill">{group.face}</span>
+                    <span class="g-count">{group.commits} 提交</span>
+                  </div>
+                  <ul class="log-lines">
+                    {group.lines.map((line) => (
+                      <li>
+                        <span class="line-main">{line.main}</span>
+                        {line.rest.length > 0 && <span class="line-rest">{line.rest.join('；')}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+
+              {entry.posts?.length > 0 && (
+                <div class="log-posts">
+                  {entry.posts.map((post) => (
+                    <a class="log-post" href={post.url}>
+                      <span class="log-post-tag">发文</span>
+                      <span class="log-post-title">{post.title}</span>
+                      <span class="log-post-arrow" aria-hidden="true">↗</span>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          </li>
+            ))}
+          </ol>
+        </section>
+      ))}
+      <p class="journal-note">记录来自三个仓库的实际提交，加上每天自己补的判断、失误与活动。只记已发生的事，不写计划。</p>
+    </section>
+
     <div class="stage-list">
       {stages.map((s) => {
         const posts = s.postIds.map(postOf).filter(Boolean).slice(0, 3);
@@ -67,41 +278,18 @@ const description = '90 天个人商业实践的四个阶段：目标、产出�
       })}
     </div>
 
-    <section class="tracking-board" aria-label="90 天实践追踪看板">
-      <div class="tracking-head">
-        <h2>追踪看板</h2>
-        <span class="tracking-updated">更新于 {tracking.updatedAt}</span>
+    <section class="acceptance" aria-label="验收指标与披露规则">
+      <div class="acceptance-head">
+        <h2>验收指标</h2>
+        <p class="acceptance-note">90 天结束时按这四项判断，不看过程中的自我感觉。</p>
       </div>
-      <p class="tracking-rule">{tracking.incomeDisclosure}</p>
-      <div class="tracking-grid">
-        <div class="tracking-col">
-          <h3 class="stage-label">最近记录</h3>
-          {tracking.steps.map((step) => (
-            <article class={`tracking-step${step.status === 'done' ? ' is-done' : ''}`}>
-              <span class="tracking-step-date">{step.date}</span>
-              <div class="tracking-step-body">
-                <h3>{step.title}</h3>
-                <p>{step.summary}</p>
-                {step.deliverables?.length > 0 && (
-                  <p class="tracking-deliverables">{step.deliverables.join(' · ')}</p>
-                )}
-              </div>
-              <span class="tracking-step-status">{step.status === 'done' ? '已完成' : '待办'}</span>
-            </article>
-          ))}
-        </div>
-        <div class="tracking-col">
-          <h3 class="stage-label">验收指标</h3>
-          <div class="acceptance-metrics">
-            <div class="acceptance-metric"><strong>{tracking.acceptance.content.value}</strong><span>{tracking.acceptance.content.label}</span></div>
-            <div class="acceptance-metric"><strong>{tracking.acceptance.feedback.value}</strong><span>{tracking.acceptance.feedback.label}</span></div>
-            <div class="acceptance-metric"><strong>{tracking.acceptance.paidUsers.value}</strong><span>{tracking.acceptance.paidUsers.label}</span></div>
-            <div class="acceptance-metric"><strong>{tracking.acceptance.monthlyIncome.value}</strong><span>{tracking.acceptance.monthlyIncome.label}</span></div>
-          </div>
-          <h3 class="stage-label">披露规则</h3>
-          <p class="disclosure">{tracking.incomeDisclosure}</p>
-        </div>
+      <div class="acceptance-metrics">
+        <div class="acceptance-metric"><strong>{tracking.acceptance.content.value}</strong><span>{tracking.acceptance.content.label}</span></div>
+        <div class="acceptance-metric"><strong>{tracking.acceptance.feedback.value}</strong><span>{tracking.acceptance.feedback.label}</span></div>
+        <div class="acceptance-metric"><strong>{tracking.acceptance.paidUsers.value}</strong><span>{tracking.acceptance.paidUsers.label}</span></div>
+        <div class="acceptance-metric"><strong>{tracking.acceptance.monthlyIncome.value}</strong><span>{tracking.acceptance.monthlyIncome.label}</span></div>
       </div>
+      <p class="disclosure"><strong>披露规则</strong>{tracking.incomeDisclosure}</p>
     </section>
   </main>
 
@@ -133,28 +321,105 @@ const description = '90 天个人商业实践的四个阶段：目标、产出�
     .btn-secondary{background:transparent;color:var(--text);border-color:var(--border);}
     .btn-secondary:hover,.btn-secondary:focus-visible{background:var(--surface);border-color:rgba(var(--accent-rgb),.5);color:var(--accent);}
 
-    /* ===== 阶段列表 ===== */
-    .stage-list{display:flex;flex-direction:column;gap:var(--space-24);padding:var(--space-40) 0 var(--space-56);}
-    .tracking-board{display:flex;flex-direction:column;gap:var(--space-24);padding:var(--space-32);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-top:var(--space-40);}
-    .tracking-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:var(--space-12);}
-    .tracking-head h2{font-size:var(--fs-20);font-weight:600;margin:0;}
-    .tracking-updated{font-size:var(--fs-12);color:var(--text-muted);font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;}
-    .tracking-rule{margin:var(--space-8) 0 0;font-size:var(--fs-13);color:var(--text-secondary);}
-    .tracking-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:var(--space-24);margin-top:var(--space-24);}
-    .tracking-col{display:flex;flex-direction:column;gap:var(--space-16);}
-    .tracking-step{display:grid;grid-template-columns:auto 1fr auto;gap:var(--space-12);padding:var(--space-14) var(--space-16);background:var(--overlay-soft);border:1px solid var(--border);border-radius:var(--radius-sm);}
-    .tracking-step.is-done{border-color:rgba(var(--accent-rgb),.28);}
-    .tracking-step-date{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);white-space:nowrap;}
-    .tracking-step-body h3{font-size:var(--fs-14);font-weight:500;color:var(--text);margin:0 0 4px;}
-    .tracking-step-body p{margin:0;font-size:var(--fs-12);color:var(--text-secondary);line-height:1.7;}
-    .tracking-step-body .tracking-deliverables{margin-top:4px;font-size:var(--fs-11);color:var(--text-muted);}
-    .tracking-step-status{margin-left:auto;font-size:var(--fs-11);color:var(--text-muted);white-space:nowrap;}
-    .tracking-step.is-done .tracking-step-status{color:var(--accent);}
-    .acceptance-metrics{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-12);}
-    .acceptance-metric{padding:var(--space-14) var(--space-16);background:var(--overlay-soft);border:1px solid var(--border);border-radius:var(--radius-sm);}
+    /* ===== 数据带 ===== */
+    .log-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-16);padding:24px 0;border-bottom:1px solid var(--border);}
+    .log-stat{display:flex;flex-direction:column;gap:6px;}
+    .log-stat strong{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:28px;font-weight:600;line-height:1;letter-spacing:-.03em;color:var(--text);}
+    .log-stat span{font-size:11px;letter-spacing:.06em;color:var(--text-muted);}
+
+    /* ===== 每日记录 ===== */
+    .journal{padding:40px 0 var(--space-40);}
+    .journal-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:var(--space-12);}
+    .journal-head h2{font-size:var(--fs-20);font-weight:600;letter-spacing:-.01em;}
+    .journal-meta{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-8);font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:var(--fs-12);color:var(--text-muted);}
+    .journal-meta .sep{color:var(--border);}
+    .journal-lead{margin-top:6px;font-size:13px;color:var(--text-muted);line-height:1.7;}
+    .journal-filter{display:flex;flex-wrap:wrap;gap:var(--space-8);margin:20px 0 0;}
+    .journal-filter button{padding:5px 12px;font-size:11px;letter-spacing:.02em;color:var(--text-muted);background:transparent;border:1px solid var(--border);border-radius:999px;cursor:pointer;transition:background-color .2s ease,border-color .2s ease,color .2s ease;}
+    .journal-filter button:hover{border-color:rgba(var(--accent-rgb),.5);color:var(--accent);}
+    .journal-filter button.is-on{background:var(--text);border-color:var(--text);color:var(--bg);}
+    .journal-filter button.journal-expand{margin-left:auto;border-color:transparent;color:var(--text-secondary);}
+
+    /* 阶段分段：当前阶段整段展开，已结束阶段压成一行 */
+    .stage-block{margin-top:var(--space-40);padding-top:var(--space-16);border-top:1px solid var(--border);}
+    .stage-block:first-of-type{margin-top:var(--space-24);padding-top:0;border-top:0;}
+    .stage-band{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--space-12);width:100%;padding:0 0 var(--space-16);text-align:left;background:none;border:0;cursor:pointer;}
+    .stage-band:hover .band-name{color:var(--text);}
+    .band-title{font-size:13px;font-weight:600;color:var(--text);letter-spacing:.01em;}
+    .band-name{font-size:13px;color:var(--text-secondary);}
+    .band-range{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11px;color:var(--text-muted);}
+    .band-meta{margin-left:auto;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11px;color:var(--text-muted);}
+    .band-state{font-size:11px;color:var(--text-muted);}
+    .band-state.is-current{color:var(--accent);}
+    .band-caret{font-size:11px;color:var(--text-muted);}
+    .stage-block[data-open="0"] .journal-list{display:none;}
+
+    .journal-list{display:flex;flex-direction:column;gap:18px;margin-top:0;}
+    .log-day{display:grid;grid-template-columns:104px minmax(0,1fr);grid-template-rows:auto;align-items:start;}
+    .log-rail{grid-column:1;grid-row:1;position:relative;display:flex;flex-direction:column;align-items:flex-end;gap:3px;padding:22px 38px 0 0;}
+    .log-rail span{white-space:nowrap;}
+    .log-rail::before{content:'';position:absolute;right:24px;top:0;bottom:-18px;width:1px;background:var(--border);}
+    .log-day:last-child .log-rail::before{bottom:0;}
+    .log-dot{position:absolute;right:20px;top:24px;width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--bg);}
+    .log-day[data-open="0"] .log-dot{background:transparent;border:1px solid var(--text-muted);box-shadow:0 0 0 3px var(--bg);}
+    .log-no{font-size:13px;font-weight:600;color:var(--text);letter-spacing:.01em;}
+    .log-date{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11px;color:var(--text-muted);}
+    .log-week{font-size:11px;color:var(--text-muted);}
+
+    /* 折叠条：未展开的日子压成一行，仍挂在同一条时间脊柱上 */
+    .log-fold{grid-column:2;grid-row:1;display:flex;align-items:center;gap:var(--space-12);width:100%;padding:15px 20px;background:var(--overlay-soft);border:1px solid var(--border);border-radius:12px;text-align:left;cursor:pointer;}
+    .log-fold:hover{border-color:rgba(var(--accent-rgb),.45);}
+    .fold-theme{font-size:14px;color:var(--text);line-height:1.5;}
+    .fold-meta{margin-left:auto;font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11px;color:var(--text-muted);flex-shrink:0;}
+    .fold-caret{flex-shrink:0;font-size:11px;color:var(--text-muted);}
+
+    .log-card{grid-column:2;grid-row:1;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:var(--space-24) 24px;box-shadow:0 1px 2px rgba(15,23,32,.03);}
+    .log-day[data-open="1"] .log-fold{display:none;}
+    .log-day[data-open="0"] .log-card{display:none;}
+    .log-top{display:flex;align-items:center;justify-content:space-between;gap:var(--space-12);margin-bottom:var(--space-12);}
+    .log-kicker{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11px;letter-spacing:.1em;color:var(--text-muted);}
+    .log-count{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11px;color:var(--text-muted);}
+    .log-theme{font-size:20px;font-weight:600;line-height:1.35;letter-spacing:-.01em;margin:0 0 var(--space-16);text-wrap:balance;}
+    /* 那天的一句话：引文式，是每张卡唯一的视觉落点 */
+    .log-sum{margin:0 0 var(--space-24);padding-left:14px;border-left:2px solid rgba(var(--accent-rgb),.55);font-size:15px;color:var(--text);line-height:1.75;letter-spacing:.01em;}
+
+    .milestones{display:flex;flex-direction:column;gap:6px;margin-top:var(--space-16);padding:var(--space-12) var(--space-16);background:rgba(var(--accent-rgb),.05);border-left:3px solid var(--accent);border-radius:0 4px 4px 0;}
+    .milestone{margin:0;font-size:var(--fs-12);color:var(--text);line-height:1.7;letter-spacing:.01em;}
+
+    .log-group{margin-top:var(--space-24);}
+    .log-group-head{display:flex;align-items:center;gap:var(--space-8);margin-bottom:var(--space-12);}
+    .g-pill{font-size:11px;letter-spacing:.08em;color:var(--text-secondary);background:var(--overlay-soft);border:1px solid var(--border);border-radius:3px;padding:2px 7px;}
+    .g-count{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;font-size:11px;color:var(--text-muted);}
+    .log-lines{display:flex;flex-direction:column;gap:11px;}
+    .log-lines li{position:relative;padding-left:14px;}
+    .log-lines li::before{content:'';position:absolute;left:0;top:8px;width:4px;height:4px;border-radius:50%;background:rgba(var(--accent-rgb),.45);}
+    .line-main{display:block;font-size:13px;color:var(--text);line-height:1.7;}
+    .line-rest{display:block;margin-top:3px;font-size:var(--fs-12);color:var(--text-muted);line-height:1.75;}
+
+    .log-posts{display:flex;flex-direction:column;gap:var(--space-8);margin-top:var(--space-24);padding-top:var(--space-16);border-top:1px solid var(--border);}
+    .log-post{display:flex;align-items:flex-start;gap:var(--space-8);font-size:13px;color:var(--text);line-height:1.7;}
+    .log-post-tag{flex-shrink:0;font-size:11px;letter-spacing:.08em;color:var(--accent);}
+    .log-post-title{border-bottom:1px solid var(--border);transition:border-color .2s ease;}
+    .log-post-arrow{margin-left:auto;flex-shrink:0;font-size:11px;color:var(--text-muted);}
+    .log-post:hover .log-post-title,.log-post:focus-visible .log-post-title{border-bottom-color:var(--accent);color:var(--accent);}
+    .log-post:hover .log-post-arrow,.log-post:focus-visible .log-post-arrow{color:var(--accent);}
+
+    .journal-note{margin-top:var(--space-24);font-size:var(--fs-12);color:var(--text-muted);line-height:1.8;}
+
+    /* ===== 验收指标 ===== */
+    .acceptance{margin-bottom:var(--space-56);padding:var(--space-32);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
+    .acceptance-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:var(--space-12);margin-bottom:20px;}
+    .acceptance-head h2{font-size:var(--fs-20);font-weight:600;}
+    .acceptance-note{font-size:13px;color:var(--text-secondary);}
+    .acceptance-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-12);}
+    .acceptance-metric{padding:var(--space-16);background:var(--overlay-soft);border:1px solid var(--border);border-radius:var(--radius-sm);}
     .acceptance-metric strong{display:block;font-size:var(--fs-16);font-weight:550;letter-spacing:0;}
     .acceptance-metric span{display:block;margin-top:4px;font-size:var(--fs-12);color:var(--text-muted);line-height:1.6;}
-    .disclosure{font-size:var(--fs-13);color:var(--text-secondary);line-height:1.8;}
+    .disclosure{display:flex;flex-wrap:wrap;gap:var(--space-8);margin-top:20px;padding-top:var(--space-16);border-top:1px solid var(--border);font-size:13px;color:var(--text-secondary);line-height:1.8;}
+    .disclosure strong{flex-shrink:0;font-weight:500;color:var(--text);}
+
+    /* ===== 阶段列表 ===== */
+    .stage-list{display:flex;flex-direction:column;gap:var(--space-24);padding:var(--space-40) 0 var(--space-8);}
     .stage-card{padding:var(--space-32);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
     .stage-card.is-current{border-color:rgba(var(--accent-rgb),.35);}
     .stage-head{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-12);margin-bottom:var(--space-12);}
@@ -182,9 +447,33 @@ const description = '90 天个人商业实践的四个阶段：目标、产出�
       .page-hero .intro{font-size:var(--fs-14);}
       .hero-meta{flex-direction:column;align-items:flex-start;gap:var(--space-4);}
       .hero-meta .sep{display:none;}
-      .tracking-board{padding:var(--space-20);}
-      .tracking-grid{grid-template-columns:1fr;}
-      .acceptance-metrics{grid-template-columns:1fr;}
+      .log-strip{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-16);padding:var(--space-20) 0;}
+      .log-stat strong{font-size:22px;}
+      .journal{padding:var(--space-32) 0 var(--space-32);}
+      .journal-filter button{padding:5px 10px;}
+      .journal-list{gap:14px;margin-top:var(--space-20);}
+      .stage-block{margin-top:var(--space-32);padding-top:var(--space-12);}
+      .stage-band{gap:var(--space-4) var(--space-8);padding-bottom:var(--space-12);}
+      .band-title{font-size:12px;}
+      .band-name{font-size:12px;}
+      .band-range{order:1;font-size:11px;}
+      .band-meta{order:2;margin-left:0;font-size:11px;}
+      .band-caret{order:3;margin-left:auto;font-size:11px;}
+      .band-state{display:none;}
+      .log-day{grid-template-columns:1fr;grid-template-rows:auto auto;}
+      .log-rail{grid-column:1;grid-row:1;flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:var(--space-8);padding:0 0 var(--space-8) 0;}
+      .log-rail::before,.log-dot{display:none;}
+      .log-card,.log-fold{grid-column:1;grid-row:2;}
+      .log-card{margin-left:0;padding:var(--space-16);border-radius:12px;}
+      .log-fold{padding:12px 14px;border-radius:10px;gap:var(--space-8);}
+      .fold-theme{font-size:13px;}
+      .log-top{display:none;}
+      .log-sum{font-size:14px;margin-bottom:var(--space-16);padding-left:12px;}
+      .log-theme{font-size:18px;}
+      .log-group{margin-top:var(--space-24);}
+      .log-posts{margin-top:var(--space-20);}
+      .acceptance{padding:var(--space-20);}
+      .acceptance-metrics{grid-template-columns:1fr 1fr;}
       .stage-card{padding:var(--space-24);}
       .outputs{grid-template-columns:1fr;}
     }
@@ -197,4 +486,108 @@ const description = '90 天个人商业实践的四个阶段：目标、产出�
   </style>
 
   <script slot="scripts" is:inline src="/js/practice-clock.js" defer></script>
+
+  <script slot="scripts" is:inline>
+    (() => {
+      const filterButtons = Array.from(document.querySelectorAll('.journal-filter button[data-filter]'));
+      const days = Array.from(document.querySelectorAll('.log-day'));
+      if (!days.length) return;
+      let current = 'all';
+
+      const apply = () => {
+        days.forEach((day) => {
+          const faces = (day.dataset.faces || '').split(' ').filter(Boolean);
+          const hasMilestone = day.dataset.milestone === '1';
+          const visible = current === 'all'
+            ? true
+            : current === '里程碑'
+              ? hasMilestone
+              : faces.includes(current);
+          day.hidden = !visible;
+          // 筛到某一面时，卡里只留那一组；折叠条没有分组，照常显示日期和主题
+          day.querySelectorAll('.log-group').forEach((group) => {
+            const pill = group.querySelector('.g-pill');
+            const face = pill ? pill.textContent.trim() : '';
+            group.hidden = current === 'all' || current === '里程碑' ? false : face !== current;
+          });
+        });
+        // 整个阶段都没有命中，就把这一段收起，不留空标题
+        document.querySelectorAll('.stage-block').forEach((block) => {
+          block.hidden = !Array.from(block.querySelectorAll('.log-day')).some((day) => !day.hidden);
+        });
+      };
+
+      filterButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          current = button.dataset.filter || 'all';
+          filterButtons.forEach((item) => item.classList.toggle('is-on', item === button));
+          apply();
+        });
+      });
+
+      // 折叠：默认只展开最近一天，其余日子压成一行折叠条；阶段层面同理，当前阶段整段展开
+      const expandAll = document.querySelector('.journal-expand');
+      const stageBlocks = Array.from(document.querySelectorAll('.stage-block'));
+
+      const setOpen = (day, open) => {
+        day.dataset.open = open ? '1' : '0';
+        day.querySelectorAll('[data-fold]').forEach((btn) => btn.setAttribute('aria-expanded', open ? 'true' : 'false'));
+        const caret = day.querySelector('.fold-caret');
+        if (caret) caret.textContent = open ? '收起' : '展开';
+      };
+
+      const setStageOpen = (block, open) => {
+        block.dataset.open = open ? '1' : '0';
+        const band = block.querySelector('[data-stage-toggle]');
+        if (band) band.setAttribute('aria-expanded', open ? 'true' : 'false');
+        const caret = block.querySelector('.band-caret');
+        if (caret) caret.textContent = open ? '收起' : '展开';
+      };
+
+      const syncExpandAll = () => {
+        if (!expandAll) return;
+        const foldedDays = days.filter((day) => day.dataset.open === '0').length;
+        const foldedStages = stageBlocks.filter((block) => block.dataset.open === '0').length;
+        expandAll.textContent = foldedDays + foldedStages > 0 ? '全部展开' : '只看最近';
+      };
+
+      days.forEach((day) => {
+        day.querySelectorAll('[data-fold]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            setOpen(day, day.dataset.open === '0');
+            syncExpandAll();
+          });
+        });
+      });
+
+      stageBlocks.forEach((block) => {
+        block.querySelector('[data-stage-toggle]')?.addEventListener('click', () => {
+          setStageOpen(block, block.dataset.open === '0');
+          syncExpandAll();
+        });
+      });
+
+      if (expandAll) {
+        expandAll.addEventListener('click', () => {
+          const foldedDays = days.filter((day) => day.dataset.open === '0').length;
+          const foldedStages = stageBlocks.filter((block) => block.dataset.open === '0').length;
+          const latest = days.map((day) => day.dataset.date || '').sort().pop();
+          if (foldedDays + foldedStages > 0) {
+            stageBlocks.forEach((block) => setStageOpen(block, true));
+            days.forEach((day) => setOpen(day, true));
+          } else {
+            stageBlocks.forEach((block) => {
+              const isCurrent = block.querySelector('.band-state.is-current') !== null;
+              setStageOpen(block, isCurrent);
+            });
+            days.forEach((day) => setOpen(day, day.dataset.date === latest));
+          }
+          syncExpandAll();
+        });
+      }
+
+      syncExpandAll();
+      if (location.hash === '#journal') apply();
+    })();
+  </script>
 </BaseLayout>

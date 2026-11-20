@@ -37,3 +37,7 @@ public/images/responsive/
 public/images/thumb/
 public/og/
 public/data/
+
+# 每日记录草稿（审核前不入库）
+journal/.inbox/
+

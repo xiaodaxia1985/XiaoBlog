@@ -1,0 +1,107 @@
+{
+  "entries": [
+    {
+      "date": "2026-11-08",
+      "commits": 18,
+      "theme": "版式定死，第一篇也发出去了",
+      "summary": "今天最实在的一件事，是第一次有了「不用再改」的底气。",
+      "items": [
+        {
+          "face": "内容",
+          "title": "第一篇实战文发出去，讲的是零服务器上线；配 6 张图，标题与成本口径当天改准——域名十余元、以最低成本验证",
+          "commits": 2,
+          "hashes": [
+            "03fb0af",
+            "9e2b6f8",
+            "ee85b9e"
+          ]
+        },
+        {
+          "face": "站点",
+          "title": "一套绿灰配色和字号定死，往后每页照抄；graphite + 高亮笔设计系统，C 杂志式排版，整体降一档字号，正文收到 15px",
+          "commits": 5,
+          "hashes": [
+            "401abb2",
+            "03aef05",
+            "c025b88",
+            "6f51470",
+            "1ab229f"
+          ]
+        },
+        {
+          "face": "站点",
+          "title": "首页第一屏从「介绍我」改成「我判断过什么」；每条观点生成一张纯色大字封面，卡片只留其余条目，恢复原句标题",
+          "commits": 6,
+          "hashes": [
+            "33551f7",
+            "c3a4bff",
+            "fa19e09",
+            "f3893f5",
+            "6869f19",
+            "21f750b"
+          ]
+        },
+        {
+          "face": "站点",
+          "title": "阅读版式先出三套对比再定稿；用《18 年》全文真排、1440 与 390 长图比对，第四节补引用卡断开长段，深色底常驻消除白屏",
+          "commits": 5,
+          "hashes": [
+            "270e60e",
+            "25e8ca4",
+            "ba92732",
+            "6bb1317",
+            "f3893f5"
+          ]
+        }
+      ],
+      "posts": [
+        {
+          "slug": "deploy-static-site-without-server-or-icp",
+          "title": "把网站托管到腾讯云 EdgeOne 上，低成本快速上线验证产品可行性或商业模式",
+          "url": "/insight/deploy-static-site-without-server-or-icp/"
+        }
+      ],
+      "activities": [],
+      "milestones": [],
+      "verified": true,
+      "verifiedAt": "2026-11-20"
+    },
+    {
+      "date": "2026-11-07",
+      "label": "筹备期",
+      "range": "11.04 – 11.07",
+      "theme": "先想清楚要写什么，再动手",
+      "summary": "真正花时间的是想清楚：站成什么样、话怎么说、第一篇写给谁看。",
+      "commits": 9,
+      "items": [
+        {
+          "face": "站点",
+          "title": "先把「我凭什么值得看」讲清楚；价值链七步并入 hero 卡，履历专利区换成项目真实专利",
+          "commits": 6,
+          "hashes": [
+            "96cfc08",
+            "de2ae74",
+            "8801f73",
+            "a9aeda7"
+          ]
+        },
+        {
+          "face": "站点",
+          "title": "品牌表达 v1 落地，顺手把 12 篇种子稿排进新结构；重建信息架构与经历页，含 90 天计划示范稿",
+          "commits": 3,
+          "hashes": [
+            "ba82fa6",
+            "9bb1eae",
+            "3a0b1ee"
+          ]
+        }
+      ],
+      "posts": [],
+      "activities": [],
+      "milestones": [],
+      "verified": true,
+      "verifiedAt": "2026-11-20"
+    }
+  ],
+  "updatedAt": "2026-11-20"
+}

@@ -11,6 +11,8 @@
     "gen:slugs": "node scripts/gen-slugs.mjs",
     "check:content": "node scripts/check-content.mjs",
     "dy:add": "node scripts/add-douyin-video.mjs",
+    "journal:sync": "node scripts/journal/sync.mjs",
+    "journal:accept": "node scripts/journal/accept.mjs",
     "astro": "astro"
   },
   "dependencies": {
