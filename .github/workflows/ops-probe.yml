@@ -16,14 +16,20 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "${{ secrets.ECS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}" '
-            set -e
-            echo "=== host ==="; hostname; cat /etc/os-release | head -3
-            echo "=== conf.d ==="; ls -la /etc/nginx/conf.d/ 2>/dev/null || true
-            echo "=== sites-enabled ==="; ls -la /etc/nginx/sites-enabled/ 2>/dev/null || true
-            echo "=== nginx -T (filtered) ==="
-            nginx -T 2>/dev/null | grep -v -E "ssl_certificate_key|ssl_trusted|password" | head -300
-            echo "=== certbot ==="; certbot certificates 2>/dev/null || echo "no certbot"
-            echo "=== listen ==="; ss -lntp 2>/dev/null | grep -E ":80 |:443 " || true
-            echo "=== /opt/XiaoBlog ==="; ls -la /opt/XiaoBlog 2>/dev/null | head -20
-            echo "=== certs dir ==="; ls -la /etc/letsencrypt/live/ 2>/dev/null || true
+            echo "=== xiaoblog.conf ==="
+            cat /etc/nginx/conf.d/xiaoblog.conf
+            echo "=== nginx binary ==="
+            command -v nginx || true; ps -ef | grep -E "nginx: master" | grep -v grep || true
+            echo "=== nginx -V ==="
+            (command -v nginx >/dev/null && nginx -V 2>&1) || true
+            echo "=== ssl_certificate refs ==="
+            grep -rn "ssl_certificate\|ssl_certificate_key" /etc/nginx/ 2>/dev/null | grep -v "^Binary"
+            echo "=== letsencrypt ==="
+            ls -la /etc/letsencrypt/live/ 2>/dev/null || true
+            echo "=== acme.sh ==="
+            ls -la /root/.acme.sh 2>/dev/null | head -20 || echo "no acme.sh"
+            echo "=== other cert dirs ==="
+            ls -la /etc/nginx/ssl /etc/pki/nginx 2>/dev/null || true
+            echo "=== deploy dir ==="
+            ls -la /opt/XiaoBlog/deploy/ 2>/dev/null
           '
