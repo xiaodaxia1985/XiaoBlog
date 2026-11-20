@@ -1,5 +1,7 @@
 # ECS 部署踩坑记录（Alibaba Cloud Linux 3）
 
+> **2026-11-20 起：后端已移除。** 站点不再有点赞/阅读量与薄 API，`server/`、PostgreSQL、`xb-api.service`、`xb-backup.timer` 均已从仓库删除。本文件保留为历史参考：其中「xb-api / PostgreSQL / 数据库备份」相关段落已不再适用，`chown`、nginx 配置、CI 部署链路、sudo 白名单等静态站点部分仍然有效。
+
 # ⚠️⚠️⚠️ 最高优先级运维规则 ⚠️⚠️⚠️
 
 ## root 执行完 setup-ecs.sh 或任何 npm 命令后，必须立即执行：

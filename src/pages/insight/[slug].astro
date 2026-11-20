@@ -3,7 +3,6 @@ import { getCollection, getEntry, render } from 'astro:content';
 import { getPublishedPosts, getRelatedPosts, toPost } from '../../lib/insights';
 import { shade, INK } from '../../lib/cover-palette.mjs';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import ArticleEngagement from '../../components/ArticleEngagement.astro';
 import DouyinEmbed from '../../components/DouyinEmbed.astro';
 import { SITE } from '../../lib/site';
 import { articleGraph } from '../../lib/seo';
@@ -185,8 +184,6 @@ const jsonLd = articleGraph({
                 <p class="author-social">抖音、小红书和微信公众号搜索「个人商业创造者」</p>
               </div>
             </section>
-
-            {!post.draft && <ArticleEngagement slug={post.slug} />}
 
             {(prevPost || nextPost) && (
               <nav class="article-nav" aria-label="同栏目文章">

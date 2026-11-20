@@ -18,11 +18,8 @@ import { SITE } from '../lib/site';
     <section class="privacy-block">
       <h2>我们记录的信息</h2>
       <ul>
-        <li><strong>访客哈希</strong>：由 Cookie 标识与网络信息经加盐哈希得到的不可逆字符串，无法反推到个人身份。</li>
-        <li><strong>文章标识</strong>：你访问或反馈的文章 slug（文章地址标识）。</li>
-        <li><strong>反馈记录</strong>：你点的「赞 / 踩」及其时间，用于展示文章反馈计数。</li>
-        <li><strong>阅读日期</strong>：同一访客同一天对同一篇文章只计一次阅读量。</li>
-        <li><strong>IP 与浏览器标识</strong>：仅用于接口限流与防刷票、防刷量，不长期留存。</li>
+        <li><strong>服务器访问日志</strong>：为排查故障与防护，服务器会记录访问时间、请求路径、来源 IP 与浏览器标识，按系统日志轮转策略短期留存，不用于用户画像。</li>
+        <li><strong>你主动发来的邮件</strong>：若你通过下方邮箱联系，我们只保留邮件内容用于回复。</li>
       </ul>
     </section>
 
@@ -39,9 +36,9 @@ import { SITE } from '../lib/site';
     <section class="privacy-block">
       <h2>用途与留存</h2>
       <ul>
-        <li>用途：统计阅读量与文章反馈，识别重复投票与刷量。</li>
-        <li>投票与计数随对应文章保留；限流相关的 IP / 浏览器信息只在短期内用于防护。</li>
-        <li>访客标识 Cookie（<code>xb_vid</code>）为 HttpOnly、SameSite=Lax，用于识别同一访客，不承载身份信息。</li>
+        <li>访问日志仅用于排查故障、防护与容量观察，不做用户画像，不与其他数据拼接。</li>
+        <li>日志按服务器自身的轮转策略定期清理；如需删除与你相关的记录，可通过下方邮箱联系。</li>
+        <li>本站不统计阅读量、不提供点赞或反对，也不设置用于识别访客的跟踪 Cookie。</li>
       </ul>
     </section>
 

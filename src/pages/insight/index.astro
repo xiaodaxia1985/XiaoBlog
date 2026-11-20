@@ -2,17 +2,33 @@
 import { legacyIds } from '../../data/legacy-ids.mjs';
 ---
 <!DOCTYPE html>
-<html lang="zh-CN" style="background:#0c0c0c;">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0c0c0c">
-<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#F6F6F2">
+<meta name="color-scheme" content="light dark">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta name="robots" content="noindex">
 <title>正在打开文章 — 个人成长实践者</title>
 <link rel="stylesheet" href="/fonts/fonts.css">
 <link rel="stylesheet" href="/css/tokens.css">
+<style>
+  /* 跳转途中也要跟主题一致：首屏底色先按主题定，避免浅色用户看见黑屏一闪 */
+  html{background:#F6F6F2}
+  html[data-theme="dark"]{background:#0C0C0C}
+</style>
+<script is:inline>
+  (function () {
+    try {
+      var t = localStorage.getItem('xm-theme');
+      if (t !== 'light' && t !== 'dark') t = 'light';
+      document.documentElement.dataset.theme = t;
+      var m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.setAttribute('content', t === 'light' ? '#F6F6F2' : '#0C0C0C');
+    } catch (e) { document.documentElement.dataset.theme = 'light'; }
+  })();
+</script>
 <script is:inline data-astro-rerun>document.documentElement.classList.add('js');</script>
 <script is:inline src="/js/site-shell.js" defer></script>
 <style>
