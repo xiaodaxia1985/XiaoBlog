@@ -291,6 +291,11 @@ const topCategories = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])
       .hero-aside{padding:18px 0 0 18px;}
       .stat{padding:16px 16px 16px 0;}
       .stat+.stat{padding-left:16px;}
+      /* 两列布局里第 3 格回到首列起点，否则「10」会比「18」右移一格内距。
+         选择器必须带 .stat+ 前缀：Astro 给每个复合选择器加 data-astro-cid，
+         .stat+.stat 的权重比 .stat:nth-child(3) 高，裸写会被它压掉。 */
+      .stat+.stat:nth-child(3){padding-left:0;}
+      .stat:nth-child(2),.stat:nth-child(4){padding-left:16px;}
       .stat strong{font-size:19px;}
       .section{padding:50px 0;}
       .section-heading{margin-bottom:22px;}
