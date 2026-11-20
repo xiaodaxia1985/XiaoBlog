@@ -16,20 +16,22 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "${{ secrets.ECS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "${{ secrets.ECS_USER }}@${{ secrets.ECS_HOST }}" '
-            echo "=== xiaoblog.conf ==="
-            cat /etc/nginx/conf.d/xiaoblog.conf
-            echo "=== nginx binary ==="
-            command -v nginx || true; ps -ef | grep -E "nginx: master" | grep -v grep || true
-            echo "=== nginx -V ==="
-            (command -v nginx >/dev/null && nginx -V 2>&1) || true
-            echo "=== ssl_certificate refs ==="
-            grep -rn "ssl_certificate\|ssl_certificate_key" /etc/nginx/ 2>/dev/null | grep -v "^Binary"
-            echo "=== letsencrypt ==="
-            ls -la /etc/letsencrypt/live/ 2>/dev/null || true
-            echo "=== acme.sh ==="
-            ls -la /root/.acme.sh 2>/dev/null | head -20 || echo "no acme.sh"
-            echo "=== other cert dirs ==="
-            ls -la /etc/nginx/ssl /etc/pki/nginx 2>/dev/null || true
-            echo "=== deploy dir ==="
-            ls -la /opt/XiaoBlog/deploy/ 2>/dev/null
+            echo "=== server_name line ==="
+            grep -n "server_name" /etc/nginx/conf.d/xiaoblog.conf
+            echo "=== letsencrypt tree ==="
+            ls -la /etc/letsencrypt/ 2>&1
+            ls -la /etc/letsencrypt/live/ 2>&1
+            ls -la /etc/letsencrypt/renewal/ 2>&1
+            echo "=== renewal conf ==="
+            cat /etc/letsencrypt/renewal/*.conf 2>&1
+            echo "=== certbot location ==="
+            ls /snap/bin 2>&1 | head
+            find / -maxdepth 5 -name "certbot*" -not -path "*/proc/*" 2>/dev/null | head -10
+            python3 -m certbot --version 2>&1 | head -3
+            echo "=== renewal timers ==="
+            crontab -l 2>&1 | head -20
+            systemctl list-timers --all 2>/dev/null | head -15
+            ls -la /etc/cron.d/ 2>&1
+            echo "=== cert expiry on disk ==="
+            openssl x509 -in /etc/letsencrypt/live/xiaomaker.top/cert.pem -noout -subject -dates -ext subjectAltName 2>&1
           '
