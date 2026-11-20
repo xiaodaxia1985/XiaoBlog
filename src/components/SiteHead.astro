@@ -1,5 +1,6 @@
 ---
 import { SITE } from '../lib/site';
+import { siteGraph } from '../lib/seo';
 
 interface Props {
   title: string;
@@ -21,12 +22,15 @@ const {
 
 const ogImg = ogImage ?? new URL('/og/default-og.webp', SITE.url).toString();
 const card = twitterCard ?? 'summary_large_image';
+const graph = siteGraph();
 ---
 
 <title>{title}</title>
 <meta name="description" content={description} />
+<meta name="author" content={SITE.name} />
 <link rel="canonical" href={canonical} />
 
+<meta property="og:site_name" content={SITE.name} />
 <meta property="og:type" content={ogType} />
 <meta property="og:locale" content={SITE.locale} />
 <meta property="og:title" content={title} />
@@ -38,3 +42,5 @@ const card = twitterCard ?? 'summary_large_image';
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={ogImg} />
+
+<script type="application/ld+json" set:html={JSON.stringify(graph)}></script>

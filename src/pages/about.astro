@@ -2,10 +2,18 @@
 import { projectEntries } from '../data/projects.mjs';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../lib/site';
+import { pageGraph } from '../lib/seo';
 
 const description = '个人成长实践者的简历：18 年 IT 与产业数字化经验，现正用 AI 把专业经验变成可以交付的东西，并公开记录 90 天实践。';
+const jsonLd = pageGraph([
+  { name: '首页', path: '/' },
+  { name: '关于我', path: '/about/' },
+]);
 ---
 <BaseLayout title="关于我 — 个人成长实践者" description={description} canonicalPath="/about/" active="about">
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
+  </Fragment>
   <main id="main-content">
     <div class="container">
       <header class="intro">

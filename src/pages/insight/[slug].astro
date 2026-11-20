@@ -6,6 +6,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleEngagement from '../../components/ArticleEngagement.astro';
 import DouyinEmbed from '../../components/DouyinEmbed.astro';
 import { SITE } from '../../lib/site';
+import { articleGraph } from '../../lib/seo';
 
 export async function getStaticPaths() {
   const entries = await getCollection('insights');
@@ -38,21 +39,25 @@ const canonical = new URL(post.url, Astro.site ?? SITE.url).toString();
 const coverUrl = new URL(post.cover, Astro.site ?? SITE.url).toString();
 const ogImageUrl = new URL(post.ogImage, Astro.site ?? SITE.url).toString();
 const dateIso = post.date.replace(/\./g, '-');
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'BlogPosting',
-  headline: post.title,
-  datePublished: dateIso,
-  dateModified: dateIso,
-  author: { '@type': 'Person', name: SITE.name, url: SITE.url },
-  publisher: { '@type': 'Organization', name: SITE.name, url: SITE.url },
+const readMinutes = Number.parseInt(post.readTime, 10);
+const jsonLd = articleGraph({
+  url: canonical,
+  title: post.title,
   description: post.excerpt,
-  image: coverUrl,
-  mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
-  inLanguage: 'zh-CN',
-  articleSection: post.category,
-  keywords: post.tags,
-};
+  date: dateIso,
+  image: ogImageUrl,
+  cover: coverUrl,
+  category: post.category,
+  tags: post.tags,
+  timeRequired: Number.isFinite(readMinutes) ? `PT${readMinutes}M` : undefined,
+  crumbs: [
+    { name: '首页', path: '/' },
+    { name: '洞察', path: '/insights/' },
+    { name: post.title, path: post.url },
+  ],
+  draft: post.draft,
+  video: post.video ? { id: post.video.id, url: post.video.url } : null,
+});
 ---
 <BaseLayout
   title={`${post.title} — 个人成长实践者`}

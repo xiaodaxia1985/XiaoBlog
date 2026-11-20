@@ -2,6 +2,7 @@
 import { topics } from '../../data/topics.mjs';
 import { getPublishedPosts } from '../../lib/insights';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { pageGraph } from '../../lib/seo';
 
 export function getStaticPaths() {
   return topics.map((topic) => ({ params: { slug: topic.slug }, props: { topic } }));
@@ -12,8 +13,15 @@ const pageTitle = topic.title + ' — 个人成长实践者';
 const pageDescription = topic.definition + ' ' + topic.title + '方向的专题页：主题介绍、实践思考与相关文章。';
 const posts = (await getPublishedPosts()).filter((p) => p.topics.includes(topic.title));
 const siblings = topics.filter((t) => t.slug !== topic.slug);
+const jsonLd = pageGraph([
+  { name: '首页', path: '/' },
+  { name: topic.title, path: `/topics/${topic.slug}/` },
+]);
 ---
 <BaseLayout title={pageTitle} description={pageDescription} canonicalPath={`/topics/${topic.slug}/`} active="focus">
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
+  </Fragment>
   <header class="page-hero">
     <div class="wrap">
       <div class="crumb"><a href="/#focus">我在做什么</a><span aria-hidden="true">/</span><span>{topic.title}</span></div>

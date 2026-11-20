@@ -4,6 +4,7 @@ import { getPublishedPosts } from '../lib/insights';
 import { tracking } from '../data/practice-tracking.mjs';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import daily from '../../journal/daily.json';
+import { pageGraph } from '../lib/seo';
 
 const practice = getPracticeSnapshot();
 const stages = practice.stages;
@@ -121,8 +122,15 @@ const journalLast = journalLatestDate;
 const journalPosts = journalEntries.reduce((sum, entry) => sum + (entry.posts?.length ?? 0), 0);
 const journalFaces = FACES.filter((face) => journalEntries.some((entry) => entry.faces.includes(face)));
 const journalHasMilestone = journalEntries.some((entry) => (entry.milestones?.length ?? 0) > 0);
+const jsonLd = pageGraph([
+  { name: '首页', path: '/' },
+  { name: '90 天实践', path: '/90-days/' },
+]);
 ---
 <BaseLayout title="90天创造者实践 — 个人成长实践者" description={description} canonicalPath="/90-days/" active="focus">
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
+  </Fragment>
   <header class="page-hero">
     <div class="wrap">
       <p class="eyebrow">90 天创造者实践</p>
