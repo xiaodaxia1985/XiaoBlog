@@ -2,9 +2,9 @@
   "entries": [
     {
       "date": "2026-11-20",
-      "commits": 12,
-      "theme": "站名收口，首页重做",
-      "summary": "口径统一成「个人成长实践者」之后，首页才算真的在讲「做什么、凭什么」。",
+      "commits": 25,
+      "theme": "站名收口，首页重做，站点终于能被搜到",
+      "summary": "上午把口径统一成「个人成长实践者」，首页才算真的在讲「做什么、凭什么」；傍晚把 SEO 收口、三家搜索平台接上，站点第一次能被搜到。",
       "items": [
         {
           "face": "站点",
@@ -20,6 +20,26 @@
           "face": "产线",
           "title": "产线清单补两条：空镜合并（一句撑不起一镜就并进相邻句），P6 第四条判据",
           "commits": 1
+        },
+        {
+          "face": "站点",
+          "title": "SEO 结构化数据收口到 lib/seo.ts：全站 Person/WebSite、文章 BlogPosting 加面包屑与 timeRequired、视频文章补 VideoObject；sitemap 补 lastmod 与 privacy，全站 62 个 JSON-LD 块零报错",
+          "commits": 1
+        },
+        {
+          "face": "站点",
+          "title": "接入百度、Google、Bing 三家搜索平台：验证文件入库上线，sitemap 提交成功、19 页被发现",
+          "commits": 3
+        },
+        {
+          "face": "站点",
+          "title": "www 子域打通：证书扩成双域名、www 全路径 301 回主域；同日把站点自有 404 页接到 nginx（状态码仍保持 404），不再露出 nginx 原生页",
+          "commits": 1
+        },
+        {
+          "face": "站点",
+          "title": "为拿到服务器真实配置（证书、nginx、sudo 权限），借 GitHub Actions 跑只读勘查，用完即删临时工作流",
+          "commits": 6
         }
       ],
       "posts": [],
@@ -30,6 +50,12 @@
         },
         {
           "text": "首页重构：首屏讲清做什么与凭什么"
+        },
+        {
+          "text": "百度、Google、Bing 三家搜索平台验证通过，sitemap 提交后 19 个页面被发现"
+        },
+        {
+          "text": "www.xiaomaker.top 全路径 301 回主域，证书覆盖双域名"
         }
       ],
       "verified": true,
