@@ -1,0 +1,235 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE } from '../../lib/site';
+
+const scenes = [
+  { n: '01', head: '最值钱的技能，是抓注意力', line: '2027 年最赚钱的 AI 生意，不是写代码，也不是出书。' },
+  { n: '02', head: '这是 Dan Koe 的判断', line: '这是 Dan Koe 的判断。他在 X 上有一百多万关注，' },
+  { n: '03', head: '也是 Eden 的创始人', line: '也是 Eden 的创始人，他写了一篇长文专门讲这件事。' },
+  { n: '04', head: '他的第一句话是', line: '他的第一句话是：' },
+  { n: '05', head: '最值钱的技能，一直是抓注意力', line: '最值钱的技能，一直是抓注意力。' },
+  { n: '06', head: '理由很直接', line: '理由很直接。' },
+  { n: '07', head: '不管你的软件做得多好', line: '不管你的软件做得多好，书写了三年，' },
+  { n: '08', head: '要是没人知道你是谁', line: '要是没人知道你是谁、你能提供什么，' },
+  { n: '09', head: '别人凭什么付你钱', line: '别人凭什么付你钱？' },
+  { n: '10', head: '所以他说', line: '所以他说，不管是做自己的生意，' },
+  { n: '11', head: '还是给别人干活', line: '还是给别人干活，' },
+  { n: '12', head: '抓注意力、拿到客户', line: '抓注意力、拿到客户，' },
+  { n: '13', head: '才是决定成败的第一件事', line: '才是决定成败的第一件事。' },
+  { n: '14', head: '这个判断有两层意思', line: '这个判断有两层意思。' },
+  { n: '15', head: '第一层，你要有自己的生意', line: '第一层，你要有自己的生意，得先有人看见你。' },
+  { n: '16', head: '第二层，就算你只想给别人干活', line: '第二层，就算你只想给别人干活，' },
+  { n: '17', head: '也得先让人知道你能做什么', line: '也得先让人知道你能做什么。' },
+  { n: '18', head: '这个系列会按他的顺序', line: '这个系列会按他的顺序，把这篇长文拆成 13 集。' },
+  { n: '19', head: '看完你能知道三件事', line: '看完你能知道三件事：这门生意值多少钱，怎么入门，以及哪一步最容易被跳过。' },
+  { n: '20', head: '下一集', line: '下一集，讲为什么现在所有人都在往这条路上挤。' },
+];
+---
+
+<BaseLayout
+  title="最值钱的技能，是抓注意力 · WebPPT 试做 01"
+  description="Dan Koe 十三集拆解第 1 集的网页版：一屏一镜，配成片视频。滑动即翻页，发链接即可讲。"
+  canonicalPath="/d/dk13-ep01/"
+  hideFooter={true}
+  bodyClass="deck-page"
+>
+  <div class="presenter">
+    <header class="deck-head">
+      <p class="kicker">WebPPT · 试做 01</p>
+      <h1>最值钱的技能，<br />是抓注意力</h1>
+      <p class="sub">Dan Koe 十三集拆解 · 第 1 集。20 屏，1 分 23 秒。先看视频，再一屏一屏往下滑——每一屏都对上视频里的那一句。</p>
+      <p class="meta"><span>20 屏</span><span>2,325 帧</span><span>1080 × 1920</span></p>
+      <ul class="points">
+        <li><b>一屏就是一镜</b>每一屏都对上视频里的那一句，不是截图拼贴。</li>
+        <li><b>发个链接就能讲</b>手机、电脑都能翻，不用装软件，不用传 PPT 文件。</li>
+        <li><b>同一份稿，出三样</b>网页、竖版视频、可打印 PDF，一次做完。</li>
+      </ul>
+    </header>
+
+    <section class="player">
+      <video
+        controls
+        playsinline
+        preload="metadata"
+        poster="/decks/dk13-ep01/s01.jpg"
+        src="/decks/dk13-ep01/ep01.mp4"
+      ></video>
+      <p class="hint">视频是竖版成片；下面 20 屏是它的逐帧定版，滑一下换一页。</p>
+    </section>
+  </div>
+
+  <main class="deck" id="main-content">
+    {scenes.map((s) => (
+      <figure class="slide">
+        <img src={`/decks/dk13-ep01/s${s.n}.jpg`} alt={s.head} loading="lazy" decoding="async" width="900" height="1600" />
+        <figcaption>
+          <span class="no">{s.n}</span>
+          <span class="ln">{s.line}</span>
+        </figcaption>
+      </figure>
+    ))}
+  </main>
+
+  <section class="cta">
+    <p class="kicker">这份页面</p>
+    <h2>你明天要讲的那一场，<br />也能是这样一个链接</h2>
+    <p>把稿子发我，我给你三样：能在手机上翻的 WebPPT、同内容的竖版视频、可打印的 PDF。打开就能讲，发出去就能看。</p>
+    <p class="cta-line">
+      <a class="btn" href={`mailto:${SITE.email}?subject=WebPPT`}>写邮件要一份</a>
+      <span class="price">首批 ¥300 / 份（≤15 页）</span>
+    </p>
+    <p class="fine">这也是给「个人商业创造者」自己做的一次试做：同一份内容，三个载体。</p>
+  </section>
+
+  <style is:global>
+    /* 这一页当放映室：纸色幻灯片只落在深底上才跳出来。只改这一页的颜色令牌，不动全站。 */
+    body.deck-page {
+      --bg: #0C0C0C;
+      --surface: #141414;
+      --surface-2: #1A1A1A;
+      --bg-card: #141414;
+      --text: #F5F5F4;
+      --body: #D2D2CD;
+      --text-secondary: #A8A8A3;
+      --text-muted: #7C7C76;
+      --border: rgba(255, 255, 255, .09);
+      background: var(--bg);
+      color: var(--body);
+    }
+    html:has(body.deck-page) { background: #0C0C0C; }
+
+    :root { --deck-max: 560px; }
+
+    .presenter {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: calc(56px + var(--space-40)) var(--gutter) var(--space-40);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 400px;
+      gap: var(--space-56);
+      align-items: start;
+      border-bottom: 1px solid var(--border);
+    }
+    .deck-head { max-width: 640px; }
+    .kicker {
+      font-size: var(--fs-12);
+      letter-spacing: .08em;
+      color: var(--accent);
+      margin-bottom: var(--space-16);
+    }
+    .deck-head h1 {
+      font-size: clamp(30px, 6vw, 48px);
+      line-height: 1.18;
+      font-weight: 600;
+      letter-spacing: -.01em;
+    }
+    .sub {
+      margin-top: var(--space-16);
+      font-size: var(--fs-14);
+      color: var(--text-secondary);
+      line-height: var(--lh-body);
+      max-width: 34em;
+    }
+    .meta {
+      display: flex;
+      gap: var(--space-16);
+      margin-top: var(--space-20);
+      font-family: 'Inter', sans-serif;
+      font-variant-numeric: tabular-nums;
+      font-size: var(--fs-12);
+      color: var(--text-muted);
+    }
+
+    .points { margin-top: var(--space-40); border-top: 1px solid var(--border); }
+    .points li {
+      padding: var(--space-16) 0;
+      border-bottom: 1px solid var(--border);
+      font-size: var(--fs-14);
+      line-height: 1.75;
+      color: var(--text-secondary);
+    }
+    .points li b { display: block; color: var(--text); font-weight: 600; margin-bottom: var(--space-4); }
+
+    .player { position: sticky; top: 88px; }    .player video {
+      width: 100%;
+      max-height: 68vh;
+      object-fit: contain;
+      display: block;
+      border-radius: 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+    }
+    .hint { margin-top: var(--space-12); font-size: var(--fs-12); color: var(--text-muted); line-height: 1.7; }
+
+    .deck { padding: 0 0 var(--space-40); }
+    .slide {
+      min-height: 100svh;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      align-content: center;
+      justify-items: center;
+      gap: var(--space-16);
+      padding: var(--space-24) 16px;
+      border-bottom: 1px solid var(--border);
+      scroll-margin-top: 64px;
+    }
+    .slide img {
+      width: 100%;
+      max-width: var(--deck-max);
+      max-height: 82svh;
+      object-fit: contain;
+      border-radius: 10px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .35);
+    }
+    figcaption {
+      width: 100%;
+      max-width: var(--deck-max);
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: var(--space-12);
+      align-items: baseline;
+    }
+    .no {
+      font-family: 'Inter', sans-serif;
+      font-variant-numeric: tabular-nums;
+      font-size: var(--fs-12);
+      color: var(--text-muted);
+    }
+    .ln { font-size: var(--fs-14); color: var(--text-secondary); line-height: 1.75; }
+
+    .cta {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: var(--space-56) var(--gutter) var(--space-72);
+    }
+    .cta h2 { font-size: clamp(24px, 4.4vw, 34px); line-height: 1.3; font-weight: 600; }
+    .cta p { margin-top: var(--space-16); font-size: var(--fs-14); color: var(--text-secondary); line-height: var(--lh-body); max-width: 38em; }
+    .cta-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-16); margin-top: var(--space-24); }
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--accent-ink);
+      padding: 12px 22px;
+      border-radius: var(--radius-sm);
+      font-size: var(--fs-14);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .price { font-family: 'Inter', sans-serif; font-size: var(--fs-12); color: var(--text-muted); }
+    .fine { margin-top: var(--space-32); font-size: var(--fs-12); color: var(--text-muted); }
+
+    @media (max-width: 900px) {
+      .presenter {
+        display: block;
+        padding: calc(56px + var(--space-32)) 0 var(--space-24);
+      }
+      .deck-head { max-width: 640px; margin: 0 auto; padding: 0 var(--gutter) var(--space-24); }
+      .player { position: static; max-width: 500px; margin: 0 auto; padding: 0 16px; }
+    }
+
+    @media (max-width: 640px) {
+      .slide { padding: var(--space-16) 12px; gap: var(--space-12); }
+      .slide img { max-height: 78svh; }
+    }
+  </style>
+</BaseLayout>
