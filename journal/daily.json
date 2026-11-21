@@ -2,18 +2,6 @@
   "entries": [
     {
       "date": "2026-11-21",
-      "totalCommits": 30,
-      "totalFiles": 196,
-      "faces": {
-        "产线": {
-          "count": 26,
-          "files": 188
-        },
-        "站点": {
-          "count": 4,
-          "files": 8
-        }
-      },
       "theme": "第3集首发，WebPPT产线开跑",
       "summary": "第3集四平台首发，WebPPT 产线当天开机出样片。",
       "items": [
@@ -107,7 +95,8 @@
         }
       ],
       "verified": true,
-      "verifiedAt": "2026-11-21"
+      "verifiedAt": "2026-11-21",
+      "commits": 30
     },
     {
       "date": "2026-11-20",

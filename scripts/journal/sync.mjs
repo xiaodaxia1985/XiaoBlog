@@ -248,6 +248,7 @@ function buildDraft(dateFilter) {
 
     const entry = {
       date,
+      commits: list.length,
       totalCommits: list.length,
       totalFiles: list.reduce((n, c) => n + c.files, 0),
       faces: {},
