@@ -23,7 +23,7 @@
 
 ## 数据边界
 
-- 三仓库：`site/XiaoBlog`（站点）、`engine`（产线）、`text2Media`（产线）。
+- 四仓库：`site/XiaoBlog`（站点）、`engine`（产线）、`text2Media`（产线）、`productions/webppt`（产线，WebPPT 产品线，2026-11-21 起纳入；`deck/`、`src/`、`scripts/`、`demo/` 归产线，`docs/` 归文档）。
 - 判断、失误、线下活动、收入、反馈 git 里没有，写在 `activity.md` 的 `## YYYY-MM-DD` 段里，带 `[判断][失误][活动][反馈][收入]` 标签。
 - 里程碑写 `milestones.md`。
 </content>

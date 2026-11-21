@@ -1,4 +1,4 @@
-// 每日记录同步：从三个仓库的 git 历史聚合「当天做了什么」，输出待审草稿。
+// 每日记录同步：从四个仓库的 git 历史聚合「当天做了什么」，输出待审草稿。
 // 铁律：脚本只写 journal/.inbox/<date>.json 草稿，绝不直接改 journal/daily.json。
 // 草稿需用户审核通过后，再跑 journal:accept 才进入正式数据（入 git）。
 import { execFileSync } from 'node:child_process';
@@ -16,6 +16,7 @@ const REPOS = [
   { key: 'xiaoblog', dir: SITE, label: '站点' },
   { key: 'engine', dir: path.join(ROOT, 'engine'), label: '产线' },
   { key: 'text2media', dir: path.join(ROOT, 'text2Media'), label: '产线' },
+  { key: 'webppt', dir: path.join(ROOT, 'productions/webppt'), label: '产线' },
 ];
 
 // 路径 → 面的映射。维护点：新目录出现时在首条命中后补规则即可。
@@ -44,6 +45,15 @@ const PATH_RULES = {
   ],
   text2media: [
     ['skills/', '产线'],
+    ['docs/', '文档'],
+  ],
+  webppt: [
+    ['src/', '产线'],
+    ['deck/', '产线'],
+    ['demo/', '产线'],
+    ['scripts/', '产线'],
+    ['prompts/', '产线'],
+    ['public/', '产线'],
     ['docs/', '文档'],
   ],
 };
