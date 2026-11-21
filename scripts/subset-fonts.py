@@ -26,6 +26,8 @@ TEXT_DIRS = [
     ("public/css", (".css",)),
     ("public/js", (".js",)),
     ("src/data", (".mjs",)),
+    # 90-days 页每日记录的正文来自 journal/daily.json，不在 src 内，必须一并收字
+    ("journal", (".json", ".md")),
 ]
 
 # 基线字符区间。Inter 只承载拉丁/数字/西文标点；中文标点、全角与符号一律走 Noto 回退。
@@ -44,7 +46,8 @@ BASELINE = {
 
 # 保留的 OpenType 特性；其余特性及其引用的备选字形一并裁掉，控制体积。
 LAYOUT_FEATURES = {
-    "noto-sans-sc.woff2": "*",
+    # 中文正文不需要 palt/vert/vrt2 等竖排与标点挤压特性，裁掉可省约 80KB
+    "noto-sans-sc.woff2": "kern,liga,clig,calt,ccmp,locl,mark,mkmk",
     "inter.woff2": "kern,liga,calt",
 }
 

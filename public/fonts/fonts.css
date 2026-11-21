@@ -1,10 +1,11 @@
 /* 本地字体：变量字体子集，仅包含站点实际使用字符，覆盖 100–900 字重 */
+/* woff2 走 immutable 缓存，字体更新靠 ?v= 换 URL，避免老访客读 30 天旧缓存 */
 @font-face {
   font-family: 'Noto Sans SC';
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url('/fonts/noto-sans-sc.woff2') format('woff2');
+  src: url('/fonts/noto-sans-sc.woff2?v=20261121') format('woff2');
 }
 @font-face {
   font-family: 'Inter';
