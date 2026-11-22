@@ -1,13 +1,18 @@
 ---
 title: "2027 年最赚钱的AI生意，是抓注意力"
-tagline: ""
+tagline: "Dan Koe 十三集拆解第 1 集。先看 1 分 27 秒的竖版视频，再翻 7 屏放映，最后读这句判断和它的两层意思。"
 category: "90天实战"
 topic: ["个人成长实践", "AI与产品探索", "个人成长体系"]
 date: "2026.11.19"
 draft: false
+excerpt: "2027 年最赚钱的 AI 生意，不是写代码，也不是出书。Dan Koe 的第一句话是：最值钱的技能，一直是抓注意力。"
 videoId: "7709840773155409193"
 videoRatio: "9:16"
 videoUrl: "https://v.douyin.com/t2pqijJrS_c/"
+videoTime: "1:27"
+deckPath: "dk13-ep01"
+deckCount: 7
+deckScreens: ["01", "02", "05"]
 tags: ["vibe知识大赏", "AI", "一人公司", "内容创作", "DanKoe"]
 ---
 

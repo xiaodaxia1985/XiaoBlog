@@ -29,6 +29,9 @@ covers-originals/
 .cache/
 _verify/
 
+# 本地临时目录（解析服务用的无头 Chrome profile 等）
+.tmp/
+
 # article2media working output (source article + rendered wechat layout)
 article2media-out/
 

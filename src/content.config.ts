@@ -23,6 +23,12 @@ const insights = defineCollection({
     videoId: z.string().regex(/^\d{15,20}$/, 'videoId 应为抖音 video_id 数字串').optional(),
     videoRatio: z.enum(['9:16', '16:9', '1:1', '4:3', '3:4', 'auto']).default('auto'),
     videoUrl: z.string().optional(),
+    videoTime: z.string().optional(),
+    // 「视频 + 放映」型文章：deckPath 指向 public/decks/<deckPath>/index.html（构建产物，站点只读）。
+    // 有它就不渲染观点卡，正文里依次是：视频卡 → 放映区 → 文章正文。
+    deckPath: z.string().optional(),
+    deckCount: z.number().optional(),
+    deckScreens: z.array(z.string()).optional(),
   }),
 });
 

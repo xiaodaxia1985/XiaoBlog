@@ -1,0 +1,126 @@
+---
+/**
+ * 放映区：直接把 deck 嵌在文章里，不再弹全屏浮层。
+ * 为什么不弹层：用户就在这页看，进页面时 deck 已经加载好；手指/滚轮落在这一块上，
+ * 左右滑就是翻页，竖向滑交给外层滚页面（deck 里 postMessage 回传 webppt:scroll）。
+ * deck 文件放 public/decks/<path>/index.html，是构建产物（一页一屏、行级进场），站点不改它。
+ */
+interface Props {
+  path: string;
+  count: number;
+  note?: string;
+}
+const { path, count, note = '左右划或滚轮横滑翻页 · 竖向滑继续读下面正文' } = Astro.props;
+const deckSrc = `/decks/${path}/index.html`;
+---
+
+<section class="decksec" data-deck={path} id="deck">
+  <div class="decksec-stage" data-deck-stage>
+    <iframe
+      data-deck-iframe
+      src={deckSrc}
+      title="WebPPT 放映"
+      allow="fullscreen"
+      scrolling="no"
+      loading="eager"></iframe>
+    <button type="button" class="deck-nav prev" data-deck-go="-1" aria-label="上一页">‹</button>
+    <button type="button" class="deck-nav next" data-deck-go="1" aria-label="下一页">›</button>
+  </div>
+
+  <p class="decksec-hint">
+    <span class="decksec-swipe" aria-hidden="true">⇄</span>
+    {note}
+  </p>
+</section>
+
+<style>
+  .decksec { margin: 0; }
+  .decksec-head {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+    gap: var(--space-8); padding-bottom: var(--space-12);
+  }
+  .decksec-head b { font-size: 15px; color: var(--text); letter-spacing: .01em; }
+  .decksec-head span { font-size: 12px; color: var(--text-muted); }
+
+  .decksec-stage {
+    position: relative;
+    display: flex; justify-content: center;
+    padding: 12px; margin-top: var(--space-12);
+    background: var(--deck-plate, rgba(255, 255, 255, .9));
+    border: 1px solid var(--border); border-radius: var(--radius);
+    cursor: pointer;
+  }
+  .decksec-stage iframe {
+    position: relative; z-index: 1;
+    width: min(460px, 100%); aspect-ratio: 9 / 16; height: auto;
+    border: 0; display: block; background: #F5F5F5; border-radius: 6px;
+    box-shadow: 0 2px 10px -6px rgba(0, 0, 0, .45);
+    cursor: default;
+  }
+  .deck-nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 34px; height: 34px; display: grid; place-items: center;
+    border: 1px solid var(--border); border-radius: 50%;
+    background: var(--surface); color: var(--text-secondary);
+    font: 400 17px/1 'Inter', sans-serif; cursor: pointer; padding: 0;
+    transition: color .18s ease, border-color .18s ease, opacity .18s ease;
+  }
+  .deck-nav.prev { left: 8px; }
+  .deck-nav.next { right: 8px; }
+  .deck-nav:hover { color: var(--accent); border-color: var(--accent); }
+  @media (max-width: 720px) {
+    .deck-nav { width: 30px; height: 30px; font-size: 15px; }
+  }
+
+  .decksec-hint {
+    display: flex; align-items: center; gap: 6px; margin: var(--space-12) 0 0;
+    font-size: 12px; color: var(--text-secondary);
+  }
+  .decksec-swipe { color: var(--accent-hover); font-size: 14px; }
+
+  @media (max-width: 720px) {
+    .decksec-stage { padding: var(--space-8); }
+    .decksec-stage iframe { width: 100%; }
+  }
+</style>
+
+<script slot="scripts" is:inline data-astro-rerun>
+  (function () {
+    // deck 里竖向滑动/滚轮会回传 dy，这里把它换成外层页面滚动
+    if (!window.__deckScrollBound) {
+      window.__deckScrollBound = true;
+      window.addEventListener('message', function (e) {
+        if (!e.data || e.data.type !== 'webppt:scroll') return;
+        window.scrollBy(0, e.data.dy || 0);
+      });
+    }
+
+    document.querySelectorAll('[data-deck]').forEach(function (sec) {
+      if (sec.dataset.ready === '1') return;
+      sec.dataset.ready = '1';
+      var stage = sec.querySelector('[data-deck-stage]');
+      var iframe = sec.querySelector('[data-deck-iframe]');
+
+      // 翻页指令发给 iframe 里的 deck（它自己管缓动与进度点）
+      function go(dir) {
+        if (!iframe.contentWindow) return;
+        iframe.contentWindow.postMessage({ type: 'webppt:go', dir: dir }, '*');
+      }
+
+      sec.querySelectorAll('[data-deck-go]').forEach(function (b) {
+        b.addEventListener('click', function (e) {
+          e.stopPropagation();
+          go(Number(b.dataset.deckGo));
+        });
+      });
+
+      // 点 iframe 两侧的留白：左半上一页、右半下一页
+      stage.addEventListener('click', function (e) {
+        if (e.target.closest('iframe') || e.target.closest('[data-deck-go]')) return;
+        var r = stage.getBoundingClientRect();
+        go(e.clientX < r.left + r.width / 2 ? -1 : 1);
+      });
+      iframe.addEventListener('load', function () { iframe.dataset.loaded = '1'; });
+    });
+  })();
+</script>

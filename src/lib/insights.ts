@@ -64,6 +64,10 @@ export type Post = {
   tags: string[];
   /** 非视频文章为 null；视频文章带播放器所需参数 */
   video: PostVideo | null;
+  /** 「视频 + 放映」型文章的 WebPPT 放映信息；普通文章为 null */
+  deck: { path: string; count: number; screens: { src: string; no: string }[] } | null;
+  /** 视频时长（1:39 这种），卡片上显示；没写就空着 */
+  videoTime: string;
 };
 
 function stripMarkdown(md: string): string {
@@ -152,6 +156,17 @@ export function toPost(entry: InsightEntry): Post {
         url: entry.data.videoUrl?.trim() ?? '',
       }
     : null;
+  const deckPath = entry.data.deckPath?.trim();
+  const deck = deckPath
+    ? {
+        path: deckPath,
+        count: entry.data.deckCount ?? (entry.data.deckScreens?.length || 0),
+        screens: (entry.data.deckScreens ?? ['01', '02', '05']).slice(0, 3).map((no) => ({
+          src: `/decks/${deckPath}/s${no}.jpg`,
+          no,
+        })),
+      }
+    : null;
   return {
     slug: entry.id,
     url: `/insight/${entry.id}/`,
@@ -171,6 +186,8 @@ export function toPost(entry: InsightEntry): Post {
     takeaways: entry.data.takeaways ?? [],
     tags: entry.data.tags ?? [],
     video,
+    deck,
+    videoTime: entry.data.videoTime?.trim() ?? '',
   };
 }
 

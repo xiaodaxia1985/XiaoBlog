@@ -13,7 +13,8 @@
     "dy:add": "node scripts/add-douyin-video.mjs",
     "journal:sync": "node scripts/journal/sync.mjs",
     "journal:accept": "node scripts/journal/accept.mjs",
-    "astro": "astro"
+    "astro": "astro",
+    "resolver": "node tools/video-resolver.mjs"
   },
   "dependencies": {
     "astro": "^5.0.0",

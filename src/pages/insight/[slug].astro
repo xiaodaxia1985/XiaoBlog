@@ -4,6 +4,8 @@ import { getPublishedPosts, getRelatedPosts, toPost } from '../../lib/insights';
 import { shade, INK } from '../../lib/cover-palette.mjs';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import DouyinEmbed from '../../components/DouyinEmbed.astro';
+import VideoCard from '../../components/VideoCard.astro';
+import DeckSection from '../../components/DeckSection.astro';
 import { SITE } from '../../lib/site';
 import { articleGraph } from '../../lib/seo';
 
@@ -38,6 +40,11 @@ const canonical = new URL(post.url, Astro.site ?? SITE.url).toString();
 const coverUrl = new URL(post.cover, Astro.site ?? SITE.url).toString();
 const ogImageUrl = new URL(post.ogImage, Astro.site ?? SITE.url).toString();
 const dateIso = post.date.replace(/\./g, '-');
+const epNo = post.deck?.path.match(/ep(\d+)/i)?.[1];
+const episodeLabel = epNo ? `第 ${Number(epNo)} 集` : '';
+// 站点不存视频：播放器的 src 指向同源解析代理（生产走 nginx /media → 解析服务，
+// 本地预览用 tools/video-resolver.mjs，构建时用 PUBLIC_VIDEO_RESOLVER 指过去）。
+const VIDEO_RESOLVER = (import.meta.env.PUBLIC_VIDEO_RESOLVER || '/media').replace(/\/$/, '');
 const readMinutes = Number.parseInt(post.readTime, 10);
 const jsonLd = articleGraph({
   url: canonical,
@@ -85,7 +92,7 @@ const jsonLd = articleGraph({
         <div class="meta-line">
           <span>{post.date}</span><span class="dot">·</span>
           <span>{post.category}</span><span class="dot">·</span>
-          <span>{post.video ? '视频' : post.readTime}</span>
+          <span>{post.deck ? '视频 + 放映' : post.video ? '视频' : post.readTime}</span>
           {draftLabel && <span class="article-status">{draftLabel}</span>}
         </div>
         <h1 class="article-title">{post.title}</h1>
@@ -94,7 +101,7 @@ const jsonLd = articleGraph({
     </div>
   </header>
 
-  {opinionCards.length > 0 && (
+  {opinionCards.length > 0 && !post.deck && (
     <div class="art-inner">
       <div class="col card-col">
         <section class="opinion-card" data-opinion tabindex="0" role="group" aria-roledescription="轮播" aria-label={`核心观点，共 ${post.takeaways.length} 条`} style={`--card-bg:${opinionCards[0].bg};--card-accent:${opinionCards[0].accent};${inkVars}`}>
@@ -136,6 +143,8 @@ const jsonLd = articleGraph({
             <summary>文章目录 <span>ON THIS PAGE</span></summary>
             <nav>
               <a class="toc-link" href="#article-start">开篇</a>
+              {post.video && <a class="toc-link" href="#video">视频</a>}
+              {post.deck && <a class="toc-link" href="#deck">webppt</a>}
               {headings.filter((heading) => heading.depth === 2 || heading.depth === 3).map((heading) => (
                 <a class:list={['toc-link', { 'toc-sub-link': heading.depth === 3 }]} href={`#${heading.slug}`}>{heading.text}</a>
               ))}
@@ -156,7 +165,7 @@ const jsonLd = articleGraph({
             <button type="button" class="top-toggle" data-back-top>回到顶部 ↑</button>
           </div>
           <div class="article-start-anchor" id="article-start" aria-hidden="true"></div>
-          {post.video && (
+          {post.video && !post.deck && (
             <DouyinEmbed
               id={post.video.id}
               ratio={post.video.ratio}
@@ -164,9 +173,30 @@ const jsonLd = articleGraph({
               title={post.title}
             />
           )}
-          <article class="markdown">
-            <Content />
-          </article>
+          {post.video && post.deck && (
+            <div class="seg seg-video" id="video">
+              <p class="seg-k">01 · 视频{post.videoTime ? ` ${post.videoTime}` : ''}</p>
+              <VideoCard
+                src={`${VIDEO_RESOLVER}/video?vid=${post.video.id}`}
+                poster={`/decks/${post.deck.path}/cover.jpg`}
+                title={post.title}
+                duration={post.videoTime}
+                episode={episodeLabel}
+              />
+            </div>
+          )}
+          {post.deck && (
+            <div class="seg seg-deck">
+              <p class="seg-k">02 · 放映 {post.deck.count} 屏</p>
+              <DeckSection path={post.deck.path} count={post.deck.count} />
+            </div>
+          )}
+          <div class="seg seg-body">
+            <p class="seg-k">03 · 正文</p>
+            <article class="markdown">
+              <Content />
+            </article>
+          </div>
 
           <div class="article-end" id="article-end">
             {post.tags.length > 0 && (
@@ -482,6 +512,37 @@ const jsonLd = articleGraph({
     }
     @media(prefers-reduced-motion:reduce){
       .reading-progress,.reading-top,.toc-link{transition:none!important;}
+    }
+
+    /* ===== 三段色块：视频 / 放映 / 正文，一眼分得开 ===== */
+    .seg{
+      margin:0 0 var(--space-24);
+      padding:24px 24px 28px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      position:relative;
+    }
+    .seg-k{
+      margin:0 0 14px;
+      font-family:'Inter',sans-serif;
+      font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+      color:var(--text-muted);
+    }
+    .seg-video{background:#FFFFFF;}
+    .seg-deck{
+      background:#E9EFDA;
+      border-color:rgba(63,90,14,.28);
+      --deck-plate:#FFFFFF;
+    }
+    .seg-deck .seg-k{color:#4E5F22;}
+    .seg-body{background:#F1F0E9;border-color:rgba(0,0,0,.10);}
+    [data-theme="dark"] .seg-video{background:#161616;}
+    [data-theme="dark"] .seg-deck{background:#1B2112;border-color:rgba(216,242,107,.24);--deck-plate:#141414;}
+    [data-theme="dark"] .seg-deck .seg-k{color:#B9C88A;}
+    [data-theme="dark"] .seg-body{background:#111111;}
+
+    @media(max-width:720px){
+      .seg{padding:16px 14px 18px;border-radius:12px;}
     }
   </style>
 
