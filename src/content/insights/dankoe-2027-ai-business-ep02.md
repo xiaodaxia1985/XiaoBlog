@@ -9,6 +9,7 @@ excerpt: "工作越来越不稳，很多人面前其实只剩三条路：抱怨�
 videoId: "7710215518078225718"
 videoRatio: "9:16"
 videoUrl: "https://v.douyin.com/Ba-5yujh8S0/"
+videoCdnId: "v0200fg10000dc02rknog65gdp9td57g"
 videoTime: "1:39"
 deckPath: "dk13-ep02"
 deckCount: 7

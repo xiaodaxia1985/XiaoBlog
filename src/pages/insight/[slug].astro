@@ -42,9 +42,13 @@ const ogImageUrl = new URL(post.ogImage, Astro.site ?? SITE.url).toString();
 const dateIso = post.date.replace(/\./g, '-');
 const epNo = post.deck?.path.match(/ep(\d+)/i)?.[1];
 const episodeLabel = epNo ? `第 ${Number(epNo)} 集` : '';
-// 站点不存视频：播放器的 src 指向同源解析代理（生产走 nginx /media → 解析服务，
-// 本地预览用 tools/video-resolver.mjs，构建时用 PUBLIC_VIDEO_RESOLVER 指过去）。
-const VIDEO_RESOLVER = (import.meta.env.PUBLIC_VIDEO_RESOLVER || '/media').replace(/\/$/, '');
+// 站点不存视频、也不跑解析服务：抖音那个 /aweme/v1/play/ 入口是不带签名的固定地址，
+// 每次播放由抖音自己 302 到新鲜的 CDN 链接，所以只把 video_id 写死在页面里。
+// 前提是整页不带 Referer（CDN 拒的是「别的站点的 Referer」，不是「没有 Referer」），
+// 页面 head 里加了 <meta name="referrer" content="no-referrer">。
+const videoPlaySrc = post.video?.cdnId
+  ? `https://www.douyin.com/aweme/v1/play/?video_id=${post.video.cdnId}&ratio=720p&line=0`
+  : '';
 const readMinutes = Number.parseInt(post.readTime, 10);
 const jsonLd = articleGraph({
   url: canonical,
@@ -77,6 +81,7 @@ const jsonLd = articleGraph({
   hideFooter
 >
   <Fragment slot="head">
+    {post.video && <meta name="referrer" content="no-referrer" />}
     <meta property="article:section" content={post.category} />
     <meta property="article:published_time" content={dateIso} />
     <meta property="article:modified_time" content={dateIso} />
@@ -177,11 +182,12 @@ const jsonLd = articleGraph({
             <div class="seg seg-video" id="video">
               <p class="seg-k">01 · 视频{post.videoTime ? ` ${post.videoTime}` : ''}</p>
               <VideoCard
-                src={`${VIDEO_RESOLVER}/video?vid=${post.video.id}`}
+                src={videoPlaySrc}
                 poster={`/decks/${post.deck.path}/cover.jpg`}
                 title={post.title}
                 duration={post.videoTime}
                 episode={episodeLabel}
+                fallbackUrl={post.video.url}
               />
             </div>
           )}

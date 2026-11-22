@@ -9,6 +9,7 @@ excerpt: "2027 年最赚钱的 AI 生意，不是写代码，也不是出书。D
 videoId: "7709840773155409193"
 videoRatio: "9:16"
 videoUrl: "https://v.douyin.com/t2pqijJrS_c/"
+videoCdnId: "v0300fg10000dbvbrnvog65jdgtm9d7g"
 videoTime: "1:27"
 deckPath: "dk13-ep01"
 deckCount: 7

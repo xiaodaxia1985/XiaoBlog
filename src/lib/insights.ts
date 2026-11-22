@@ -42,6 +42,8 @@ export type PostVideo = {
   ratio: string;
   /** 原始分享链接，可能为空 */
   url: string;
+  /** 抖音 CDN 的 video_id；有它就能直接播（配合页面 no-referrer），没有则回退到官方 iframe */
+  cdnId: string;
 };
 
 export type Post = {
@@ -154,6 +156,7 @@ export function toPost(entry: InsightEntry): Post {
         id: rawVideoId,
         ratio: entry.data.videoRatio ?? 'auto',
         url: entry.data.videoUrl?.trim() ?? '',
+        cdnId: entry.data.videoCdnId?.trim() ?? '',
       }
     : null;
   const deckPath = entry.data.deckPath?.trim();

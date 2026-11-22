@@ -6,13 +6,14 @@
  * 这里只保留：画面、中央播放键、进度条、时间，另加静音与全屏两个钮。
  */
 interface Props {
-  src: string;
+  src?: string;
   poster: string;
   title: string;
   duration?: string;
   episode?: string;
+  fallbackUrl?: string;
 }
-const { src, poster, title, duration = '' } = Astro.props;
+const { src = '', poster, title, duration = '', fallbackUrl = '' } = Astro.props;
 ---
 <section class="vp" data-vp>
   <div class="vp-frame is-paused" data-frame>
@@ -25,6 +26,13 @@ const { src, poster, title, duration = '' } = Astro.props;
       preload="none"
       controlslist="nodownload"
       disablepictureinpicture></video>
+
+    <div class="vp-fail" data-fail hidden>
+      <p>这一集的视频暂时没加载出来</p>
+      {fallbackUrl && (
+        <a href={fallbackUrl} target="_blank" rel="noopener">去抖音看这一集 →</a>
+      )}
+    </div>
 
     <button type="button" class="vp-big" data-toggle aria-label="播放">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" /></svg>
@@ -66,6 +74,18 @@ const { src, poster, title, duration = '' } = Astro.props;
     box-shadow: 0 1px 2px rgba(45, 49, 66, .08), 0 12px 28px -18px rgba(45, 49, 66, .45);
   }
   .vp-frame video { width: 100%; height: 100%; display: block; object-fit: cover; background: #0B0B0B; }
+
+  .vp-fail {
+    position: absolute; inset: 0; display: grid; align-content: center; justify-items: center; gap: 10px;
+    padding: 24px; text-align: center; background: rgba(11, 11, 11, .78); color: #EDECE6;
+  }
+  .vp-fail[hidden] { display: none; }
+  .vp-fail p { margin: 0; font-size: 13px; line-height: 1.6; color: #D5D4CE; }
+  .vp-fail a {
+    font-size: 13px; color: var(--accent); text-decoration: none; border-bottom: 1px solid currentColor;
+    padding-bottom: 2px;
+  }
+  .vp-frame.is-fail .vp-big { display: none; }
 
   .vp-big {
     position: absolute; left: 50%; top: 50%; width: 62px; height: 62px; margin: -31px 0 0 -31px;
@@ -141,6 +161,13 @@ const { src, poster, title, duration = '' } = Astro.props;
       var dur = sec.querySelector('[data-dur]');
       var muted = false;
       var loaded = false;
+      var fail = sec.querySelector('[data-fail]');
+      function broke() {
+        frame.classList.add('is-fail');
+        fail.hidden = false;
+        video.pause();
+      }
+      if (!video.dataset.src) broke();
       function load() {
         if (loaded) return;
         loaded = true;
@@ -149,7 +176,8 @@ const { src, poster, title, duration = '' } = Astro.props;
 
       function mmss(t) {
         if (!isFinite(t)) return '00:00';
-        var m = Math.floor(t / 60), s = Math.floor(t % 60);
+        var total = Math.round(t);
+        var m = Math.floor(total / 60), s = total % 60;
         return (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
       }
       function paint() {
@@ -172,6 +200,7 @@ const { src, poster, title, duration = '' } = Astro.props;
       video.addEventListener('play', state);
       video.addEventListener('pause', state);
       video.addEventListener('ended', state);
+      video.addEventListener('error', broke);
 
       sec.querySelectorAll('[data-toggle]').forEach(function (b) { b.addEventListener('click', toggle); });
       frame.addEventListener('click', function (e) {
@@ -194,13 +223,6 @@ const { src, poster, title, duration = '' } = Astro.props;
         if (video.duration) { video.currentTime = p * video.duration; paint(); }
       });
       state();
-
-      // 进页面后静默预热解析：直链要起一次无头 Chrome 才拿得到（约 5 秒），
-      // 等用户真按播放再解析就会干等，所以这里先让服务端把缓存建好。
-      setTimeout(function () {
-        var warm = video.dataset.src.replace('/video?vid=', '/warm?vid=');
-        if (warm !== video.dataset.src) fetch(warm, { mode: 'cors' }).catch(function () {});
-      }, 1200);
     });
   })();
 </script>

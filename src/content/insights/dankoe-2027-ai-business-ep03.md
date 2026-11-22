@@ -9,6 +9,7 @@ excerpt: "做个人品牌值不值得做，先看钱往哪里流。创作者经�
 videoId: "7710583226288344354"
 videoRatio: "9:16"
 videoUrl: "https://v.douyin.com/2BpZjEfrapg/"
+videoCdnId: "v0300fg10000dc0nitnog65qu9m3qec0"
 videoTime: "1:52"
 deckPath: "dk13-ep03"
 deckCount: 7

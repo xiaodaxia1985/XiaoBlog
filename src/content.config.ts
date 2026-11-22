@@ -24,6 +24,10 @@ const insights = defineCollection({
     videoRatio: z.enum(['9:16', '16:9', '1:1', '4:3', '3:4', 'auto']).default('auto'),
     videoUrl: z.string().optional(),
     videoTime: z.string().optional(),
+    // 抖音 CDN 的 video_id（如 v0300fg10000…）。配合页面 head 的 no-referrer，
+    // 播放器可以直接播 https://www.douyin.com/aweme/v1/play/?video_id=<它>：该入口无签名、不失效，
+    // 每次播放由抖音自己 302 到新鲜 CDN 链接。取法见 docs 里的记录。
+    videoCdnId: z.string().optional(),
     // 「视频 + 放映」型文章：deckPath 指向 public/decks/<deckPath>/index.html（构建产物，站点只读）。
     // 有它就不渲染观点卡，正文里依次是：视频卡 → 放映区 → 文章正文。
     deckPath: z.string().optional(),
