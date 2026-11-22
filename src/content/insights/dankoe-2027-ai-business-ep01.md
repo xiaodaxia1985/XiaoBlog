@@ -14,6 +14,7 @@ videoTime: "1:27"
 deckPath: "dk13-ep01"
 deckCount: 7
 deckScreens: ["01", "02", "05"]
+modes: true
 tags: ["vibe知识大赏", "AI", "一人公司", "内容创作", "DanKoe"]
 ---
 

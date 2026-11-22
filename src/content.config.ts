@@ -33,6 +33,10 @@ const insights = defineCollection({
     deckPath: z.string().optional(),
     deckCount: z.number().optional(),
     deckScreens: z.array(z.string()).optional(),
+    // 三态阅读试点：文字 / PPT / 视频 同页切换，默认文字。
+    // 只给通过验收的文章打开，未打开时仍走「视频卡 → 放映区 → 正文」的三段叠排。
+    modes: z.boolean().optional(),
+    modesVersion: z.string().optional(),
   }),
 });
 

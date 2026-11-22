@@ -1,0 +1,316 @@
+---
+/**
+ * 三态阅读：同一篇内容，三种读法 —— 文字 / PPT / 视频。
+ * 默认文字（无 JS、爬虫、分享进来都是全文）；切换只替换同一块内容区，不弹层、不跳页、不开新窗口。
+ * 进度：文字↔PPT 按「正文滚动进度 → 页码」等比例换算（v1 粗映射，页码标"约"），
+ * 视频记住当前播放点，切回来接着放。状态写进 URL（?view=deck&p=3 / ?view=video&t=41）。
+ * 配色不另起一套：pill、分页点、按钮全部取站点令牌（--accent / --accent-ink / --border / --overlay-soft / --radius）。
+ */
+interface Props {
+  count: number;
+  title?: string;
+}
+const { count, title = '同一份内容 · 三种读法' } = Astro.props;
+---
+
+<section class="ms" data-ms data-count={count} data-mode="text">
+  <div class="ms-head">
+    <div class="ms-bar" role="tablist" aria-label="阅读模式">
+      <button type="button" class="ms-btn" data-ms-btn="text" role="tab" aria-selected="true">文字</button>
+      <button type="button" class="ms-btn" data-ms-btn="deck" role="tab" aria-selected="false">PPT</button>
+      <button type="button" class="ms-btn" data-ms-btn="video" role="tab" aria-selected="false">视频</button>
+    </div>
+    <span class="ms-note">{title}</span>
+  </div>
+
+  <div class="ms-panel" data-ms-panel="text">
+    <slot name="text" />
+  </div>
+  <div class="ms-panel" data-ms-panel="deck" hidden>
+    <slot name="deck" />
+  </div>
+  <div class="ms-panel" data-ms-panel="video" hidden>
+    <slot name="video" />
+  </div>
+</section>
+
+<style>
+  .ms { margin: 0 0 var(--space-32); }
+
+  /* 分段控件规矩：整体居中、三段等宽（等宽才能让选中态加粗时不发生横向重排） */
+  .ms-head {
+    display: flex; flex-direction: column; align-items: center; gap: var(--space-8);
+    margin-bottom: var(--space-16);
+  }
+  .ms-bar {
+    display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+    width: min(300px, 100%); gap: 2px; padding: 3px;
+    background: var(--overlay-soft); border: 1px solid var(--border);
+    border-radius: 999px;
+  }
+  .ms-btn {
+    appearance: none; border: 0; background: transparent; cursor: pointer;
+    padding: 7px 0; border-radius: 999px; text-align: center;
+    font: 500 var(--fs-12)/1 'Noto Sans SC', 'Inter', sans-serif;
+    letter-spacing: .06em; color: var(--text-secondary);
+  }
+  .ms-btn:hover { color: var(--text); background: rgba(var(--accent-rgb), .10); }
+  .ms-btn[aria-selected="true"] {
+    background: var(--accent); color: var(--accent-ink); font-weight: 600;
+  }
+  .ms-btn[aria-selected="true"]:hover { background: var(--accent-hover); color: var(--accent-ink); }
+  .ms-note {
+    font-size: 11.5px; color: var(--text-muted); letter-spacing: .04em;
+  }
+
+  /* 桌面：pill 也吸顶（它是唯一的三态入口；长文读到一半时不能被滚出屏幕，
+     否则为了点它必须先滚回上面，进度换算就会算成「你滚到哪儿」而不是「你读到哪儿」） */
+  @media (min-width: 901px) {
+    .ms-head {
+      position: sticky; top: 64px; z-index: 45;
+      padding: 10px 0;
+      background: var(--bg);
+      margin-bottom: var(--space-16);
+    }
+    .ms-note {
+      position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+    }
+  }
+
+  .ms-panel[hidden] { display: none; }
+
+  /* 手机：pill 吸在固定导航 56px 之下；三段平分整行（不是「挤在左边一小条」） */
+  @media (max-width: 900px) {
+    .ms-head {
+      position: sticky; top: 56px; z-index: 45;
+      margin: 0 0 var(--space-12);
+      padding: var(--space-12) 0;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .ms-bar { width: 100%; }
+    .ms-btn { padding: 10px 0; }
+    .ms-note { display: none; }
+  }
+  /* 平板宽度导航还停在 64px 那套，pill 跟着下移，别被导航压住 */
+  @media (min-width: 721px) and (max-width: 900px) {
+    .ms-head { top: 64px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ms-btn { transition: none; }
+  }
+</style>
+
+<script slot="scripts" is:inline data-astro-rerun>
+  (function () {
+    document.querySelectorAll('[data-ms]').forEach(function (root) {
+      if (root.dataset.ready === '1') return;
+      root.dataset.ready = '1';
+      // 手机上 pill 吸在导航之下，字号工具条就不再吸顶——两条栏会叠在一起
+      document.documentElement.classList.add('has-ms');
+
+      var count = Number(root.dataset.count) || 0;
+      var btns = Array.prototype.slice.call(root.querySelectorAll('[data-ms-btn]'));
+      var head = root.querySelector('.ms-head');
+      var panels = {
+        text: root.querySelector('[data-ms-panel="text"]'),
+        deck: root.querySelector('[data-ms-panel="deck"]'),
+        video: root.querySelector('[data-ms-panel="video"]'),
+      };
+      var deckSec = panels.deck && panels.deck.querySelector('[data-deck]');
+      var vpSec = panels.video && panels.video.querySelector('[data-vp]');
+      var saved = { textY: 0, page: 1, time: 0 };
+      var mode = 'text';
+
+      function clampPage(i) {
+        if (!count) return 1;
+        return Math.max(1, Math.min(count, i));
+      }
+      // 阅读位置 = 视口 55% 高度那条「视线」落在正文里的相对位置；
+      // 分母取「正文高度 − 0.45 屏」，并保底 0.85 屏：短正文（EP01 一屏半）不会算出负数，
+      // 长正文在页面刚打开时也不会直接跳到第 2 页。
+      function textSpan() {
+        var el = panels.text;
+        if (!el) return null;
+        var top = el.getBoundingClientRect().top + window.scrollY;
+        var span = Math.max(el.offsetHeight - window.innerHeight * 0.45, window.innerHeight * 0.85);
+        return { top: top, span: span };
+      }
+      function progressOfText() {
+        var r = textSpan();
+        if (!r) return 0;
+        var line = window.scrollY + window.innerHeight * 0.55;
+        return Math.max(0, Math.min(1, (line - r.top) / r.span));
+      }
+      function pageFromProgress() {
+        if (!count) return 1;
+        return clampPage(1 + Math.floor(progressOfText() * count));
+      }
+      // 反算：第 p 页大致对应正文的哪个滚动位置
+      function yForPage(p) {
+        var r = textSpan();
+        if (!r) return 0;
+        return Math.max(0, r.top - window.innerHeight * 0.55 + ((p - 0.5) / Math.max(1, count)) * r.span);
+      }
+
+      function writeUrl() {
+        var u = new URL(window.location.href);
+        if (mode === 'text') {
+          u.searchParams.delete('view'); u.searchParams.delete('p'); u.searchParams.delete('t');
+        } else if (mode === 'deck') {
+          u.searchParams.set('view', 'deck');
+          u.searchParams.set('p', String(saved.page));
+          u.searchParams.delete('t');
+        } else {
+          u.searchParams.set('view', 'video');
+          u.searchParams.set('t', String(Math.round(saved.time)));
+          u.searchParams.delete('p');
+        }
+        try { history.replaceState(null, '', u.toString()); } catch (e) {}
+      }
+
+      function paint() {
+        btns.forEach(function (b) {
+          b.setAttribute('aria-selected', b.dataset.msBtn === mode ? 'true' : 'false');
+        });
+        root.dataset.mode = mode;
+        Object.keys(panels).forEach(function (k) {
+          if (!panels[k]) return;
+          panels[k].hidden = !(k === mode);
+        });
+      }
+
+      function applyDeckPage(page) {
+        saved.page = clampPage(page);
+        if (deckSec && typeof deckSec.__deckGoTo === 'function') deckSec.__deckGoTo(saved.page - 1);
+        writeUrl();
+      }
+
+      // 换面板会让页面高度突变，浏览器把 scrollY 夹到 0，看着像「跳页」。
+      // 换完之后把 pill 拉回换之前所在的视口位置，眼睛不动；若它被固定导航压住，再往下推一点。
+      function keepHead(mutate) {
+        var before = head ? head.getBoundingClientRect().top : 0;
+        mutate();
+        if (!head) return;
+        var after = head.getBoundingClientRect().top;
+        if (after !== before) window.scrollBy(0, after - before);
+        var navH = window.matchMedia('(max-width: 720px)').matches ? 56 : 64;
+        var top = head.getBoundingClientRect().top;
+        if (top < navH + 8) window.scrollBy(0, top - navH - 8);
+      }
+
+      // 切进 PPT / 视频时把整块摆到「导航之下」——不然吸顶的 pill 会压住放映块的上沿，
+      // 第 1 页的页眉直接被切掉。切回文字才回到原来的段落位置。
+      function alignHead() {
+        if (!head) return;
+        var navH = window.matchMedia('(max-width: 720px)').matches ? 56 : 64;
+        var docTop = head.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({ top: Math.max(0, docTop - navH - 8), behavior: 'auto' });
+      }
+
+      function syncFromVideo() {
+        if (vpSec && vpSec.__vp) saved.time = vpSec.__vp.getTime() || 0;
+      }
+
+      function switchTo(next, opts) {
+        opts = opts || {};
+        if (next === mode) return;
+        if (mode === 'text') saved.textY = window.scrollY;
+        if (mode === 'deck') saved.page = clampPage(Number(deckSec && deckSec.dataset.index) + 1 || saved.page);
+        if (mode === 'video') { syncFromVideo(); vpSec.__vp.pause(); }
+
+        var fromText = mode === 'text';
+        var fromDeck = mode === 'deck';
+        mode = next;
+
+        if (next === 'deck') {
+          var page = fromText ? pageFromProgress() : saved.page;
+          keepHead(function () { paint(); });
+          alignHead();
+          applyDeckPage(page);
+        } else if (next === 'video') {
+          keepHead(function () { paint(); });
+          alignHead();
+          if (vpSec && vpSec.__vp) {
+            vpSec.__vp.seekTo(saved.time);
+            vpSec.__vp.play();
+          }
+        } else {
+          keepHead(function () {
+            paint();
+            var target;
+            if (opts.restoreY != null) target = opts.restoreY;
+            else if (fromDeck) target = yForPage(saved.page);
+            else target = saved.textY;
+            window.scrollTo({ top: target, behavior: 'auto' });
+          });
+        }
+        writeUrl();
+      }
+
+      btns.forEach(function (b) {
+        b.addEventListener('click', function () { switchTo(b.dataset.msBtn); });
+      });
+
+      // 目录里的「视频 / webppt」两项：在文字态点它等于切模式，而不是跳到一块看不见的锚点
+      document.querySelectorAll('.toc-link').forEach(function (a) {
+        var href = a.getAttribute('href') || '';
+        if (href === '#deck' || href === '#video') {
+          a.addEventListener('click', function (e) {
+            e.preventDefault();
+            switchTo(href === '#deck' ? 'deck' : 'video');
+            var top = head.getBoundingClientRect().top + window.scrollY - 12;
+            window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
+          });
+        }
+      });
+
+      // 文字态滚动时记住位置，切走再切回来还原
+      window.addEventListener('scroll', function () {
+        if (mode === 'text') saved.textY = window.scrollY;
+      }, { passive: true });
+
+      // deck 翻页：把页码写回状态与 URL（切走再切回来还停在同一页）
+      if (deckSec) {
+        var mo = new MutationObserver(function () {
+          var v = Number(deckSec.dataset.index);
+          if (isFinite(v)) { saved.page = clampPage(v + 1); if (mode === 'deck') writeUrl(); }
+        });
+        mo.observe(deckSec, { attributes: true, attributeFilter: ['data-index'] });
+      }
+
+      // 视频播放点：记住并写进 URL（每 3 秒一次，停下时立刻写）
+      if (vpSec && vpSec.__vp) {
+        var lastWrite = 0;
+        vpSec.__vp.el.addEventListener('timeupdate', function () {
+          if (mode !== 'video') return;
+          syncFromVideo();
+          var now = Date.now();
+          if (now - lastWrite > 3000) { lastWrite = now; writeUrl(); }
+        });
+        vpSec.__vp.el.addEventListener('pause', function () {
+          if (mode === 'video') { syncFromVideo(); writeUrl(); }
+        });
+      }
+
+      // 冷启动：URL 带 view 就直接进对应模式（分享 / 刷新 / 后退都用这条）
+      var q = new URLSearchParams(window.location.search);
+      var view = q.get('view');
+      var wantPage = Number(q.get('p')) || 1;
+      var wantTime = Number(q.get('t')) || 0;
+      window.__msBoot = function () {
+        if (view === 'deck') {
+          mode = 'text';
+          switchTo('deck', { restoreY: window.scrollY });
+          applyDeckPage(wantPage);
+        } else if (view === 'video') {
+          saved.time = isFinite(wantTime) ? Math.max(0, wantTime) : 0;
+          mode = 'text';
+          switchTo('video');
+        }
+      };
+      if (document.readyState === 'complete') setTimeout(window.__msBoot, 60);
+      else window.addEventListener('load', function () { setTimeout(window.__msBoot, 60); });
+    });
+  })();
+</script>

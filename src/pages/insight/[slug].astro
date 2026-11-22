@@ -6,6 +6,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import DouyinEmbed from '../../components/DouyinEmbed.astro';
 import VideoCard from '../../components/VideoCard.astro';
 import DeckSection from '../../components/DeckSection.astro';
+import ModeSwitch from '../../components/ModeSwitch.astro';
 import { SITE } from '../../lib/site';
 import { articleGraph } from '../../lib/seo';
 
@@ -178,31 +179,59 @@ const jsonLd = articleGraph({
               title={post.title}
             />
           )}
-          {post.video && post.deck && (
-            <div class="seg seg-video" id="video">
-              <p class="seg-k">01 · 视频{post.videoTime ? ` ${post.videoTime}` : ''}</p>
-              <VideoCard
-                src={videoPlaySrc}
-                poster={`/decks/${post.deck.path}/cover.jpg`}
-                title={post.title}
-                duration={post.videoTime}
-                episode={episodeLabel}
-                fallbackUrl={post.video.url}
-              />
-            </div>
+          {post.modes && post.video && post.deck ? (
+            <ModeSwitch count={post.deck.count}>
+              <Fragment slot="text">
+                <article class="markdown">
+                  <Content />
+                </article>
+              </Fragment>
+              <Fragment slot="deck">
+                <p class="seg-k">放映 {post.deck.count} 屏</p>
+                <DeckSection path={post.deck.path} count={post.deck.count} size="stage" />
+              </Fragment>
+              <Fragment slot="video">
+                <p class="seg-k">视频{post.videoTime ? ` · ${post.videoTime}` : ''}</p>
+                <VideoCard
+                  src={videoPlaySrc}
+                  poster={`/covers/${post.deck.path}.jpg`}
+                  title={post.title}
+                  duration={post.videoTime}
+                  episode={episodeLabel}
+                  fallbackUrl={post.video.url}
+                  size="stage"
+                />
+              </Fragment>
+            </ModeSwitch>
+          ) : (
+            <>
+              {post.video && post.deck && (
+                <div class="seg seg-video" id="video">
+                  <p class="seg-k">01 · 视频{post.videoTime ? ` ${post.videoTime}` : ''}</p>
+                  <VideoCard
+                    src={videoPlaySrc}
+                    poster={`/decks/${post.deck.path}/cover.jpg`}
+                    title={post.title}
+                    duration={post.videoTime}
+                    episode={episodeLabel}
+                    fallbackUrl={post.video.url}
+                  />
+                </div>
+              )}
+              {post.deck && (
+                <div class="seg seg-deck">
+                  <p class="seg-k">02 · 放映 {post.deck.count} 屏</p>
+                  <DeckSection path={post.deck.path} count={post.deck.count} />
+                </div>
+              )}
+              <div class="seg seg-body">
+                <p class="seg-k">03 · 正文</p>
+                <article class="markdown">
+                  <Content />
+                </article>
+              </div>
+            </>
           )}
-          {post.deck && (
-            <div class="seg seg-deck">
-              <p class="seg-k">02 · 放映 {post.deck.count} 屏</p>
-              <DeckSection path={post.deck.path} count={post.deck.count} />
-            </div>
-          )}
-          <div class="seg seg-body">
-            <p class="seg-k">03 · 正文</p>
-            <article class="markdown">
-              <Content />
-            </article>
-          </div>
 
           <div class="article-end" id="article-end">
             {post.tags.length > 0 && (
@@ -520,8 +549,12 @@ const jsonLd = articleGraph({
       .reading-progress,.reading-top,.toc-link{transition:none!important;}
     }
 
-    /* ===== 三段色块：视频 / 放映 / 正文，一眼分得开 ===== */
-    .seg{
+    /* 三态阅读页：手机端 pill 吸顶，字号工具条让位（两条栏叠在一起看不清） */
+    @media(max-width:720px){
+      html.has-ms .article-tools{position:static;background:transparent;backdrop-filter:none;}
+    }
+
+    /* ===== 三段色块：视频 / 放映 / 正文，一眼分得开 ===== */    .seg{
       margin:0 0 var(--space-24);
       padding:24px 24px 28px;
       border-radius:14px;

@@ -14,6 +14,7 @@ videoTime: "1:39"
 deckPath: "dk13-ep02"
 deckCount: 7
 deckScreens: ["01", "02", "05"]
+modes: true
 tags: ["DanKoe", "个人商业", "职业选择", "个人品牌", "一人公司"]
 ---
 

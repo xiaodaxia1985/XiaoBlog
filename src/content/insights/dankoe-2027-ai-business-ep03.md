@@ -14,6 +14,7 @@ videoTime: "1:52"
 deckPath: "dk13-ep03"
 deckCount: 7
 deckScreens: ["01", "02", "05"]
+modes: true
 tags: ["DanKoe", "个人商业", "创作者经济", "个人品牌", "内容创业"]
 ---
 

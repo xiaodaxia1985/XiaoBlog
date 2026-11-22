@@ -70,6 +70,8 @@ export type Post = {
   deck: { path: string; count: number; screens: { src: string; no: string }[] } | null;
   /** 视频时长（1:39 这种），卡片上显示；没写就空着 */
   videoTime: string;
+  /** 三态阅读（文字 / PPT / 视频 同页切换）试点开关，默认 false */
+  modes: boolean;
 };
 
 function stripMarkdown(md: string): string {
@@ -191,6 +193,8 @@ export function toPost(entry: InsightEntry): Post {
     video,
     deck,
     videoTime: entry.data.videoTime?.trim() ?? '',
+    // 三态阅读只在「有视频 + 有 deck」的文章上成立，缺一个就没有切换的意义
+    modes: Boolean(entry.data.modes && video && deck),
   };
 }
 

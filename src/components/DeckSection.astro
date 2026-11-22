@@ -1,22 +1,23 @@
 ---
 /**
- * 放映区：直接把 deck 嵌在文章里，不再弹全屏浮层。
+ * 放映区：deck 就地嵌在文章里（三态阅读的「PPT」面），不弹全屏浮层。
  * 关键取舍：deck 上面盖一层透明护盾（.decksec-shield），指针事件永远不落进 iframe。
  * 为什么不靠 deck 回传 dy 来滚页面：手指在 iframe 里算出来的 dy 是「相对 iframe」的，
- * 页面一滚、iframe 跟着手指一起动，delta 就被污染成 0 甚至反向，越划越卡（线上就是这么坏的）。
- * 盖了护盾以后，竖向滚动完全交给浏览器原生滚动（惯性、deltaMode、iOS 惯性全都正常），
- * 父窗口只管横向意图：横滑 / 横滚翻页，点击左右半区翻页。
+ * 页面一滚、iframe 跟着手指一起动，delta 被污染成 0 甚至反向，越划越卡。
+ * 盖了护盾以后竖向滚动完全交给浏览器原生滚动，父窗口只管横向意图与翻页。
  */
 interface Props {
   path: string;
   count: number;
   note?: string;
+  /** inline = 旧版三段叠排的整栏宽度；stage = 三态阅读的 PPT 面（桌面限高 74vh、居中） */
+  size?: 'inline' | 'stage';
 }
-const { path, count, note = '点左右或横滑翻页 · 竖着滑继续读下面正文' } = Astro.props;
+const { path, count, note = '点左右或横滑翻页 · 竖着滑继续读下面正文', size = 'inline' } = Astro.props;
 const deckSrc = `/decks/${path}/index.html`;
 ---
 
-<section class="decksec" data-deck={path} id="deck">
+<section class:list={['decksec', `decksec--${size}`]} data-deck={path} data-count={count} id="deck">
   <div class="decksec-stage" data-deck-stage>
     <div class="decksec-frame">
       <iframe
@@ -32,6 +33,11 @@ const deckSrc = `/decks/${path}/index.html`;
     <button type="button" class="deck-nav next" data-deck-go="1" aria-label="下一页">›</button>
   </div>
 
+  <div class="decksec-pager" data-deck-pager>
+    <span class="decksec-dots" data-deck-dots aria-hidden="true"></span>
+    <span class="decksec-count"><b data-deck-cur>1</b><span>/</span>{count}<span class="decksec-pct" data-deck-pct>14%</span></span>
+  </div>
+
   <p class="decksec-hint">
     <span class="decksec-swipe" aria-hidden="true">⇄</span>
     {note}
@@ -40,39 +46,41 @@ const deckSrc = `/decks/${path}/index.html`;
 
 <style>
   .decksec { margin: 0; }
-  .decksec-head {
-    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
-    gap: var(--space-8); padding-bottom: var(--space-12);
-  }
-  .decksec-head b { font-size: 15px; color: var(--text); letter-spacing: .01em; }
-  .decksec-head span { font-size: 12px; color: var(--text-muted); }
+
+  /* 三态阅读：PPT 面不铺满整栏，桌面限高 74vh（≈330 宽），整块居中 */
+  .decksec--stage .decksec-stage { width: fit-content; max-width: 100%; margin: 0 auto; }
+  /* 74vh 要连 pager / hint 一起算进去，否则底部页码会被视口切掉 */
+  .decksec--stage .decksec-frame { width: min(460px, calc((74vh - 84px) * 9 / 16)); }
+  .decksec--stage .decksec-pager,
+  .decksec--stage .decksec-hint { width: fit-content; margin-left: auto; margin-right: auto; }
 
   .decksec-stage {
     position: relative;
     display: flex; justify-content: center;
-    padding: 12px; margin-top: var(--space-12);
-    background: var(--deck-plate, rgba(255, 255, 255, .9));
+    padding: var(--space-12);
+    background: var(--deck-plate, var(--surface));
     border: 1px solid var(--border); border-radius: var(--radius);
   }
   /* iframe 与护盾共用同一块尺寸：护盾要严丝合缝盖住，不能留缝让指针漏进去 */
   .decksec-frame {
     position: relative;
     width: min(460px, 100%); aspect-ratio: 9 / 16;
-    border-radius: 6px;
-    box-shadow: 0 2px 10px -6px rgba(0, 0, 0, .45);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 10px 30px -24px rgba(0, 0, 0, .55);
   }
   .decksec-frame iframe {
     position: absolute; inset: 0;
     width: 100%; height: 100%;
-    border: 0; display: block; background: #F5F5F5; border-radius: 6px;
+    border: 0; display: block; background: var(--surface-2); border-radius: var(--radius-sm);
   }
-  /* 透明护盾：只负责接手势，不画东西。竖向滚动是原生滚动（不 preventDefault），
-     横向留给下面的脚本翻页，所以 touch-action 只放 pan-y。 */
+  /* 透明护盾：只接手势，不画东西。竖向滚动是原生滚动（不 preventDefault），
+     横向留给脚本翻页，所以 touch-action 只放 pan-y。 */
   .decksec-shield {
     position: absolute; inset: 0; z-index: 2;
     display: block;
     touch-action: pan-y;
     cursor: default;
+    border-radius: var(--radius-sm);
   }
   .deck-nav {
     position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
@@ -80,24 +88,46 @@ const deckSrc = `/decks/${path}/index.html`;
     border: 1px solid var(--border); border-radius: 50%;
     background: var(--surface); color: var(--text-secondary);
     font: 400 17px/1 'Inter', sans-serif; cursor: pointer; padding: 0;
-    transition: color .18s ease, border-color .18s ease, opacity .18s ease;
   }
   .deck-nav.prev { left: 8px; }
   .deck-nav.next { right: 8px; }
-  .deck-nav:hover { color: var(--accent); border-color: var(--accent); }
-  @media (max-width: 720px) {
-    .deck-nav { width: 30px; height: 30px; font-size: 15px; }
+  .deck-nav:hover { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+
+  .decksec-pager {
+    display: flex; align-items: center; gap: var(--space-12);
+    margin-top: var(--space-12);
+    padding: 0 2px;
   }
+  .decksec-dots { display: flex; gap: 5px; }
+  /* 点是由脚本运行时插进来的，拿不到 Astro 作用域属性，必须走 :global() */
+  .decksec-dots :global(i) {
+    display: block; width: 5px; height: 5px; border-radius: 50%;
+    background: var(--text-muted); opacity: .45;
+    transition: background-color .18s ease, width .18s ease, opacity .18s ease;
+  }
+  .decksec-dots :global(i.on) { background: var(--accent); opacity: 1; width: 14px; border-radius: 3px; }
+  .decksec-count {
+    font: 400 11.5px/1 'Inter', ui-monospace, monospace;
+    color: var(--text-muted); letter-spacing: .04em;
+    font-variant-numeric: tabular-nums;
+  }
+  .decksec-count b { color: var(--text); font-weight: 600; }
+  .decksec-count span { margin: 0 3px; opacity: .7; }
+  .decksec-pct { margin-left: var(--space-8); color: var(--text-muted); }
 
   .decksec-hint {
-    display: flex; align-items: center; gap: 6px; margin: var(--space-12) 0 0;
-    font-size: 12px; color: var(--text-secondary);
+    display: flex; align-items: center; gap: 6px; margin: var(--space-8) 0 0;
+    font-size: 11.5px; color: var(--text-muted);
   }
-  .decksec-swipe { color: var(--accent-hover); font-size: 14px; }
+  .decksec-swipe { color: var(--accent); font-size: 13px; }
 
   @media (max-width: 720px) {
     .decksec-stage { padding: var(--space-8); }
     .decksec-frame { width: 100%; }
+    .decksec--stage .decksec-stage { width: auto; }
+    .decksec--stage .decksec-frame { width: 100%; }
+    .deck-nav { width: 30px; height: 30px; font-size: 15px; }
+    .decksec-hint { display: none; }
   }
 </style>
 
@@ -109,12 +139,44 @@ const deckSrc = `/decks/${path}/index.html`;
       var stage = sec.querySelector('[data-deck-stage]');
       var iframe = sec.querySelector('[data-deck-iframe]');
       var shield = sec.querySelector('[data-deck-shield]');
+      var dotsBox = sec.querySelector('[data-deck-dots]');
+      var curEl = sec.querySelector('[data-deck-cur]');
+      var pctEl = sec.querySelector('[data-deck-pct]');
+      var count = Number(sec.dataset.count) || 0;
+      var index = 0;
 
-      // 翻页指令发给 iframe 里的 deck（它自己管缓动与进度点）
-      function go(dir) {
+      function post(msg) {
         if (!iframe.contentWindow) return;
-        iframe.contentWindow.postMessage({ type: 'webppt:go', dir: dir }, '*');
+        iframe.contentWindow.postMessage(msg, '*');
       }
+      function draw() {
+        if (curEl) curEl.textContent = String(index + 1);
+        if (pctEl && count) pctEl.textContent = Math.round(((index + 1) / count) * 100) + '%';
+        if (dotsBox) {
+          Array.prototype.forEach.call(dotsBox.children, function (d, i) {
+            d.classList.toggle('on', i === index);
+          });
+        }
+        sec.dataset.index = String(index);
+      }
+      function setIndex(i) {
+        index = Math.max(0, Math.min(count ? count - 1 : 0, i));
+        draw();
+      }
+      function go(dir) {
+        setIndex(index + dir);
+        post({ type: 'webppt:go', dir: dir });
+      }
+      // 给外层（三态切换时定位页码）用的入口
+      sec.__deckGoTo = function (i) {
+        setIndex(i);
+        post({ type: 'webppt:to', index: i });
+      };
+
+      if (dotsBox && count) {
+        for (var k = 0; k < count; k++) dotsBox.appendChild(document.createElement('i'));
+      }
+      draw();
 
       sec.querySelectorAll('[data-deck-go]').forEach(function (b) {
         b.addEventListener('click', function (e) {

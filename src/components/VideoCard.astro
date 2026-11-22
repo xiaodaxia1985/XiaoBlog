@@ -12,10 +12,12 @@ interface Props {
   duration?: string;
   episode?: string;
   fallbackUrl?: string;
+  /** card = 正文卡片尺寸（旧版三块叠排）；stage = 三态阅读的视频面（桌面限高 74vh） */
+  size?: 'card' | 'stage';
 }
-const { src = '', poster, title, duration = '', fallbackUrl = '' } = Astro.props;
+const { src = '', poster, title, duration = '', fallbackUrl = '', size = 'card' } = Astro.props;
 ---
-<section class="vp" data-vp>
+<section class:list={["vp", `vp-${size}`]} data-vp>
   <div class="vp-frame is-paused" data-frame>
     <video
       data-video
@@ -69,10 +71,11 @@ const { src = '', poster, title, duration = '', fallbackUrl = '' } = Astro.props
   .vp-note { font-size: 11px; color: var(--text-muted); letter-spacing: .04em; }
 
   .vp-frame {
-    position: relative; margin: 0 auto; width: 400px; max-width: 100%;
+    position: relative; margin: 0 auto; width: var(--vp-w, 400px); max-width: 100%;
     aspect-ratio: 9 / 16; background: #0B0B0B; border-radius: 12px; overflow: hidden;
     box-shadow: 0 1px 2px rgba(45, 49, 66, .08), 0 12px 28px -18px rgba(45, 49, 66, .45);
   }
+  .vp-stage { --vp-w: min(400px, calc(74vh * 9 / 16)); }
   .vp-frame video { width: 100%; height: 100%; display: block; object-fit: cover; background: #0B0B0B; }
 
   .vp-fail {
@@ -140,7 +143,8 @@ const { src = '', poster, title, duration = '', fallbackUrl = '' } = Astro.props
   .vp-frame.is-muted .vp-btn[data-mute] .i-muted { display: block; }
 
   @media (max-width: 720px) {
-    .vp-frame { width: 100%; }
+    .vp-stage { --vp-w: min(100%, calc(56vh * 9 / 16)); }
+    .vp-frame { width: var(--vp-w, 100%); }
     .vp-bar { opacity: 1; }
     .vp-big { width: 56px; height: 56px; margin: -28px 0 0 -28px; }
     .vp-time { display: none; }
@@ -222,7 +226,21 @@ const { src = '', poster, title, duration = '', fallbackUrl = '' } = Astro.props
         var p = Math.max(0, Math.min(1, x / r.width));
         if (video.duration) { video.currentTime = p * video.duration; paint(); }
       });
-      state();
-    });
+      // 三态切换用：外部读/写播放位置，不碰内部状态机
+      sec.__vp = {
+        el: video,
+        load: load,
+        getTime: function () { return video.currentTime || 0; },
+        pause: function () { video.pause(); },
+        play: function () { load(); var p = video.play(); if (p && p.catch) p.catch(function () {}); },
+        seekTo: function (secs) {
+          if (!isFinite(secs) || secs <= 0) return;
+          load();
+          var apply = function () { try { video.currentTime = secs; paint(); } catch (e) {} };
+          if (video.readyState > 0) apply();
+          else video.addEventListener('loadedmetadata', apply, { once: true });
+        },
+      };
+      state();    });
   })();
 </script>
