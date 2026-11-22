@@ -60,6 +60,7 @@ const deckSrc = `/decks/${path}/index.html`;
     padding: var(--space-12);
     background: var(--deck-plate, var(--surface));
     border: 1px solid var(--border); border-radius: var(--radius);
+    cursor: pointer;
   }
   /* iframe 与护盾共用同一块尺寸：护盾要严丝合缝盖住，不能留缝让指针漏进去 */
   .decksec-frame {
@@ -79,7 +80,7 @@ const deckSrc = `/decks/${path}/index.html`;
     position: absolute; inset: 0; z-index: 2;
     display: block;
     touch-action: pan-y;
-    cursor: default;
+    cursor: pointer;
     border-radius: var(--radius-sm);
   }
   .deck-nav {
@@ -137,6 +138,7 @@ const deckSrc = `/decks/${path}/index.html`;
       if (sec.dataset.ready === '1') return;
       sec.dataset.ready = '1';
       var stage = sec.querySelector('[data-deck-stage]');
+      var frame = sec.querySelector('.decksec-frame');
       var iframe = sec.querySelector('[data-deck-iframe]');
       var shield = sec.querySelector('[data-deck-shield]');
       var dotsBox = sec.querySelector('[data-deck-dots]');
@@ -185,17 +187,24 @@ const deckSrc = `/decks/${path}/index.html`;
         });
       });
 
-      if (!shield) return;
+      if (!shield || !stage) return;
 
-      // 点护盾：按左右半区翻页（deck 自己收不到指针，语义由这里补齐）
-      shield.addEventListener('click', function (e) {
-        var r = shield.getBoundingClientRect();
-        go(e.clientX < r.left + r.width * 0.4 ? -1 : 1);
+      // 点板子：左右翻页。监听挂在整块 PPT 面（三态里的 [data-ms-panel="deck"]）上，而不是护盾、也不是板子——
+      // 板子在 stage 模式下按 9:16 收到最窄，画面两侧与整栏之间全是空白，
+      // 挂在护盾上时这些空白一点反应都没有（用户两次报的都是这个）。
+      // 方向以画面中线为准（画面偏一侧时才不会点哪都一样）；左侧留白＝上一页，右侧＝下一页。
+      var hitArea = sec.closest('[data-ms-panel="deck"]') || stage;
+      hitArea.addEventListener('click', function (e) {
+        if (e.target.closest('[data-deck-go]')) return;
+        if (!frame) return;
+        var r = frame.getBoundingClientRect();
+        var mid = r.left + r.width * (e.clientX >= r.left && e.clientX <= r.right ? 0.4 : 0.5);
+        go(e.clientX < mid ? -1 : 1);
       });
 
       // 横向滚轮/触控板横滑 = 翻页；竖向一律放行，走浏览器原生滚动
       var locked = false;
-      shield.addEventListener('wheel', function (e) {
+      hitArea.addEventListener('wheel', function (e) {
         if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) + 2 || Math.abs(e.deltaX) < 6) return;
         e.preventDefault();
         if (locked) return;
@@ -206,17 +215,17 @@ const deckSrc = `/decks/${path}/index.html`;
 
       // 手指横滑 = 翻页；竖向放行（touch-action: pan-y 已经让浏览器自己滚）
       var tx = 0, ty = 0, axis = 0, live = false;
-      shield.addEventListener('touchstart', function (e) {
+      hitArea.addEventListener('touchstart', function (e) {
         if (e.touches.length !== 1) return;
         tx = e.touches[0].clientX; ty = e.touches[0].clientY; axis = 0; live = true;
       }, { passive: true });
-      shield.addEventListener('touchmove', function (e) {
+      hitArea.addEventListener('touchmove', function (e) {
         if (!live) return;
         var dx = e.touches[0].clientX - tx, dy = e.touches[0].clientY - ty;
         if (!axis && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) axis = Math.abs(dx) > Math.abs(dy) ? 1 : 2;
         if (axis === 1) e.preventDefault();
       }, { passive: false });
-      shield.addEventListener('touchend', function (e) {
+      hitArea.addEventListener('touchend', function (e) {
         if (!live) return;
         live = false;
         if (axis !== 1) return;
@@ -226,3 +235,4 @@ const deckSrc = `/decks/${path}/index.html`;
     });
   })();
 </script>
+
