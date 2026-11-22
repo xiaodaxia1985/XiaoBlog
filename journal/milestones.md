@@ -32,3 +32,4 @@
 ## 2026-11-22
 
 - [里程碑] WebPPT 首份可交付件落地：第 1 / 3 / 4 / 5 集都能翻页放映，还能导 PDF（`productions/webppt/out/pdf/ep03.pdf`）· 网页稿从样片变成能发链接的东西
+- [里程碑] 一集三种形态跑通：同一集同时有竖版视频、网页放映、正文长文三段，第 1–3 集都在站上（`src/content/insights/dankoe-2027-ai-business-ep01|ep02|ep03.md`）· 视频不再是文章配图，变成文章的入口

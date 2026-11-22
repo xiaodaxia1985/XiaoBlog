@@ -273,6 +273,17 @@ const jsonLd = pageGraph([
                             </div>
                           ))}
 
+                          {entry.activities?.length > 0 && (
+                            <div class="log-notes">
+                              {entry.activities.map((a) => (
+                                <p class="log-note" data-tag={a.tag}>
+                                  <span class="note-tag">{a.tag}</span>
+                                  <span class="note-text">{a.text}</span>
+                                </p>
+                              ))}
+                            </div>
+                          )}
+
                           {entry.posts?.length > 0 && (
                             <div class="log-posts">
                               {entry.posts.map((post) => (
@@ -295,7 +306,7 @@ const jsonLd = pageGraph([
           </article>
         ))}
       </div>
-      <p class="journal-note">记录来自三个仓库的实际提交，加上每天自己补的判断、失误与活动。只记已发生的事，不写计划。</p>
+      <p class="journal-note">记录来自四个仓库的实际提交，加上每天自己补的判断、失误与活动。只记已发生的事，不写计划。</p>
     </section>
 
     <section class="acceptance" aria-label="验收指标与披露规则">
@@ -404,6 +415,15 @@ const jsonLd = pageGraph([
     .log-lines li::before{content:'';position:absolute;left:0;top:8px;width:4px;height:4px;border-radius:50%;background:rgba(var(--accent-rgb),.45);}
     .line-main{display:block;font-size:13px;color:var(--text);line-height:1.7;}
     .line-rest{display:block;margin-top:3px;font-size:var(--fs-12);color:var(--text-muted);line-height:1.75;}
+
+    /* 那天自己补的判断 / 失误 / 反馈 / 收入：git 里没有，只有人知道 */
+    .log-notes{display:flex;flex-direction:column;gap:9px;margin-top:var(--space-24);padding-top:var(--space-16);border-top:1px solid var(--border);}
+    .log-note{display:flex;align-items:flex-start;gap:var(--space-8);margin:0;font-size:var(--fs-12);line-height:1.75;color:var(--text-secondary);}
+    .note-tag{flex-shrink:0;min-width:30px;padding:1px 6px;border:1px solid var(--border);border-radius:3px;font-size:10px;letter-spacing:.06em;text-align:center;color:var(--text-muted);}
+    .note-text{min-width:0;}
+    .log-note[data-tag="失误"] .note-tag{background:var(--text);border-color:var(--text);color:var(--bg);}
+    .log-note[data-tag="失误"] .note-text{color:var(--text);}
+    .log-note[data-tag="反馈"] .note-tag{border-color:rgba(var(--accent-rgb),.45);color:var(--accent);}
 
     .log-posts{display:flex;flex-direction:column;gap:var(--space-8);margin-top:var(--space-24);padding-top:var(--space-16);border-top:1px solid var(--border);}
     .log-post{display:flex;align-items:flex-start;gap:var(--space-8);font-size:13px;color:var(--text);line-height:1.7;}
