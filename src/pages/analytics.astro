@@ -3,7 +3,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import fs from 'node:fs';
 import path from 'node:path';
 
-// 数据由 scripts/collect-analytics.mjs 生成；构建时内联，静态站点无需后端。
+// 构建时内联的静态快照：首屏内容 + 实时接口不可用时的兜底。
+// 页面加载后客户端会 fetch /api/analytics/latest 拉取服务器 PG 里的最新数据覆盖显示。
 const dataPath = path.resolve(process.cwd(), 'public/data/analytics.json');
 const raw = fs.existsSync(dataPath) ? fs.readFileSync(dataPath, 'utf8') : '';
 const data = raw ? JSON.parse(raw) : null;
@@ -23,91 +24,161 @@ const PLATFORMS = [
       <h1>四平台数据快照</h1>
       <p class="page-intro">
         这是抖音、微信公众号、快手、小红书四个平台的后台原始数字与逐条明细，每天自动更新。
-        {data && <span class="updated">观测时点：{data.observedAt}（{data.timezone}）</span>}
+        {data && <span class="updated" id="observed-at">观测时点：{data.observedAt}（{data.timezone}）</span>}
       </p>
+      <p class="data-source" id="data-source">构建时快照 · 正在连接实时数据…</p>
     </div>
   </header>
 
   <main id="main-content" class="wrap analytics-wrap">
-    {!data && <div class="notice">数据文件尚未生成。先运行 <code>node scripts/collect-analytics.mjs</code>。</div>}
-    {data && (
-      <>
-        <p class="disclaimer">{data.disclaimer}</p>
+    <div id="analytics-root">
+      {!data && <div class="notice">数据文件尚未生成。先运行 <code>node scripts/collect-analytics.mjs</code>。</div>}
+      {data && (
+        <>
+          <p class="disclaimer">{data.disclaimer}</p>
 
-        <section class="analysis-section" aria-labelledby="analysis-title">
-          <h2 id="analysis-title">我的分析</h2>
-          <div class="analysis-grid">
-            {PLATFORMS.map(p => (
-              data.analysis?.[p.key] && (
-                <article class="analysis-card">
-                  <h3>{p.name}</h3>
-                  <p>{data.analysis[p.key]}</p>
+          <section class="analysis-section" aria-labelledby="analysis-title">
+            <h2 id="analysis-title">我的分析</h2>
+            <div class="analysis-grid">
+              {PLATFORMS.map(p => (
+                data.analysis?.[p.key] && (
+                  <article class="analysis-card">
+                    <h3>{p.name}</h3>
+                    <p>{data.analysis[p.key]}</p>
+                  </article>
+                )
+              ))}
+              {data.analysis?.overall && (
+                <article class="analysis-card overall">
+                  <h3>整体判断</h3>
+                  <p>{data.analysis.overall}</p>
                 </article>
-              )
-            ))}
-            {data.analysis?.overall && (
-              <article class="analysis-card overall">
-                <h3>整体判断</h3>
-                <p>{data.analysis.overall}</p>
-              </article>
-            )}
-          </div>
-        </section>
+              )}
+            </div>
+          </section>
 
-        <section class="platforms" aria-label="各平台明细">
-          {PLATFORMS.map(p => {
-            const d = data[p.key] || {};
-            const summary = d.summary || {};
-            const works = d.works || [];
-            return (
-              <article class="platform-card">
-                <div class="platform-head">
-                  <div>
-                    <h2>{p.name}</h2>
-                    <p class="platform-desc">{p.desc}</p>
+          <section class="platforms" aria-label="各平台明细">
+            {PLATFORMS.map(p => {
+              const d = data[p.key] || {};
+              const summary = d.summary || {};
+              const works = d.works || [];
+              return (
+                <article class="platform-card">
+                  <div class="platform-head">
+                    <div>
+                      <h2>{p.name}</h2>
+                      <p class="platform-desc">{p.desc}</p>
+                    </div>
+                    <div class="summary-chips">
+                      {Object.entries(summary).map(([k, v]) => (
+                        <span class="chip"><span class="chip-key">{k}</span><strong>{String(v)}</strong></span>
+                      ))}
+                    </div>
                   </div>
-                  <div class="summary-chips">
-                    {Object.entries(summary).map(([k, v]) => (
-                      <span class="chip"><span class="chip-key">{k}</span><strong>{String(v)}</strong></span>
-                    ))}
-                  </div>
-                </div>
 
-                {d.note && <p class="note">{d.note}</p>}
+                  {d.note && <p class="note">{d.note}</p>}
 
-                {works.length > 0 && (
-                  <div class="table-scroll">
-                    <table>
-                      <thead>
-                        <tr><th>作品</th><th>日期</th><th>{p.unit}</th><th>其他原始指标</th></tr>
-                      </thead>
-                      <tbody>
-                        {works.map(w => {
-                          const first = p.key === 'douyin' ? '播放' : (p.key === 'wechat' ? '阅读' : '播放');
-                          const rest = Object.entries(w.metrics || {}).filter(([k]) => k !== first);
-                          return (
-                            <tr>
-                              <td class="cell-title">{w.title}</td>
-                              <td class="cell-date">{w.date || '—'}</td>
-                              <td class="cell-main">{String(w.metrics?.[first] ?? '—')}</td>
-                              <td class="cell-rest">
-                                {rest.map(([k, v]) => <span class="metric"><span>{k}</span> {String(v)}</span>)}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </article>
-            );
-          })}
-        </section>
-      </>
-    )}
+                  {works.length > 0 && (
+                    <div class="table-scroll">
+                      <table>
+                        <thead>
+                          <tr><th>作品</th><th>日期</th><th>{p.unit}</th><th>其他原始指标</th></tr>
+                        </thead>
+                        <tbody>
+                          {works.map(w => {
+                            const first = p.key === 'douyin' ? '播放' : (p.key === 'wechat' ? '阅读' : '播放');
+                            const rest = Object.entries(w.metrics || {}).filter(([k]) => k !== first);
+                            return (
+                              <tr>
+                                <td class="cell-title">{w.title}</td>
+                                <td class="cell-date">{w.date || '—'}</td>
+                                <td class="cell-main">{String(w.metrics?.[first] ?? '—')}</td>
+                                <td class="cell-rest">
+                                  {rest.map(([k, v]) => <span class="metric"><span>{k}</span> {String(v)}</span>)}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </section>
+        </>
+      )}
+    </div>
   </main>
 </BaseLayout>
+
+<script is:inline>
+(function () {
+  const PLATFORMS = [
+    { key: 'douyin', name: '抖音', desc: '作品管理 · 逐条', unit: '播放' },
+    { key: 'wechat', name: '微信公众号', desc: '发表记录 · 逐篇', unit: '阅读' },
+    { key: 'kuaishou', name: '快手', desc: '内容管理 · 可见作品', unit: '播放' },
+    { key: 'xiaohongshu', name: '小红书', desc: '创作服务平台 · 近 7 日聚合', unit: '观看' },
+  ];
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  function renderAnalysis(data) {
+    let cards = '';
+    for (const p of PLATFORMS) {
+      const t = data.analysis && data.analysis[p.key];
+      if (t) cards += '<article class="analysis-card"><h3>' + esc(p.name) + '</h3><p>' + esc(t) + '</p></article>';
+    }
+    if (data.analysis && data.analysis.overall) {
+      cards += '<article class="analysis-card overall"><h3>整体判断</h3><p>' + esc(data.analysis.overall) + '</p></article>';
+    }
+    return cards ? '<section class="analysis-section" aria-labelledby="analysis-title"><h2 id="analysis-title">我的分析</h2><div class="analysis-grid">' + cards + '</div></section>' : '';
+  }
+
+  function renderPlatforms(data) {
+    return PLATFORMS.map(p => {
+      const d = data[p.key] || {};
+      const summary = d.summary || {};
+      const works = d.works || [];
+      const chips = Object.keys(summary).map(k => '<span class="chip"><span class="chip-key">' + esc(k) + '</span><strong>' + esc(summary[k]) + '</strong></span>').join('');
+      const first = p.key === 'wechat' ? '阅读' : '播放';
+      const rows = works.map(w => {
+        const rest = Object.keys(w.metrics || {}).filter(k => k !== first)
+          .map(k => '<span class="metric"><span>' + esc(k) + '</span> ' + esc(w.metrics[k]) + '</span>').join('');
+        return '<tr><td class="cell-title">' + esc(w.title) + '</td><td class="cell-date">' + esc(w.date || '—') +
+          '</td><td class="cell-main">' + esc(w.metrics && w.metrics[first] != null ? w.metrics[first] : '—') +
+          '</td><td class="cell-rest">' + rest + '</td></tr>';
+      }).join('');
+      const table = works.length ? '<div class="table-scroll"><table><thead><tr><th>作品</th><th>日期</th><th>' + esc(p.unit) +
+        '</th><th>其他原始指标</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '';
+      const note = d.note ? '<p class="note">' + esc(d.note) + '</p>' : '';
+      return '<article class="platform-card"><div class="platform-head"><div><h2>' + esc(p.name) + '</h2><p class="platform-desc">' +
+        esc(p.desc) + '</p></div><div class="summary-chips">' + chips + '</div></div>' + note + table + '</article>';
+    }).join('');
+  }
+
+  function render(data) {
+    const disclaimer = data.disclaimer ? '<p class="disclaimer">' + esc(data.disclaimer) + '</p>' : '';
+    return disclaimer + renderAnalysis(data) + '<section class="platforms" aria-label="各平台明细">' + renderPlatforms(data) + '</section>';
+  }
+
+  var root = document.getElementById('analytics-root');
+  var src = document.getElementById('data-source');
+  var stamp = document.getElementById('observed-at');
+  fetch('/api/analytics/latest', { cache: 'no-store' })
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function (d) {
+      if (d.error || !d.douyin) throw new Error('no data');
+      if (root) root.innerHTML = render(d);
+      if (stamp) stamp.textContent = '观测时点：' + d.observedAt + '（' + (d.timezone || 'Asia/Shanghai') + '）';
+      if (src) src.textContent = '服务器实时数据 · API';
+    })
+    .catch(function (e) {
+      if (src) src.textContent = '构建时快照（实时接口暂不可用）';
+      console.warn('analytics live load failed:', e);
+    });
+})();
+</script>
 
 <style>
   .wrap { max-width: var(--container-w); margin: 0 auto; padding-inline: var(--gutter); }
@@ -116,6 +187,7 @@ const PLATFORMS = [
   h1 { font-size: clamp(var(--fs-28), 5vw, var(--fs-48)); margin: 0 0 var(--space-16); line-height: 1.12; }
   .page-intro { color: var(--body); font-size: var(--fs-16); line-height: 1.7; max-width: 760px; margin: 0; }
   .updated { display: inline-block; margin-left: var(--space-8); color: var(--text-muted); font-size: var(--fs-14); }
+  .data-source { font-size: var(--fs-12); color: var(--text-muted); margin: var(--space-12) 0 0; }
   .analytics-wrap { padding-bottom: var(--section-y); }
   .notice { padding: var(--space-16); background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); }
   .disclaimer { font-size: var(--fs-14); color: var(--text-muted); line-height: 1.6; margin: 0 0 var(--space-32); }
