@@ -39,7 +39,9 @@ article2media-out/
 public/images/responsive/
 public/images/thumb/
 public/og/
-public/data/
+public/data/*
+# 后台数据明文公开（用户口径 2026-11-25），需随仓库分发到 ECS 供 API 入库
+!public/data/analytics.json
 
 # 每日记录草稿（审核前不入库）
 journal/.inbox/

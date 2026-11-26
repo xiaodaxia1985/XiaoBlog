@@ -18,6 +18,12 @@ GIT_SSH_COMMAND="ssh -i /home/deployer/.ssh/github_deploy_key_pem -o IdentitiesO
 npm ci --production=false
 npm run build
 
+# 数据统计入库：把 public/data/analytics.json 幂等 upsert 到 PostgreSQL
+# （server/.env 含 DATABASE_URL，属主 deployer、600；失败不阻断站点部署）
+if [ -f server/.env ] && [ -f public/data/analytics.json ]; then
+  node server/ingest-analytics.mjs || echo "WARN: analytics ingest failed (non-blocking)"
+fi
+
 sudo systemctl reload nginx
 
 # ⚠️ 再次确保属主正确（npm ci/build 可能以当前用户创建新文件）

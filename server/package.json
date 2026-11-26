@@ -1,0 +1,16 @@
+{
+  "name": "xiaoblog-analytics-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "XiaoBlog 数据统计：PostgreSQL 入库脚本 + 只读 API",
+  "scripts": {
+    "db:migrate": "node -e \"const fs=require('fs');process.stdout.write(fs.readFileSync('migrations/0002_analytics.sql','utf8'))\" | psql \"$DATABASE_URL\"",
+    "ingest": "node ingest-analytics.mjs",
+    "start": "node api.mjs"
+  },
+  "dependencies": {
+    "fastify": "^5.1.0",
+    "pg": "^8.13.1"
+  }
+}

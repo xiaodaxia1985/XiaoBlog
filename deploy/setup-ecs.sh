@@ -11,7 +11,7 @@
 # 幂等：可重复运行。已存在的配置与凭据不会被重复创建；--regen-secrets 只重置私有页密码。
 # 前置：仓库已位于 $REPO_DIR（CI 的 /opt/XiaoBlog/deploy.sh 负责拉代码）。
 #
-# 注：2026-11-20 起站点不再有点赞/阅读量，薄 API、PostgreSQL 与数据库备份已从仓库移除。
+# 注：2026-11-20 起站点原点赞/阅读 API 已移除；数据统计（/api/analytics/* + PostgreSQL）由 deploy/setup-analytics.sh 另行安装。
 # =============================================================================
 set -euo pipefail
 
@@ -51,9 +51,13 @@ die() { printf "\033[1;31m[setup] 失败:\033[0m %s\n" "$*" >&2; exit 1; }
 . /etc/os-release 2>/dev/null || true
 case "${ID:-}" in
   ubuntu|debian)            DISTRO=debian ;;
-  alinux|centos|rhel|rocky|almalinux|ol|anolis) DISTRO=rhel ;;
+  alinux|anolis|openanolis|centos|rhel|rocky|almalinux|ol) DISTRO=rhel ;;
   *)
-    if command -v apt-get >/dev/null 2>&1; then DISTRO=debian; else DISTRO=rhel; fi
+    # AL3 OpenAnolis：ID 可能是 alinux，ID_LIKE 才是可靠信号
+    case " ${ID_LIKE:-} " in
+      *rhel*|*fedora*|*centos*|*anolis*) DISTRO=rhel ;;
+      *) if command -v apt-get >/dev/null 2>&1; then DISTRO=debian; else DISTRO=rhel; fi ;;
+    esac
     ;;
 esac
 c_info "识别发行版：${PRETTY_NAME:-$ID}（按 $DISTRO 系处理）"
@@ -179,6 +183,10 @@ if ! command -v certbot >/dev/null 2>&1; then
   if [ "$DISTRO" = debian ]; then
     apt-get install -y -qq certbot python3-certbot-nginx >/dev/null || true
   else
+    # AL3/Anolis：certbot 不在 base 仓库，先启用 EPEL（幂等，已装则跳过）
+    if ! dnf repolist 2>/dev/null | grep -qi '^epel'; then
+      dnf install -y -q epel-release >/dev/null || true
+    fi
     dnf install -y -q certbot python3-certbot-nginx >/dev/null || true
   fi
 fi

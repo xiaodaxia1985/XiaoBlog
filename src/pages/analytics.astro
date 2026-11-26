@@ -1,0 +1,149 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+
+// 数据由 scripts/collect-analytics.mjs 生成；构建时内联，静态站点无需后端。
+const dataPath = path.resolve(process.cwd(), 'public/data/analytics.json');
+const raw = fs.existsSync(dataPath) ? fs.readFileSync(dataPath, 'utf8') : '';
+const data = raw ? JSON.parse(raw) : null;
+
+const PLATFORMS = [
+  { key: 'douyin', name: '抖音', desc: '作品管理 · 逐条', unit: '播放' },
+  { key: 'wechat', name: '微信公众号', desc: '发表记录 · 逐篇', unit: '阅读' },
+  { key: 'kuaishou', name: '快手', desc: '内容管理 · 可见作品', unit: '播放' },
+  { key: 'xiaohongshu', name: '小红书', desc: '创作服务平台 · 近 7 日聚合', unit: '观看' },
+];
+---
+
+<BaseLayout title="数据统计 — 个人成长实践者" description="抖音、微信公众号、快手、小红书四平台后台数据的每日快照与逐条明细。" canonicalPath="/analytics/" active="analytics">
+  <header class="page-hero">
+    <div class="wrap">
+      <p class="eyebrow">DATA / 数据</p>
+      <h1>四平台数据快照</h1>
+      <p class="page-intro">
+        这是抖音、微信公众号、快手、小红书四个平台的后台原始数字与逐条明细，每天自动更新。
+        {data && <span class="updated">观测时点：{data.observedAt}（{data.timezone}）</span>}
+      </p>
+    </div>
+  </header>
+
+  <main id="main-content" class="wrap analytics-wrap">
+    {!data && <div class="notice">数据文件尚未生成。先运行 <code>node scripts/collect-analytics.mjs</code>。</div>}
+    {data && (
+      <>
+        <p class="disclaimer">{data.disclaimer}</p>
+
+        <section class="analysis-section" aria-labelledby="analysis-title">
+          <h2 id="analysis-title">我的分析</h2>
+          <div class="analysis-grid">
+            {PLATFORMS.map(p => (
+              data.analysis?.[p.key] && (
+                <article class="analysis-card">
+                  <h3>{p.name}</h3>
+                  <p>{data.analysis[p.key]}</p>
+                </article>
+              )
+            ))}
+            {data.analysis?.overall && (
+              <article class="analysis-card overall">
+                <h3>整体判断</h3>
+                <p>{data.analysis.overall}</p>
+              </article>
+            )}
+          </div>
+        </section>
+
+        <section class="platforms" aria-label="各平台明细">
+          {PLATFORMS.map(p => {
+            const d = data[p.key] || {};
+            const summary = d.summary || {};
+            const works = d.works || [];
+            return (
+              <article class="platform-card">
+                <div class="platform-head">
+                  <div>
+                    <h2>{p.name}</h2>
+                    <p class="platform-desc">{p.desc}</p>
+                  </div>
+                  <div class="summary-chips">
+                    {Object.entries(summary).map(([k, v]) => (
+                      <span class="chip"><span class="chip-key">{k}</span><strong>{String(v)}</strong></span>
+                    ))}
+                  </div>
+                </div>
+
+                {d.note && <p class="note">{d.note}</p>}
+
+                {works.length > 0 && (
+                  <div class="table-scroll">
+                    <table>
+                      <thead>
+                        <tr><th>作品</th><th>日期</th><th>{p.unit}</th><th>其他原始指标</th></tr>
+                      </thead>
+                      <tbody>
+                        {works.map(w => {
+                          const first = p.key === 'douyin' ? '播放' : (p.key === 'wechat' ? '阅读' : '播放');
+                          const rest = Object.entries(w.metrics || {}).filter(([k]) => k !== first);
+                          return (
+                            <tr>
+                              <td class="cell-title">{w.title}</td>
+                              <td class="cell-date">{w.date || '—'}</td>
+                              <td class="cell-main">{String(w.metrics?.[first] ?? '—')}</td>
+                              <td class="cell-rest">
+                                {rest.map(([k, v]) => <span class="metric"><span>{k}</span> {String(v)}</span>)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </section>
+      </>
+    )}
+  </main>
+</BaseLayout>
+
+<style>
+  .wrap { max-width: var(--container-w); margin: 0 auto; padding-inline: var(--gutter); }
+  .page-hero { padding-top: 120px; padding-bottom: var(--space-32); }
+  .eyebrow { color: var(--accent); font-size: var(--fs-14); letter-spacing: .12em; margin: 0 0 var(--space-12); }
+  h1 { font-size: clamp(var(--fs-28), 5vw, var(--fs-48)); margin: 0 0 var(--space-16); line-height: 1.12; }
+  .page-intro { color: var(--body); font-size: var(--fs-16); line-height: 1.7; max-width: 760px; margin: 0; }
+  .updated { display: inline-block; margin-left: var(--space-8); color: var(--text-muted); font-size: var(--fs-14); }
+  .analytics-wrap { padding-bottom: var(--section-y); }
+  .notice { padding: var(--space-16); background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); }
+  .disclaimer { font-size: var(--fs-14); color: var(--text-muted); line-height: 1.6; margin: 0 0 var(--space-32); }
+  .analysis-section { margin-bottom: var(--space-56); }
+  .analysis-section h2 { font-size: var(--fs-28); margin: 0 0 var(--space-24); }
+  .analysis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-16); }
+  .analysis-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-24); }
+  .analysis-card h3 { font-size: var(--fs-16); margin: 0 0 var(--space-12); color: var(--accent); }
+  .analysis-card p { font-size: var(--fs-14); line-height: 1.8; color: var(--body); margin: 0; }
+  .analysis-card.overall { grid-column: 1 / -1; background: var(--surface-2); }
+  .platforms { display: grid; gap: var(--space-24); }
+  .platform-card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); padding: var(--space-24); }
+  .platform-head { display: flex; flex-wrap: wrap; gap: var(--space-16); align-items: flex-start; justify-content: space-between; margin-bottom: var(--space-16); }
+  .platform-head h2 { font-size: var(--fs-20); margin: 0 0 var(--space-4); }
+  .platform-desc { color: var(--text-muted); font-size: var(--fs-12); margin: 0; }
+  .summary-chips { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+  .chip { display: inline-flex; align-items: center; gap: var(--space-4); background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; font-size: var(--fs-12); }
+  .chip-key { color: var(--text-muted); }
+  .chip strong { color: var(--text); font-weight: 600; }
+  .note { font-size: var(--fs-12); color: var(--text-muted); line-height: 1.6; margin: 0 0 var(--space-16); }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: var(--fs-14); }
+  th, td { text-align: left; padding: var(--space-8) var(--space-12); border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--text-muted); font-weight: 500; font-size: var(--fs-12); white-space: nowrap; }
+  .cell-title { max-width: 460px; line-height: 1.5; }
+  .cell-date { white-space: nowrap; color: var(--text-muted); font-size: var(--fs-12); }
+  .cell-main { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+  .cell-rest { color: var(--text-secondary); font-size: var(--fs-12); line-height: 1.8; }
+  .metric { display: inline-block; margin-right: var(--space-12); white-space: nowrap; }
+  .metric span { color: var(--text-muted); }
+</style>

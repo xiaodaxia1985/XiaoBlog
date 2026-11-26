@@ -1,6 +1,6 @@
 ---
 interface Props {
-  active?: 'home' | 'focus' | 'insights' | 'about' | '';
+  active?: 'home' | 'focus' | 'insights' | 'analytics' | 'about' | '';
   variant?: 'main' | 'article';
 }
 const { active = '', variant = 'main' } = Astro.props;
@@ -27,6 +27,7 @@ const { active = '', variant = 'main' } = Astro.props;
       <li><a href="/" class:list={{ active: active === 'home' }} aria-current={active === 'home' ? 'page' : undefined}>首页</a></li>
       <li><a href="/#focus" class:list={{ active: active === 'focus' }} aria-current={active === 'focus' ? 'page' : undefined}>方向</a></li>
       <li><a href="/insights" class:list={{ active: active === 'insights' }} aria-current={active === 'insights' ? 'page' : undefined}>洞察</a></li>
+      <li><a href="/analytics" class:list={{ active: active === 'analytics' }} aria-current={active === 'analytics' ? 'page' : undefined}>数据</a></li>
       <li><a href="/about" class:list={{ active: active === 'about' }} aria-current={active === 'about' ? 'page' : undefined}>关于</a></li>
     </ul>
   </div>
@@ -44,7 +45,7 @@ const { active = '', variant = 'main' } = Astro.props;
   .site-nav-actions{display:flex;align-items:center;gap:var(--space-8);}
   .site-nav-action{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text-secondary);cursor:pointer;}
   .site-nav-action:hover,.site-nav-action:focus-visible{color:var(--accent);border-color:var(--accent);}
-  .site-nav-links{display:grid;grid-template-columns:repeat(4,minmax(56px,1fr));gap:var(--space-12);list-style:none;margin:0;padding:0;min-width:296px;text-align:center;}
+  .site-nav-links{display:grid;grid-template-columns:repeat(5,minmax(52px,1fr));gap:var(--space-8);list-style:none;margin:0;padding:0;min-width:340px;text-align:center;}
   .site-nav-links a{display:block;font-size:var(--fs-14);letter-spacing:.04em;color:var(--text-secondary);transition:color .2s ease;}
   .site-nav-links a:hover,.site-nav-links a.active,.site-nav-links a:focus-visible{color:var(--accent);}
   .site-nav-toggle{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:8px;border-radius:6px;}
