@@ -34,7 +34,7 @@ const data = JSON.parse(fs.readFileSync(JSON_PATH, 'utf8'));
 const observedAt = /[+-]\d{2}:?\d{2}$/.test(data.observedAt) ? data.observedAt : data.observedAt + '+08:00';
 const observedDate = data.observedAt.slice(0, 10);
 const PLATFORMS = ['douyin', 'wechat', 'kuaishou', 'xiaohongshu'];
-const WORK_PLATFORMS = ['douyin', 'wechat', 'kuaishou'];
+const WORK_PLATFORMS = ['douyin', 'wechat', 'kuaishou', 'xiaohongshu'];
 const workKey = (p, w) => crypto.createHash('sha1')
   .update([p, w.title || '', w.date || '', w.status || ''].join('|'))
   .digest('hex').slice(0, 20);
@@ -42,7 +42,12 @@ const workKey = (p, w) => crypto.createHash('sha1')
 const client = new Client({ connectionString: DATABASE_URL });
 await client.connect();
 try {
-  await client.query(fs.readFileSync(path.resolve('server/migrations/0002_analytics.sql'), 'utf8'));
+  // 按文件名顺序跑全部前向迁移（0002 建表、0003 放开小红书 CHECK），全部 IF NOT EXISTS / 幂等
+  const migDir = path.resolve('server/migrations');
+  const migrations = fs.readdirSync(migDir).filter((f) => f.endsWith('.sql')).sort();
+  for (const f of migrations) {
+    await client.query(fs.readFileSync(path.join(migDir, f), 'utf8'));
+  }
   await client.query('BEGIN');
 
   await client.query(
