@@ -2,220 +2,191 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import fs from 'node:fs';
 import path from 'node:path';
+import { renderDashboard } from '../lib/analytics-render.mjs';
 
-// 构建时内联的静态快照：首屏内容 + 实时接口不可用时的兜底。
-// 页面加载后客户端会 fetch /api/analytics/latest 拉取服务器 PG 里的最新数据覆盖显示。
+// 构建时快照：首屏直接出完整看板（无 JS 也有内容），页面加载后再拉服务器实时数据覆盖。
 const dataPath = path.resolve(process.cwd(), 'public/data/analytics.json');
 const raw = fs.existsSync(dataPath) ? fs.readFileSync(dataPath, 'utf8') : '';
 const data = raw ? JSON.parse(raw) : null;
-
-const PLATFORMS = [
-  { key: 'douyin', name: '抖音', desc: '作品管理 · 逐条', unit: '播放' },
-  { key: 'wechat', name: '微信公众号', desc: '发表记录 · 逐篇', unit: '阅读' },
-  { key: 'kuaishou', name: '快手', desc: '内容管理 · 可见作品', unit: '播放' },
-  { key: 'xiaohongshu', name: '小红书', desc: '创作服务平台 · 近 7 日聚合', unit: '观看' },
-];
+const initialHtml = renderDashboard(data);
 ---
 
-<BaseLayout title="数据统计 — 个人成长实践者" description="抖音、微信公众号、快手、小红书四平台后台数据的每日快照与逐条明细。" canonicalPath="/analytics/" active="analytics">
+<BaseLayout title="数据统计 — 个人成长实践者" description="抖音、微信公众号、快手、小红书四平台后台数据的每日快照、逐条作品明细与我的分析。" canonicalPath="/analytics/" active="analytics">
+  <link rel="stylesheet" href="/css/analytics.css" slot="head" />
+
   <header class="page-hero">
     <div class="wrap">
-      <p class="eyebrow">DATA / 数据</p>
+      <p class="eyebrow">
+        <span class="eyebrow-dot" aria-hidden="true"></span>
+        DATA / 数据
+      </p>
       <h1>四平台数据快照</h1>
       <p class="page-intro">
-        这是抖音、微信公众号、快手、小红书四个平台的后台原始数字与逐条明细，每天自动更新。
-        {data && <span class="updated" id="observed-at">观测时点：{data.observedAt}（{data.timezone}）</span>}
+        抖音、微信公众号、快手、小红书的后台原始数字，细到每一条作品。每天自动更新，数字不做二次加工。
       </p>
-      <p class="data-source" id="data-source">构建时快照 · 正在连接实时数据…</p>
+      <div class="hero-meta">
+        <span class="hero-stamp" id="observed-at">观测时点 {data ? data.observedAt : '—'}（{data ? data.timezone : 'Asia/Shanghai'}）</span>
+        <span class="hero-source" id="data-source" data-state="pending">正在连接实时数据…</span>
+      </div>
     </div>
   </header>
 
-  <main id="main-content" class="wrap analytics-wrap">
-    <div id="analytics-root">
-      {!data && <div class="notice">数据文件尚未生成。先运行 <code>node scripts/collect-analytics.mjs</code>。</div>}
-      {data && (
-        <>
-          <p class="disclaimer">{data.disclaimer}</p>
-
-          <section class="analysis-section" aria-labelledby="analysis-title">
-            <h2 id="analysis-title">我的分析</h2>
-            <div class="analysis-grid">
-              {PLATFORMS.map(p => (
-                data.analysis?.[p.key] && (
-                  <article class="analysis-card">
-                    <h3>{p.name}</h3>
-                    <p>{data.analysis[p.key]}</p>
-                  </article>
-                )
-              ))}
-              {data.analysis?.overall && (
-                <article class="analysis-card overall">
-                  <h3>整体判断</h3>
-                  <p>{data.analysis.overall}</p>
-                </article>
-              )}
-            </div>
-          </section>
-
-          <section class="platforms" aria-label="各平台明细">
-            {PLATFORMS.map(p => {
-              const d = data[p.key] || {};
-              const summary = d.summary || {};
-              const works = d.works || [];
-              return (
-                <article class="platform-card">
-                  <div class="platform-head">
-                    <div>
-                      <h2>{p.name}</h2>
-                      <p class="platform-desc">{p.desc}</p>
-                    </div>
-                    <div class="summary-chips">
-                      {Object.entries(summary).map(([k, v]) => (
-                        <span class="chip"><span class="chip-key">{k}</span><strong>{String(v)}</strong></span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {d.note && <p class="note">{d.note}</p>}
-
-                  {works.length > 0 && (
-                    <div class="table-scroll">
-                      <table>
-                        <thead>
-                          <tr><th>作品</th><th>日期</th><th>{p.unit}</th><th>其他原始指标</th></tr>
-                        </thead>
-                        <tbody>
-                          {works.map(w => {
-                            const first = p.key === 'douyin' ? '播放' : (p.key === 'wechat' ? '阅读' : '播放');
-                            const rest = Object.entries(w.metrics || {}).filter(([k]) => k !== first);
-                            return (
-                              <tr>
-                                <td class="cell-title">{w.title}</td>
-                                <td class="cell-date">{w.date || '—'}</td>
-                                <td class="cell-main">{String(w.metrics?.[first] ?? '—')}</td>
-                                <td class="cell-rest">
-                                  {rest.map(([k, v]) => <span class="metric"><span>{k}</span> {String(v)}</span>)}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </article>
-              );
-            })}
-          </section>
-        </>
-      )}
-    </div>
+  <main id="main-content" class="wrap analytics-main">
+    <div id="analytics-root" set:html={initialHtml}></div>
   </main>
 </BaseLayout>
 
-<script is:inline>
-(function () {
-  const PLATFORMS = [
-    { key: 'douyin', name: '抖音', desc: '作品管理 · 逐条', unit: '播放' },
-    { key: 'wechat', name: '微信公众号', desc: '发表记录 · 逐篇', unit: '阅读' },
-    { key: 'kuaishou', name: '快手', desc: '内容管理 · 可见作品', unit: '播放' },
-    { key: 'xiaohongshu', name: '小红书', desc: '创作服务平台 · 近 7 日聚合', unit: '观看' },
-  ];
-  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+<script>
+  import { renderDashboard } from '../lib/analytics-render.mjs';
 
-  function renderAnalysis(data) {
-    let cards = '';
-    for (const p of PLATFORMS) {
-      const t = data.analysis && data.analysis[p.key];
-      if (t) cards += '<article class="analysis-card"><h3>' + esc(p.name) + '</h3><p>' + esc(t) + '</p></article>';
-    }
-    if (data.analysis && data.analysis.overall) {
-      cards += '<article class="analysis-card overall"><h3>整体判断</h3><p>' + esc(data.analysis.overall) + '</p></article>';
-    }
-    return cards ? '<section class="analysis-section" aria-labelledby="analysis-title"><h2 id="analysis-title">我的分析</h2><div class="analysis-grid">' + cards + '</div></section>' : '';
-  }
+  const root = document.getElementById('analytics-root');
+  const stamp = document.getElementById('observed-at');
+  const source = document.getElementById('data-source');
 
-  function renderPlatforms(data) {
-    return PLATFORMS.map(p => {
-      const d = data[p.key] || {};
-      const summary = d.summary || {};
-      const works = d.works || [];
-      const chips = Object.keys(summary).map(k => '<span class="chip"><span class="chip-key">' + esc(k) + '</span><strong>' + esc(summary[k]) + '</strong></span>').join('');
-      const first = p.key === 'wechat' ? '阅读' : '播放';
-      const rows = works.map(w => {
-        const rest = Object.keys(w.metrics || {}).filter(k => k !== first)
-          .map(k => '<span class="metric"><span>' + esc(k) + '</span> ' + esc(w.metrics[k]) + '</span>').join('');
-        return '<tr><td class="cell-title">' + esc(w.title) + '</td><td class="cell-date">' + esc(w.date || '—') +
-          '</td><td class="cell-main">' + esc(w.metrics && w.metrics[first] != null ? w.metrics[first] : '—') +
-          '</td><td class="cell-rest">' + rest + '</td></tr>';
-      }).join('');
-      const table = works.length ? '<div class="table-scroll"><table><thead><tr><th>作品</th><th>日期</th><th>' + esc(p.unit) +
-        '</th><th>其他原始指标</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '';
-      const note = d.note ? '<p class="note">' + esc(d.note) + '</p>' : '';
-      return '<article class="platform-card"><div class="platform-head"><div><h2>' + esc(p.name) + '</h2><p class="platform-desc">' +
-        esc(p.desc) + '</p></div><div class="summary-chips">' + chips + '</div></div>' + note + table + '</article>';
-    }).join('');
-  }
-
-  function render(data) {
-    const disclaimer = data.disclaimer ? '<p class="disclaimer">' + esc(data.disclaimer) + '</p>' : '';
-    return disclaimer + renderAnalysis(data) + '<section class="platforms" aria-label="各平台明细">' + renderPlatforms(data) + '</section>';
-  }
-
-  var root = document.getElementById('analytics-root');
-  var src = document.getElementById('data-source');
-  var stamp = document.getElementById('observed-at');
-  fetch('/api/analytics/latest', { cache: 'no-store' })
-    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(function (d) {
-      if (d.error || !d.douyin) throw new Error('no data');
-      if (root) root.innerHTML = render(d);
-      if (stamp) stamp.textContent = '观测时点：' + d.observedAt + '（' + (d.timezone || 'Asia/Shanghai') + '）';
-      if (src) src.textContent = '服务器实时数据 · API';
-    })
-    .catch(function (e) {
-      if (src) src.textContent = '构建时快照（实时接口暂不可用）';
-      console.warn('analytics live load failed:', e);
+  // 平台 tab：切换过滤，客户端与 SSR 共用 data-filter 机制。
+  function bindTabs() {
+    const nav = root?.querySelector('[data-an-tabs]');
+    const list = root?.querySelector('.an-platforms');
+    if (!nav || !list) return;
+    nav.addEventListener('click', (e) => {
+      const btn = e.target instanceof Element ? e.target.closest('[data-an-tab]') : null;
+      if (!btn) return;
+      const key = btn.getAttribute('data-an-tab');
+      nav.querySelectorAll('[data-an-tab]').forEach((b) => {
+        const on = b === btn;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      list.dataset.filter = key;
+      // 切换后回到平台区顶部，避免停在半空
+      const first = list.querySelector('.an-platform:not([style*="none"])');
+      if (key !== 'all' && first) first.scrollIntoView({ block: 'start', behavior: 'smooth' });
     });
-})();
+  }
+
+  fetch('/api/analytics/latest', { cache: 'no-store' })
+    .then((r) => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then((d) => {
+      if (!d || !d.douyin) throw new Error('payload has no platform data');
+      if (root) {
+        root.innerHTML = renderDashboard(d);
+        bindTabs();
+      }
+      if (stamp) stamp.textContent = `观测时点 ${d.observedAt}（${d.timezone || 'Asia/Shanghai'}）`;
+      if (source) {
+        source.textContent = '服务器实时数据 · API';
+        source.dataset.state = 'live';
+      }
+    })
+    .catch((e) => {
+      if (source) {
+        source.textContent = '构建时快照（实时接口暂不可用）';
+        source.dataset.state = 'snapshot';
+      }
+      console.warn('[analytics] live fetch failed:', e);
+    });
+
+  bindTabs();
 </script>
 
 <style>
-  .wrap { max-width: var(--container-w); margin: 0 auto; padding-inline: var(--gutter); }
-  .page-hero { padding-top: 120px; padding-bottom: var(--space-32); }
-  .eyebrow { color: var(--accent); font-size: var(--fs-14); letter-spacing: .12em; margin: 0 0 var(--space-12); }
-  h1 { font-size: clamp(var(--fs-28), 5vw, var(--fs-48)); margin: 0 0 var(--space-16); line-height: 1.12; }
-  .page-intro { color: var(--body); font-size: var(--fs-16); line-height: 1.7; max-width: 760px; margin: 0; }
-  .updated { display: inline-block; margin-left: var(--space-8); color: var(--text-muted); font-size: var(--fs-14); }
-  .data-source { font-size: var(--fs-12); color: var(--text-muted); margin: var(--space-12) 0 0; }
-  .analytics-wrap { padding-bottom: var(--section-y); }
-  .notice { padding: var(--space-16); background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); }
-  .disclaimer { font-size: var(--fs-14); color: var(--text-muted); line-height: 1.6; margin: 0 0 var(--space-32); }
-  .analysis-section { margin-bottom: var(--space-56); }
-  .analysis-section h2 { font-size: var(--fs-28); margin: 0 0 var(--space-24); }
-  .analysis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-16); }
-  .analysis-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-24); }
-  .analysis-card h3 { font-size: var(--fs-16); margin: 0 0 var(--space-12); color: var(--accent); }
-  .analysis-card p { font-size: var(--fs-14); line-height: 1.8; color: var(--body); margin: 0; }
-  .analysis-card.overall { grid-column: 1 / -1; background: var(--surface-2); }
-  .platforms { display: grid; gap: var(--space-24); }
-  .platform-card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); padding: var(--space-24); }
-  .platform-head { display: flex; flex-wrap: wrap; gap: var(--space-16); align-items: flex-start; justify-content: space-between; margin-bottom: var(--space-16); }
-  .platform-head h2 { font-size: var(--fs-20); margin: 0 0 var(--space-4); }
-  .platform-desc { color: var(--text-muted); font-size: var(--fs-12); margin: 0; }
-  .summary-chips { display: flex; flex-wrap: wrap; gap: var(--space-8); }
-  .chip { display: inline-flex; align-items: center; gap: var(--space-4); background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; font-size: var(--fs-12); }
-  .chip-key { color: var(--text-muted); }
-  .chip strong { color: var(--text); font-weight: 600; }
-  .note { font-size: var(--fs-12); color: var(--text-muted); line-height: 1.6; margin: 0 0 var(--space-16); }
-  .table-scroll { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: var(--fs-14); }
-  th, td { text-align: left; padding: var(--space-8) var(--space-12); border-bottom: 1px solid var(--border); vertical-align: top; }
-  th { color: var(--text-muted); font-weight: 500; font-size: var(--fs-12); white-space: nowrap; }
-  .cell-title { max-width: 460px; line-height: 1.5; }
-  .cell-date { white-space: nowrap; color: var(--text-muted); font-size: var(--fs-12); }
-  .cell-main { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
-  .cell-rest { color: var(--text-secondary); font-size: var(--fs-12); line-height: 1.8; }
-  .metric { display: inline-block; margin-right: var(--space-12); white-space: nowrap; }
-  .metric span { color: var(--text-muted); }
+  .wrap { max-width: var(--container-w); margin: 0 auto; padding: 0 var(--gutter); }
+
+  .page-hero {
+    padding: calc(64px + var(--space-40)) 0 var(--space-32);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .page-hero::after {
+    content: '';
+    position: absolute;
+    right: -120px;
+    top: -60px;
+    width: 380px;
+    height: 380px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(var(--accent-rgb), .10), transparent 68%);
+    pointer-events: none;
+  }
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    font-size: var(--fs-12);
+    color: var(--text-muted);
+    letter-spacing: .08em;
+    margin: 0 0 var(--space-16);
+  }
+  .eyebrow-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb), .18);
+  }
+  .page-hero h1 {
+    font-size: var(--fs-48);
+    font-weight: 600;
+    line-height: 1.16;
+    letter-spacing: -.015em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .page-intro {
+    margin: var(--space-12) 0 0;
+    max-width: 640px;
+    font-size: var(--fs-16);
+    line-height: var(--lh-body);
+    color: var(--text-secondary);
+  }
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-12);
+    margin-top: var(--space-20);
+  }
+  .hero-stamp {
+    font-size: var(--fs-12);
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+  }
+  .hero-source {
+    font-size: var(--fs-12);
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hero-source::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    flex-shrink: 0;
+  }
+  .hero-source[data-state="live"] { color: var(--accent); }
+  .hero-source[data-state="live"]::before { background: var(--accent); }
+  .hero-source[data-state="pending"]::before { background: var(--text-muted); animation: an-pulse 1.4s ease-in-out infinite; }
+  .hero-source[data-state="snapshot"]::before { background: #C79A3A; }
+
+  @keyframes an-pulse { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+
+  .analytics-main { padding: var(--space-32) 0 var(--space-72); }
+
+  @media (max-width: 768px) {
+    .page-hero { padding: calc(56px + var(--space-24)) 0 var(--space-24); }
+    .page-hero h1 { font-size: var(--fs-28); }
+    .analytics-main { padding: var(--space-24) 0 var(--space-40); }
+  }
 </style>
