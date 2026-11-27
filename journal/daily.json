@@ -1,6 +1,156 @@
 {
   "entries": [
     {
+      "date": "2026-11-27",
+      "commits": 2,
+      "totalCommits": 2,
+      "totalFiles": 2,
+      "note": "仅 site/XiaoBlog 有提交（2 次）；另三个仓 0 提交。今日三平台作品均已发出；10 条熟人消息一条未发",
+      "faces": {
+        "内容": {
+          "count": 2,
+          "files": 1
+        },
+        "产线": {
+          "count": 1,
+          "files": 0
+        },
+        "站点": {
+          "count": 1,
+          "files": 1
+        }
+      },
+      "items": [
+        {
+          "hash": "manual",
+          "commits": 0,
+          "repo": "webppt",
+          "face": "内容",
+          "type": "other",
+          "scope": "",
+          "title": "抖音 8 页黑底定版当日发出；封面砍掉账单只留卖点，正文 149 字",
+          "files": 8,
+          "merged": 1,
+          "hashes": [
+            "manual"
+          ],
+          "needsTranslation": false,
+          "titles": [
+            "抖音 8 页黑底定版当日发出"
+          ]
+        },
+        {
+          "hash": "fe9f291",
+          "commits": 1,
+          "repo": "xiaoblog",
+          "face": "内容",
+          "type": "other",
+          "scope": "",
+          "title": "同一条内容铺到三处，当日全部发出；小红书红版 8 页、公众号同文、站点长文，划走率 37.31% 对 64.26%",
+          "files": 12,
+          "merged": 1,
+          "hashes": [
+            "fe9f291"
+          ],
+          "needsTranslation": false,
+          "slugs": [
+            "platform-ai-review-protocol"
+          ],
+          "titles": [
+            "同一条内容铺到三处，当日全部发出"
+          ]
+        },
+        {
+          "hash": "manual",
+          "commits": 0,
+          "repo": "engine",
+          "face": "产线",
+          "type": "other",
+          "scope": "",
+          "title": "元探长版式复刻第六版四项全 PASS；16 屏对 16 句，71.3 秒",
+          "files": 0,
+          "merged": 1,
+          "hashes": [
+            "manual"
+          ],
+          "needsTranslation": false,
+          "titles": [
+            "元探长版式复刻第六版四项全 PASS"
+          ]
+        },
+        {
+          "hash": "6e1188c",
+          "commits": 1,
+          "repo": "xiaoblog",
+          "face": "站点",
+          "type": "other",
+          "scope": "",
+          "title": "平台数据改成脚本自动抓取，早晚各跑一次；12 条抖音、18 篇小红书不再手抄",
+          "files": 1,
+          "merged": 1,
+          "hashes": [
+            "6e1188c"
+          ],
+          "needsTranslation": false,
+          "titles": [
+            "平台数据改成脚本自动抓取"
+          ]
+        }
+      ],
+      "posts": [
+        {
+          "slug": "platform-ai-review-protocol",
+          "title": "把作品喂给平台作者助手之后，我发现了一件事",
+          "url": "/insight/platform-ai-review-protocol/"
+        }
+      ],
+      "activities": [
+        {
+          "tag": "活动",
+          "text": "今天抖音 8 页、小红书 8 页、公众号同文，三处全部发出"
+        },
+        {
+          "tag": "失误",
+          "text": "10 条熟人消息到收盘一条没发，也无人回——Week1 三项（3 份链接 / 10 条消息 / ≥3 人回）全 0"
+        },
+        {
+          "tag": "判断",
+          "text": "WebPPT 生存价值不大（用户判断）：不是交付不出来，是没人会为「明天要讲的那一场」先掏钱；21 天验证方向要重估"
+        },
+        {
+          "tag": "判断",
+          "text": "若换方向，计划里第 2 优先「站点＋内容系统」是唯一已经跑完、能直接看后台的交付物；WebPPT 三份样片留着当案例，不销毁"
+        },
+        {
+          "tag": "反馈",
+          "text": "昨天改封面与布局，抖音效果很好；同体裁划走率 64.26% → 37.31%"
+        },
+        {
+          "tag": "判断",
+          "text": "v3 被否是文案 AI 味：封面塞账单、「不是 X 是 Y」用了四次；v4 把这些全砍"
+        },
+        {
+          "tag": "判断",
+          "text": "平台网页版没有等价诊断，复刻只剩「数据直采＋自定协议」或「跑安卓模拟器」"
+        },
+        {
+          "tag": "收入",
+          "text": "无"
+        }
+      ],
+      "milestones": [
+        {
+          "tag": "里程碑",
+          "text": "第一次用自己抓的数判定平台建议：划走率 64.26% → 37.31%"
+        }
+      ],
+      "theme": "三处都发了，方向要重估",
+      "summary": "内容跑通了，卖什么还得再定。",
+      "needsTranslation": [],
+      "verified": true,
+      "verifiedAt": "2026-11-27"
+    },
+    {
       "date": "2026-11-26",
       "commits": 9,
       "totalCommits": 9,
@@ -1677,5 +1827,5 @@
       "verifiedAt": "2026-11-20"
     }
   ],
-  "updatedAt": "2026-11-26"
+  "updatedAt": "2026-11-27"
 }
