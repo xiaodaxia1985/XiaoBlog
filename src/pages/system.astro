@@ -1,0 +1,731 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { QUESTIONS, GROUPS } from '../lib/diagnosis.mjs';
+
+const total = QUESTIONS.length;
+const byGroup = GROUPS.map((g) => ({ ...g, items: QUESTIONS.filter((q) => q.group === g.key) }));
+---
+
+<BaseLayout
+  title="个人商业诊断 — 个人成长实践者"
+  description="41 题盘清家底、那个人、你的主张、交付方式。填完当场出一份能直接用的诊断：一句话定位 / 证据够不够 / 第一份交付的拆解与三档报价 / 本周三件事（带日期）/ 会卡在哪 / 90 天。"
+  canonicalPath="/system/"
+  active="system"
+>
+  <header class="page-hero">
+    <div class="wrap">
+      <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>SYSTEM / 诊断</p>
+      <h1>个人商业诊断</h1>
+      <p class="page-intro">
+        {total} 题，约 10 分钟。问题的骨架来自 Dan Koe 那篇《2027 年最赚钱的 AI 生意》里的九组访谈问题，
+        原文 22 个子问一句没删；他默认你手上已经有东西可交、也已经知道谁在花钱——这两件他没给方法，我补在前面和后面。
+        填完当场给七段：一句话定位、证据够不够、第一份交付的四步拆解与三档报价、本周三件事（带具体日期）、会卡在哪、90 天、还缺哪一块。
+      </p>
+      <div class="hero-meta">
+        <span class="hero-stamp">v0.2 · {total} 题 · 四组：家底 · 那个人 · 你是谁 · 交付</span>
+        <span class="hero-source" id="save-state" data-state="idle">答案只存在这台浏览器（localStorage），不上传</span>
+      </div>
+      <ol class="hero-steps">
+        <li><b>A</b>家底<em>时间、钱、会什么</em></li>
+        <li><b>B</b>那个人<em>他痛在哪、值不值得做</em></li>
+        <li><b>C</b>你是谁<em>故事、主张、规矩</em></li>
+        <li><b>D</b>交付<em>交什么、收多少</em></li>
+      </ol>
+    </div>
+  </header>
+
+  <main id="main-content" class="wrap diag-main">
+    <div class="diag-bar" id="diag-bar">
+      <div class="diag-bar-inner">
+        <p class="diag-count"><b id="answered">0</b><span>/ {total}</span></p>
+        <div class="diag-progress" aria-hidden="true"><span id="bar-fill"></span></div>
+        <div class="diag-actions">
+          <button type="button" class="btn-primary" id="btn-generate">生成诊断</button>
+          <button type="button" class="btn-ghost" id="btn-clear">清空</button>
+        </div>
+      </div>
+    </div>
+
+    <form id="diag-form" class="diag-form" autocomplete="off">
+      {
+        byGroup.map((g) => (
+          <section class="qgroup" id={'g-' + g.key} data-group={g.key}>
+            <div class="qgroup-head">
+              <span class="gindex" aria-hidden="true">{g.key}</span>
+              <div class="gmeta">
+                <h2>{g.title}</h2>
+                <p class="qgroup-lead">{g.lead}</p>
+                <p class="qgroup-src">{g.source}</p>
+              </div>
+              <span class="gcount" data-gcount={g.key}>0 / {g.items.length}</span>
+            </div>
+            <div class="qlist">
+              {g.items.map((q, i) => (
+                <div class="q" data-qid={q.id} data-type={q.type}>
+                  <p class="q-label">
+                    <span class="q-no">{q.group}{i + 1}</span>
+                    <span class="q-text">{q.label}</span>
+                  </p>
+                  <p class="q-why">{q.why}</p>
+                  {q.type === 'text' && (
+                    <textarea class="q-input" name={q.id} rows="2" maxlength="600" placeholder={q.placeholder || ''}></textarea>
+                  )}
+                  {q.type !== 'text' && (
+                    <div class="q-opts">
+                      {q.options.map((o) => (
+                        <label class="opt">
+                          <input type={q.type === 'radio' ? 'radio' : 'checkbox'} name={q.id} value={o.v} />
+                          <span class="opt-tick" aria-hidden="true"></span>
+                          <span class="opt-text">{o.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        ))
+      }
+    </form>
+
+    <section id="report" class="report" hidden>
+      <header class="report-head">
+        <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>DIAGNOSIS / 结果</p>
+        <h2 id="report-closing"></h2>
+        <p class="report-sub" id="report-honesty"></p>
+        <ul class="report-facts" id="report-facts"></ul>
+      </header>
+      <div id="report-body" class="report-body"></div>
+      <div class="report-actions">
+        <button type="button" class="btn-primary" id="btn-copy">复制 Markdown</button>
+        <button type="button" class="btn-ghost" id="btn-download">下载 .md</button>
+        <button type="button" class="btn-ghost" id="btn-print">打印 / 存 PDF</button>
+        <button type="button" class="btn-ghost" id="btn-back">改答案</button>
+        <span class="report-saved" id="report-saved"></span>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  import { QUESTIONS, STORAGE_KEY, buildReport, toMarkdown } from '../lib/diagnosis.mjs';
+
+  const form = document.getElementById('diag-form');
+  const bar = document.getElementById('diag-bar');
+  const reportEl = document.getElementById('report');
+  const answeredEl = document.getElementById('answered');
+  const barFill = document.getElementById('bar-fill');
+  const saveState = document.getElementById('save-state');
+
+  const esc = (s) =>
+    String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  function collect() {
+    const data = {};
+    for (const q of QUESTIONS) {
+      if (q.type === 'text') {
+        const el = form.querySelector(`[name="${q.id}"]`);
+        const v = el ? el.value.trim() : '';
+        if (v) data[q.id] = v;
+      } else if (q.type === 'radio') {
+        const el = form.querySelector(`input[name="${q.id}"]:checked`);
+        if (el) data[q.id] = el.value;
+      } else {
+        const els = Array.from(form.querySelectorAll(`input[name="${q.id}"]:checked`)).map((e) => e.value);
+        if (els.length) data[q.id] = els;
+      }
+    }
+    return data;
+  }
+
+  function apply(data) {
+    for (const q of QUESTIONS) {
+      const v = data[q.id];
+      if (v === undefined) continue;
+      if (q.type === 'text') {
+        const el = form.querySelector(`[name="${q.id}"]`);
+        if (el) el.value = v;
+      } else {
+        const vals = Array.isArray(v) ? v : [v];
+        form.querySelectorAll(`input[name="${q.id}"]`).forEach((el) => {
+          if (vals.includes(el.value)) el.checked = true;
+        });
+      }
+    }
+    autosizeAll();
+    refresh();
+  }
+
+  function autosize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(360, el.scrollHeight + 2) + 'px';
+  }
+
+  function autosizeAll() {
+    form.querySelectorAll('textarea').forEach(autosize);
+  }
+
+  function answeredCount(data) {
+    return Object.keys(data).length;
+  }
+
+  function refresh() {
+    const data = collect();
+    const n = answeredCount(data);
+    answeredEl.textContent = String(n);
+    barFill.style.width = (n / QUESTIONS.length) * 100 + '%';
+    form.querySelectorAll('.q').forEach((el) => {
+      el.classList.toggle('is-answered', data[el.dataset.qid] !== undefined);
+    });
+    document.querySelectorAll('.qgroup').forEach((sec) => {
+      const items = sec.querySelectorAll('.q');
+      const done = Array.from(items).filter((el) => data[el.dataset.qid] !== undefined).length;
+      const badge = sec.querySelector('[data-gcount]');
+      if (badge) badge.textContent = `${done} / ${items.length}`;
+      sec.classList.toggle('is-full', done === items.length);
+    });
+    return n;
+  }
+
+  let saveTimer = 0;
+  function save() {
+    const data = collect();
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ v: 'v0', at: Date.now(), answers: data }));
+      const t = new Date();
+      const hh = String(t.getHours()).padStart(2, '0');
+      const mm = String(t.getMinutes()).padStart(2, '0');
+      saveState.dataset.state = 'saved';
+      saveState.textContent = `已存在本机 · ${hh}:${mm} · 不上传`;
+    } catch (e) {
+      saveState.dataset.state = 'error';
+      saveState.textContent = '本机存储不可用（可能是隐私模式），关掉页面答案会丢';
+    }
+  }
+
+  function scheduleSave() {
+    refresh();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(save, 500);
+  }
+
+  function restore() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.answers) {
+        apply(parsed.answers);
+        return true;
+      }
+    } catch (e) {
+      /* 旧数据坏了就当作没填过 */
+    }
+    return false;
+  }
+
+  function renderReport() {
+    const data = collect();
+    const n = answeredCount(data);
+    if (n < 12) {
+      saveState.dataset.state = 'warn';
+      saveState.textContent = `还差 ${12 - n} 题（至少 12 题）才出诊断`;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    const rep = buildReport(data);
+    const md = toMarkdown(data, rep);
+
+    document.getElementById('report-closing').textContent = rep.closing;
+    document.getElementById('report-honesty').textContent = `${rep.date} · ${rep.honesty}`;
+    document.getElementById('report-facts').innerHTML = rep.conditions
+      .slice(0, 4)
+      .map((c) => `<li><span>${esc(c.k)}</span><b>${esc(c.v)}</b></li>`)
+      .join('');
+
+    const condHtml = rep.conditions
+      .map(
+        (c) =>
+          `<li class="stat"><span class="stat-k">${esc(c.k)}</span><span class="stat-v">${esc(c.v)}</span>${
+            c.note ? `<em>${esc(c.note)}</em>` : ''
+          }</li>`,
+      )
+      .join('');
+
+    const sayHtml = rep.positioning.length
+      ? rep.positioning
+          .map(
+            (p, i) =>
+              `<li><span class="say-no">${i + 1}</span><p class="say-text">${esc(p)}</p><button type="button" class="say-copy" data-copy="${esc(
+                p,
+              )}">复制</button></li>`,
+          )
+          .join('')
+      : '<li class="say-empty">还没写出「帮谁、拿到什么」。先把这两格补上，别的都从这句长出来。</li>';
+
+    const evMark = (ok) => (ok === 1 ? '<span class="ev-ok">✓</span>' : ok === 0.5 ? '<span class="ev-half">·</span>' : '<span class="ev-no">✗</span>');
+    const evHtml = rep.evidence
+      .map(
+        (e) =>
+          `<li><span class="ev-mark">${evMark(e.ok)}</span><div><p class="ev-k">${esc(e.k)}<span class="ev-v">${esc(
+            e.v,
+          )}</span></p><p class="ev-note">${esc(e.note)}</p></div></li>`,
+      )
+      .join('');
+
+    const stepsHtml = rep.steps
+      .map(
+        (s, i) =>
+          `<li><span class="st-no">${i + 1}</span><div><p class="st-t">${esc(s.t)}</p><p class="st-meta"><span>${s.min} 分钟</span> → 产出：${esc(
+            s.out,
+          )}</p></div></li>`,
+      )
+      .join('');
+
+    const tiersHtml = rep.tiers.length
+      ? rep.tiers
+          .map(
+            (t) =>
+              `<div class="tier"><p class="tier-k">${esc(t.k)}</p><p class="tier-v">${esc(t.v)}</p><p class="tier-n">${esc(
+                t.note,
+              )}</p></div>`,
+          )
+          .join('')
+      : '<div class="tier tier-empty"><p class="tier-n">没填价钱：先定一个，哪怕只是一百块。</p></div>';
+
+    const pitchHtml = rep.pitch.map((p) => `<p class="pitch-line">${esc(p)}</p>`).join('');
+
+    const weekHtml = rep.week
+      .map((w) => `<div class="day"><p class="day-k">${esc(w.day)}</p><p class="day-act">${esc(w.act)}</p></div>`)
+      .join('');
+
+    const riskHtml = rep.risks.length
+      ? rep.risks.map((r) => `<li>${esc(r)}</li>`).join('')
+      : '<li>从你填的数字里没算出硬矛盾；照第 04 段那三天的日期走。</li>';
+
+    const gapHtml = rep.gapTop3.length
+      ? rep.gapTop3.map((g) => `<li><span class="rk">${esc(g.layer)}</span><em>${esc(g.text)}</em></li>`).join('')
+      : '<li><span class="rk">收尾</span><em>该写的都写了，剩下的是执行；「做过不收钱」不算验证，下一单得收。</em></li>';
+
+    const planHtml = rep.plan
+      .map(
+        (p, i) =>
+          `<div class="phase"><span class="phase-no">${String(i + 1).padStart(2, '0')}</span><p class="phase-name">${esc(
+            p.phase,
+          )}</p><ul>${p.items.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>`,
+      )
+      .join('');
+
+    document.getElementById('report-body').innerHTML = `
+      <section class="rep">
+        <div class="rep-head"><span class="rep-no">01</span><h3>一句话定位</h3><p class="rep-kicker">能直接粘到简介里</p></div>
+        <ul class="say-list">${sayHtml}</ul>
+        ${rep.differentiator ? `<p class="say-diff">${esc(rep.differentiator)}</p>` : ''}
+      </section>
+
+      <section class="rep">
+        <div class="rep-head"><span class="rep-no">02</span><h3>那个人：证据够不够</h3><p class="rep-kicker">五项里缺一项，成交就难一层</p></div>
+        <div class="ev-score"><p><b>${rep.evidenceScore}</b><span>分</span></p><p class="ev-label">证据分（满分 10.2）</p></div>
+        <ul class="ev-list">${evHtml}</ul>
+        <p class="verdict">${esc(rep.verdict)}</p>
+      </section>
+
+      <section class="rep">
+        <div class="rep-head"><span class="rep-no">03</span><h3>第一份交付</h3><p class="rep-kicker">拆到今天就能开工</p></div>
+        <div class="deliver">
+          <p class="deliver-what">${esc(rep.product.what)}</p>
+          <p class="deliver-meta">卖给 ${esc(rep.product.who)} · ${esc(rep.product.duration)} · 验收：${esc(rep.product.acceptance)}</p>
+        </div>
+        <ol class="steps">${stepsHtml}</ol>
+        <div class="tiers">${tiersHtml}</div>
+        <div class="pitch">
+          <p class="pitch-k">可以直接复制的话</p>
+          ${pitchHtml}
+        </div>
+        ${rep.product.warn.length ? `<ul class="warns">${rep.product.warn.map((w) => `<li>${esc(w)}</li>`).join('')}</ul>` : ''}
+      </section>
+
+      <section class="rep">
+        <div class="rep-head"><span class="rep-no">04</span><h3>本周三件事</h3><p class="rep-kicker">按日期排，不按心情排</p></div>
+        <div class="days">${weekHtml}</div>
+        <div class="check">
+          <p><span class="check-k">算成功</span>${esc(rep.validate.ok)}</p>
+          <p><span class="check-k is-fail">算失败</span>${esc(rep.validate.fail)}</p>
+        </div>
+      </section>
+
+      <section class="rep">
+        <div class="rep-head"><span class="rep-no">05</span><h3>会卡在哪</h3><p class="rep-kicker">从你自己填的数字里算出来的</p></div>
+        <ul class="risks">${riskHtml}</ul>
+      </section>
+
+      <section class="rep">
+        <div class="rep-head"><span class="rep-no">06</span><h3>90 天</h3><p class="rep-kicker">三段时间，各自一个判据</p></div>
+        <div class="phases">${planHtml}</div>
+      </section>
+
+      <section class="rep rep-gap">
+        <details>
+          <summary><span class="rep-no">07</span>还缺哪一块<em>${rep.gapTop3.length ? rep.gapTop3.length + ' 项' : '没有空着的'}</em></summary>
+          <ul class="kv">${gapHtml}</ul>
+        </details>
+      </section>`;
+
+    reportEl.dataset.markdown = md;
+    reportEl.dataset.date = rep.date;
+
+    reportEl.hidden = false;
+    bar.hidden = true;
+    form.hidden = true;
+    const steps = document.querySelector('.hero-steps');
+    if (steps) steps.hidden = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function backToForm() {
+    reportEl.hidden = true;
+    bar.hidden = false;
+    form.hidden = false;
+    const steps = document.querySelector('.hero-steps');
+    if (steps) steps.hidden = false;
+    refresh();
+  }
+
+  form.addEventListener('input', scheduleSave);
+  form.addEventListener('change', scheduleSave);
+  form.addEventListener('input', (e) => {
+    if (e.target instanceof HTMLTextAreaElement) autosize(e.target);
+  });
+
+  document.getElementById('btn-generate').addEventListener('click', renderReport);
+  document.getElementById('btn-back').addEventListener('click', backToForm);
+
+  document.getElementById('btn-clear').addEventListener('click', () => {
+    form.reset();
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {}
+    saveState.dataset.state = 'idle';
+    saveState.textContent = '已清空 · 答案只存在这台浏览器（localStorage），不上传';
+    refresh();
+  });
+
+  document.getElementById('btn-copy').addEventListener('click', async () => {
+    const md = reportEl.dataset.markdown || '';
+    try {
+      await navigator.clipboard.writeText(md);
+      document.getElementById('report-saved').textContent = 'Markdown 已复制';
+    } catch (e) {
+      document.getElementById('report-saved').textContent = '复制失败，请用「下载 .md」';
+    }
+  });
+
+  document.getElementById('btn-download').addEventListener('click', () => {
+    const md = reportEl.dataset.markdown || '';
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `个人商业诊断_${reportEl.dataset.date || 'draft'}.md`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+  });
+
+  document.getElementById('btn-print').addEventListener('click', () => window.print());
+
+  document.getElementById('report-body').addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-copy]');
+    if (!btn) return;
+    try {
+      await navigator.clipboard.writeText(btn.dataset.copy);
+      btn.textContent = '已复制';
+      setTimeout(() => (btn.textContent = '复制'), 1600);
+    } catch (err) {
+      btn.textContent = '复制失败';
+    }
+  });
+
+  // ?demo=1 用一套示例答案直接起始（只为验证报告长什么样）
+  const isDemo = new URLSearchParams(location.search).has('demo');
+  if (isDemo) {
+    apply({
+      a1: '15', a2: '4.5', a3: ['writing', 'design', 'video', 'ops'],
+      a4: ['clients', 'peers'],
+      a5: '把一篇长文做成能在手机上翻的页面，再顺手出一条竖版视频',
+      b1: '下周要交投标材料的项目经理',
+      b2: '白天开会，晚上改标书，改到三点，第二天还要上班',
+      b3: '又要改标书，每次都通宵',
+      b4: '买过模板、找过打印店、也自己熬夜改过',
+      b5: '1000', b6: 'month', b7: 'today',
+      b8: '我 24 小时能交出能翻的东西，他现在的模板不能讲',
+      c1: '去年替朋友改标书，改到天亮，第二天还要去上班',
+      c2: '前年冬天，第一次把稿子从头到尾自己排完，那天知道这事我能干',
+      c3: '做成：一条内容三平台发出、自己抓数据的后台；栽过：两个项目关停；结果：有人照着我的模板交了材料',
+      c4: '某位前领导、某本书、某个做产品的朋友',
+      c5: '「先做出来再优化」——我一直回到这句',
+      c6: '一次关停的项目，让我不再相信「等准备好再开始」',
+      c7: '个人商业怎么做、AI 怎么替我干活、存量系统怎么改、内容怎么变成能讲的东西、一个人怎么排时间',
+      c8: '1. 个人商业 2. AI 产线 3. 存量系统',
+      c9: '我是从「干过十年乙方交付」这个角度看这件事的',
+      c10: '最常被问：这东西怎么 24 小时做出来',
+      c11: '为什么不要把十件事塞进一个对话',
+      c12: '我想帮要讲课、要投标的人，在一天之内拿到能直接用的材料',
+      c13: '我相信一个人也能跑完一个团队的活，同行多半不信',
+      c14: '「先做品牌，再谈客户」这条是错的',
+      c15: '把十件事挤进一个对话，一天下来什么都没有；要逃离的是这种忙法',
+      c16: '删掉「等我准备好再开始」',
+      c17: 'AI 把交付成本砍了一半，这个窗口只有一两年',
+      c18: '早上看数据，上午做交付，下午见人，晚上发一条',
+      c19: '一个不用通宵也能交出材料的人',
+      c20: 'map',
+      c21: '1. 先交东西再谈钱 2. 一天只推一件事 3. 不写没依据的话 4. 见人比发内容重要 5. 数字要能核',
+      c22: '「一镜两态」＝一个镜头里放两种状态；「三处一发」＝一条内容同时铺三个平台',
+      d1: '15 页能在手机上翻的讲义 + 一条竖版视频',
+      d2: '1.5',
+      d3: '他能翻完 15 页、直接发给他客户，不用再改',
+      d4: '800',
+      d5: 'today',
+      d6: 'free',
+    });
+    renderReport();
+  } else {
+    restore();
+  }
+</script>
+
+<style is:global>
+.diag-main{padding-bottom:96px;}
+:root{--dg-veil:rgba(0,0,0,.06);--dg-line:rgba(0,0,0,.08);--dg-shadow:0 1px 2px rgba(0,0,0,.04);}
+[data-theme="dark"]{--dg-veil:rgba(255,255,255,.06);--dg-line:rgba(255,255,255,.1);--dg-shadow:none;}
+
+.wrap{max-width:var(--container-w);margin:0 auto;padding:0 var(--gutter);}
+
+/* ---------- 首屏 ---------- */
+.page-hero{padding:120px 0 8px;}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);}
+.eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
+.page-hero h1{font-size:clamp(38px,5.2vw,58px);line-height:1.06;letter-spacing:-.025em;font-weight:600;margin:18px 0 20px;color:var(--text);}
+.page-intro{max-width:620px;font-size:16px;line-height:1.8;color:var(--text-secondary);}
+
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px;}
+.hero-stamp,.hero-source{font-size:12px;color:var(--text-muted);border:1px solid var(--border);border-radius:999px;padding:5px 12px;}
+.hero-source[data-state="saved"]{color:var(--accent);border-color:rgba(var(--accent-rgb),.4);}
+.hero-source[data-state="warn"]{color:#B27A00;border-color:rgba(178,122,0,.35);}
+.hero-source[data-state="error"]{color:#C0392B;border-color:rgba(192,57,43,.35);}
+[data-theme="dark"] .hero-source[data-state="warn"]{color:#F0B429;}
+[data-theme="dark"] .hero-source[data-state="error"]{color:#F87171;}
+
+.hero-steps{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:56px 0 0;max-width:900px;border-top:1px solid var(--border);}
+.hero-steps[hidden]{display:none;}
+.hero-steps li{padding:16px 18px 0 0;font-size:14px;color:var(--text);}
+.hero-steps li b{display:block;font-size:11px;letter-spacing:.14em;color:var(--text-muted);font-weight:500;margin-bottom:6px;}
+.hero-steps li em{display:block;margin-top:3px;font-style:normal;font-size:12px;color:var(--text-muted);}
+
+/* ---------- 顶部操作条（细，不抢） ---------- */
+.diag-bar{position:sticky;top:0;z-index:20;margin-top:40px;padding:12px 0 14px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);}
+.diag-bar-inner{display:flex;align-items:center;gap:20px;}
+.diag-count{display:flex;align-items:baseline;gap:4px;font-size:12px;color:var(--text-muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.diag-count b{font-size:22px;color:var(--text);font-weight:600;letter-spacing:-.01em;}
+.diag-progress{flex:1;height:2px;border-radius:999px;background:var(--border);overflow:hidden;}
+.diag-progress span{display:block;height:100%;width:0;background:var(--accent);transition:width .3s cubic-bezier(.4,0,.2,1);}
+.diag-actions{display:flex;gap:8px;}
+
+.btn-primary{background:var(--accent);color:var(--accent-ink);border:1px solid transparent;border-radius:999px;padding:9px 18px;font-size:14px;font-weight:600;cursor:pointer;}
+.btn-primary:hover{filter:brightness(.96);}
+.btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid transparent;border-radius:999px;padding:9px 12px;font-size:14px;cursor:pointer;}
+.btn-ghost:hover{color:var(--text);background:var(--dg-veil);}
+
+/* ---------- 分组 ---------- */
+.qgroup{margin-top:76px;}
+.qgroup-head{display:grid;grid-template-columns:auto 1fr auto;gap:22px;align-items:baseline;padding-bottom:22px;border-bottom:1px solid var(--border);}
+.gindex{font-size:52px;line-height:.9;font-weight:600;letter-spacing:-.04em;color:var(--accent);}
+.gmeta h2{font-size:26px;line-height:1.3;letter-spacing:-.01em;color:var(--text);font-weight:600;margin-bottom:6px;}
+.qgroup-lead{font-size:13px;color:var(--text-muted);line-height:1.7;max-width:66ch;}
+.qgroup-src{margin-top:8px;font-size:11px;color:var(--text-muted);line-height:1.6;opacity:.75;}
+.qgroup-src::before{content:"出处 · ";}
+.gcount{font-size:12px;color:var(--text-muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.qgroup.is-full .gcount{color:var(--accent);}
+
+.qlist{display:grid;gap:12px;margin-top:22px;}
+.q{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px 24px 24px;transition:border-color .2s ease,box-shadow .2s ease;}
+.q:focus-within{border-color:rgba(var(--accent-rgb),.45);box-shadow:0 0 0 4px rgba(var(--accent-rgb),.09);}
+.q.is-answered{border-color:rgba(var(--accent-rgb),.3);}
+.q-label{display:flex;gap:12px;align-items:flex-start;font-size:17px;line-height:1.5;color:var(--text);letter-spacing:-.005em;}
+.q-no{flex:none;margin-top:3px;font-size:11px;letter-spacing:.06em;color:var(--text-muted);font-variant-numeric:tabular-nums;}
+.q.is-answered .q-no{color:var(--accent);}
+.q-text{font-weight:500;}
+.q-why{margin:7px 0 16px;font-size:13px;color:var(--text-muted);line-height:1.7;max-width:70ch;}
+
+.q-input{display:block;width:100%;min-height:64px;resize:none;background:var(--surface-2);border:1px solid transparent;border-radius:12px;color:var(--text);font-family:inherit;font-size:15px;line-height:1.7;padding:13px 15px;overflow:hidden;transition:background .18s,border-color .18s,box-shadow .18s;}
+.q-input::placeholder{color:var(--text-muted);}
+.q-input:focus{outline:none;background:var(--surface);border-color:rgba(var(--accent-rgb),.5);box-shadow:0 0 0 4px rgba(var(--accent-rgb),.1);}
+
+.q-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;}
+.opt{position:relative;display:flex;align-items:center;gap:10px;padding:13px 15px;border:1px solid transparent;border-radius:12px;background:var(--surface-2);font-size:14px;line-height:1.45;color:var(--body);cursor:pointer;transition:background .16s,border-color .16s,color .16s,transform .16s;}
+.opt:hover{background:var(--surface);border-color:var(--border);}
+.opt:active{transform:scale(.985);}
+.opt input{position:absolute;width:1px;height:1px;opacity:0;}
+.opt-tick{flex:none;width:15px;height:15px;border:1.5px solid rgba(var(--accent-rgb),.35);border-radius:50%;display:grid;place-items:center;}
+.q[data-type="checkbox"] .opt-tick{border-radius:4px;}
+.opt-text{flex:1;}
+.opt:has(input:checked){background:var(--surface);border-color:rgba(var(--accent-rgb),.55);color:var(--text);}
+.opt:has(input:checked) .opt-tick{background:var(--accent);border-color:var(--accent);}
+.opt:has(input:checked) .opt-tick::after{content:"";width:7px;height:4px;border-left:2px solid var(--accent-ink);border-bottom:2px solid var(--accent-ink);transform:rotate(-45deg) translateY(-1px);}
+.q[data-type="radio"] .opt:has(input:checked) .opt-tick::after{width:5px;height:5px;border:none;background:var(--accent-ink);border-radius:50%;transform:none;}
+.opt:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px;}
+
+/* ---------- 报告 ---------- */
+.report{margin-top:52px;}
+.report-head{padding:34px 0 30px;border-top:1px solid var(--border);}
+.report-head h2{font-size:clamp(26px,3.4vw,34px);line-height:1.32;letter-spacing:-.02em;font-weight:600;color:var(--text);margin:14px 0 14px;max-width:24em;}
+.report-sub{font-size:12px;color:var(--text-muted);}
+.report-facts{list-style:none;display:flex;flex-wrap:wrap;gap:0;margin-top:22px;border-top:1px solid var(--border);}
+.report-facts li{flex:1 1 200px;padding:14px 24px 0 0;}
+.report-facts li span{display:block;font-size:11px;color:var(--text-muted);letter-spacing:.02em;}
+.report-facts li b{display:block;margin-top:5px;font-size:15px;font-weight:500;color:var(--text);line-height:1.5;}
+
+.report-body{display:grid;gap:0;}
+.rep{padding:40px 0 44px;border-top:1px solid var(--border);}
+.rep-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:24px;}
+.rep-no{font-size:11px;letter-spacing:.1em;color:var(--text-muted);font-variant-numeric:tabular-nums;}
+.rep-head h3{font-size:22px;letter-spacing:-.015em;color:var(--text);font-weight:600;}
+.rep-kicker{margin-left:auto;font-size:11px;color:var(--text-muted);}
+
+/* 01 定位 */
+.say-list{list-style:none;display:grid;gap:10px;}
+.say-list li{display:grid;grid-template-columns:20px 1fr auto;gap:12px;align-items:start;padding:18px 20px;background:var(--surface);border:1px solid var(--border);border-radius:14px;}
+.say-no{font-size:11px;color:var(--text-muted);padding-top:4px;font-variant-numeric:tabular-nums;}
+.say-text{font-size:17px;line-height:1.65;color:var(--text);letter-spacing:-.005em;}
+.say-copy{align-self:center;font-size:11px;color:var(--text-muted);background:transparent;border:1px solid var(--border);border-radius:999px;padding:5px 10px;cursor:pointer;}
+.say-copy:hover{color:var(--accent-ink);background:var(--accent);border-color:var(--accent);}
+.say-empty{font-size:14px;color:var(--text-muted);line-height:1.7;}
+.say-diff{margin-top:16px;font-size:14px;line-height:1.7;color:var(--text-secondary);padding-left:14px;border-left:2px solid rgba(var(--accent-rgb),.5);}
+
+/* 02 证据 */
+.ev-score{display:flex;align-items:baseline;gap:10px;margin-bottom:18px;}
+.ev-score p{display:flex;align-items:baseline;gap:4px;}
+.ev-score b{font-size:44px;font-weight:600;letter-spacing:-.03em;line-height:1;color:var(--text);font-variant-numeric:tabular-nums;}
+.ev-score span{font-size:13px;color:var(--text-muted);}
+.ev-label{margin-left:6px;font-size:11px;color:var(--text-muted);}
+.ev-list{list-style:none;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+.ev-list li{display:grid;grid-template-columns:26px 1fr;gap:12px;align-items:start;padding:16px 20px;border-bottom:1px solid var(--border);}
+.ev-list li:last-child{border-bottom:none;}
+.ev-mark{font-size:14px;line-height:1.5;}
+.ev-ok{color:rgba(var(--accent-rgb),1);font-weight:700;}
+.ev-half{color:#B27A00;}
+.ev-no{color:#C0392B;}
+[data-theme="dark"] .ev-half{color:#F0B429;}
+[data-theme="dark"] .ev-no{color:#F87171;}
+.ev-k{font-size:14px;color:var(--text);display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;}
+.ev-v{font-size:12px;color:var(--text-muted);border:1px solid var(--border);border-radius:999px;padding:1px 8px;}
+.ev-note{margin-top:4px;font-size:12px;color:var(--text-muted);line-height:1.65;}
+
+/* 03 交付 */
+.deliver{padding:0 0 6px;}
+.deliver-what{font-size:clamp(20px,2.6vw,26px);line-height:1.4;letter-spacing:-.015em;color:var(--text);font-weight:600;}
+.deliver-meta{margin-top:8px;font-size:13px;color:var(--text-muted);line-height:1.7;}
+
+.steps{list-style:none;margin:24px 0 0;display:grid;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+.steps li{display:grid;grid-template-columns:34px 1fr;gap:14px;padding:18px 20px;border-bottom:1px solid var(--border);}
+.steps li:last-child{border-bottom:none;}
+.st-no{width:26px;height:26px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--border);font-size:12px;color:var(--text-muted);font-variant-numeric:tabular-nums;}
+.st-t{font-size:14px;line-height:1.65;color:var(--text);}
+.st-meta{margin-top:5px;font-size:12px;color:var(--text-muted);line-height:1.6;}
+.st-meta span{color:var(--accent);font-weight:500;}
+
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;}
+.tier{padding:18px 18px 16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;}
+.tier:first-child{background:rgba(var(--accent-rgb),.07);border-color:rgba(var(--accent-rgb),.28);}
+.tier-k{font-size:11px;letter-spacing:.06em;color:var(--text-muted);}
+.tier-v{margin:8px 0 8px;font-size:26px;font-weight:600;letter-spacing:-.03em;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums;}
+.tier-n{font-size:12px;line-height:1.65;color:var(--text-muted);}
+.tier-empty{grid-column:1/-1;}
+
+.pitch{margin-top:14px;padding:18px 20px;background:var(--surface-2);border-radius:14px;}
+.pitch-k{font-size:11px;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px;}
+.pitch-line{font-size:14px;line-height:1.8;color:var(--text);}
+.pitch-line + .pitch-line{margin-top:8px;}
+
+.warns{list-style:none;display:grid;gap:8px;margin-top:16px;}
+.warns li{position:relative;padding:10px 14px 10px 34px;border-radius:10px;background:rgba(178,122,0,.06);font-size:12px;color:#8A5E00;line-height:1.6;}
+.warns li::before{content:"!";position:absolute;left:13px;top:10px;width:14px;height:14px;display:grid;place-items:center;border-radius:50%;background:#B27A00;color:#fff;font-size:10px;font-weight:700;}
+[data-theme="dark"] .warns li{background:rgba(240,180,41,.08);color:#F0B429;}
+[data-theme="dark"] .warns li::before{background:#F0B429;color:#0C0C0C;}
+
+/* 04 本周 */
+.days{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.day{padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:14px;}
+.day-k{font-size:12px;color:var(--accent);letter-spacing:.02em;margin-bottom:8px;}
+.day-act{font-size:14px;line-height:1.7;color:var(--text);}
+.check{margin-top:14px;display:grid;gap:8px;}
+.check p{display:flex;gap:10px;align-items:baseline;font-size:13px;line-height:1.7;color:var(--text-secondary);}
+.check-k{flex:none;font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(var(--accent-rgb),.12);color:var(--accent);}
+.check-k.is-fail{background:rgba(178,122,0,.12);color:#8A5E00;}
+[data-theme="dark"] .check-k.is-fail{background:rgba(240,180,41,.14);color:#F0B429;}
+
+/* 05 风险 */
+.risks{list-style:none;display:grid;gap:0;}
+.risks li{position:relative;padding:14px 0 14px 22px;font-size:14px;line-height:1.75;color:var(--text-secondary);border-bottom:1px solid var(--border);}
+.risks li:last-child{border-bottom:none;}
+.risks li::before{content:"";position:absolute;left:0;top:22px;width:6px;height:6px;border-radius:50%;background:#B27A00;}
+[data-theme="dark"] .risks li::before{background:#F0B429;}
+
+/* 06 90 天 */
+.phases{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.phase{padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:14px;}
+.phase-no{font-size:12px;color:var(--text-muted);letter-spacing:.08em;font-variant-numeric:tabular-nums;}
+.phase-name{margin:6px 0 12px;font-size:13px;color:var(--accent);letter-spacing:.02em;}
+.phase ul{list-style:none;display:grid;gap:8px;}
+.phase li{font-size:13px;line-height:1.7;color:var(--text-secondary);}
+
+/* 07 缺口 */
+.rep-gap{border-top:1px solid var(--border);padding:20px 0 0;}
+.rep-gap details{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:4px 18px;}
+.rep-gap summary{display:flex;align-items:center;gap:10px;padding:14px 0;cursor:pointer;font-size:15px;color:var(--text);list-style:none;}
+.rep-gap summary::-webkit-details-marker{display:none;}
+.rep-gap summary em{margin-left:auto;font-style:normal;font-size:11px;color:var(--text-muted);}
+.rep-gap details[open] summary{border-bottom:1px solid var(--border);margin-bottom:12px;}
+.rep-gap summary::after{content:"＋";font-size:14px;color:var(--text-muted);order:-1;}
+.rep-gap details[open] summary::after{content:"－";}
+.kv{list-style:none;display:grid;gap:8px;padding-bottom:14px;}
+.kv li{display:flex;gap:10px;align-items:baseline;font-size:13px;line-height:1.7;color:var(--text-secondary);}
+.rk{flex:none;font-size:10px;letter-spacing:.04em;padding:2px 7px;border-radius:999px;background:rgba(var(--accent-rgb),.12);color:var(--accent);}
+.kv em{font-style:normal;}
+
+.verdict{margin-top:16px;padding:16px 20px;border-radius:12px;background:rgba(var(--accent-rgb),.07);font-size:14px;line-height:1.75;color:var(--text);}
+
+.report-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:24px;padding-top:24px;border-top:1px solid var(--border);}
+.report-saved{font-size:12px;color:var(--accent);}
+
+@media (max-width:820px){
+  .page-hero{padding-top:88px;}
+  .hero-steps{grid-template-columns:repeat(2,1fr);gap:0;}
+  .hero-steps li{padding-top:14px;}
+  .qgroup{margin-top:56px;}
+  .qgroup-head{grid-template-columns:auto 1fr;gap:16px;}
+  .gindex{font-size:38px;}
+  .gmeta h2{font-size:22px;}
+  .gcount{grid-column:1/-1;}
+  .q{padding:18px 18px 20px;}
+  .q-label{font-size:15.5px;}
+  .tiers,.days,.phases{grid-template-columns:1fr;}
+  .report-head h2{font-size:24px;}
+  .diag-bar{margin-top:24px;}
+  .diag-bar-inner{gap:12px;}
+  .diag-count b{font-size:18px;}
+  .diag-actions .btn-ghost{display:none;}
+  .report-facts li{flex:1 1 45%;padding-right:12px;}
+  .say-list li{grid-template-columns:1fr auto;}
+  .say-no{display:none;}
+}
+
+@media print{
+  .site-nav,.diag-bar,.report-actions,.skip-link{display:none !important;}
+  body{background:#fff;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .rep,.report-head{page-break-inside:avoid;}
+  .rep-gap details{break-inside:avoid;}
+}
+</style>
