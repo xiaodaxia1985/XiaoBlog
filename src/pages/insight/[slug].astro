@@ -356,9 +356,7 @@ const jsonLd = articleGraph({
     @media(max-width:720px){.markdown{--reading-font:16px;}}
     .markdown p{font-size:var(--reading-font);}
     .markdown h2,.markdown h3{scroll-margin-top:88px;}
-    .markdown{counter-reset:article-section;}
-    .markdown h2{counter-increment:article-section;display:flex;align-items:baseline;gap:18px;padding-top:28px;margin:38px 0 20px;border-top:1px solid var(--border);font-size:21px;line-height:1.5;color:var(--text);font-weight:700;scroll-margin-top:88px;}
-    .markdown h2::before{content:counter(article-section,decimal-leading-zero);flex:0 0 38px;color:var(--accent);font:700 22px/1 'Inter',sans-serif;letter-spacing:-.03em;}
+    .markdown h2{padding-top:28px;margin:38px 0 20px;border-top:1px solid var(--border);font-size:21px;line-height:1.5;color:var(--text);font-weight:700;scroll-margin-top:88px;}
     .markdown h3{font-size:17px;line-height:1.6;color:var(--text);margin:26px 0 14px;scroll-margin-top:88px;}
     .article-toc .toc-sub-link{padding-left:20px;font-size:11px;}
     .markdown blockquote{margin:28px 0;padding:20px 24px;border-left:2px solid var(--accent);background:rgba(var(--accent-rgb),.06);color:var(--text-secondary);}
@@ -464,8 +462,7 @@ const jsonLd = articleGraph({
       .article-title{font-size:26px;line-height:1.34;}
       .article-tagline{font-size:14.5px;line-height:1.75;margin-top:10px;}
       .markdown p{font-size:var(--reading-font,16px);line-height:1.85;margin-bottom:22px;}
-      .markdown h2{gap:12px;padding-top:22px;margin:28px 0 16px;font-size:18px;}
-      .markdown h2::before{flex-basis:30px;font-size:19px;}
+      .markdown h2{padding-top:22px;margin:28px 0 16px;font-size:18px;}
       .markdown h3{font-size:16.5px;margin:22px 0 12px;}
       .article-cover{max-height:none;}
       .js .opinion-card{min-height:200px;}
