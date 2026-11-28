@@ -14,33 +14,120 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const argv = process.argv.slice(2);
 function arg(name, def) {
   const i = argv.indexOf('--' + name);
   return i >= 0 ? (argv[i + 1] ?? def) : def;
 }
-const PORT = Number(arg('port', '9224'));
-const OUT = arg('out', 'public/data/analytics.json');
-const BASE = `http://127.0.0.1:${PORT}`;
+const HAS = n => argv.includes('--' + n);
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const SITE_ROOT = path.resolve(HERE, '..');
+const PROJ_ROOT = path.resolve(SITE_ROOT, '..', '..');
+// 每个平台一个独立持久化 profile（不再四平台共用一个，避免一个被判失效连带全挂）
+const PROFILES = path.resolve(arg('profiles', path.join(PROJ_ROOT, '.runtime', 'profiles')));
+// 登录态备份：cookie 落成 JSON，profile 丢了也能注回
+const SESSIONS = path.resolve(arg('sessions', path.join(PROJ_ROOT, '.runtime', 'sessions')));
+const OUT = path.resolve(arg('out', path.join(SITE_ROOT, 'public', 'data', 'analytics.json')));
+const EDGE = process.env.EDGE_EXE || 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const HEADLESS = !HAS('visible');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-// 每个平台可有多页：主列表页 + 明细页。pages>1 表示翻页累积。
-const PAGES = [
-  { key: 'douyin', host: 'creator.douyin.com', url: 'https://creator.douyin.com/creator-micro/content/manage', wait: 9000 },
-  { key: 'wechat', host: 'mp.weixin.qq.com', url: 'https://mp.weixin.qq.com/cgi-bin/home?t=home/index&lang=zh_CN&token=1200393220', wait: 5000 },
-  { key: 'kuaishou', host: 'cp.kuaishou.com', url: 'https://cp.kuaishou.com/statistics/article', wait: 9000 },
-  { key: 'xiaohongshu', host: 'creator.xiaohongshu.com', url: 'https://creator.xiaohongshu.com/statistics/data-analysis', wait: 9000, pageSize: 50 },
-  // 小红书首页近 7 日概览单独取一趟（环比与完播率只在首页有）
-  { key: 'xiaohongshuOverview', host: 'creator.xiaohongshu.com', url: 'https://creator.xiaohongshu.com/new/home', wait: 7000 },
+// 每平台一个 Chromium 实例 + 独立端口 + 独立 profile。
+// 微信不写死 token：先进首页，从跳转后的 URL 里取当次 token 再拼。
+const PLATFORMS = [
+  {
+    key: 'douyin', port: 9311, host: 'creator.douyin.com',
+    loginUrl: 'https://creator.douyin.com/',
+    pages: [{
+      key: 'douyin', url: 'https://creator.douyin.com/creator-micro/content/manage', wait: 20000,
+      ready: /编辑作品/,
+    }],
+  },
+  {
+    key: 'wechat', port: 9312, host: 'mp.weixin.qq.com',
+    loginUrl: 'https://mp.weixin.qq.com/',
+    pages: [{ key: 'wechat', url: 'https://mp.weixin.qq.com/', wait: 20000, tokenFrom: true, ready: /已发表|昨日阅读/ }],
+  },
+  {
+    key: 'kuaishou', port: 9313, host: 'cp.kuaishou.com',
+    loginUrl: 'https://cp.kuaishou.com/',
+    pages: [{ key: 'kuaishou', url: 'https://cp.kuaishou.com/statistics/article', wait: 20000, ready: /发布于/ }],
+  },
+  {
+    key: 'xiaohongshu', port: 9314, host: 'creator.xiaohongshu.com',
+    loginUrl: 'https://creator.xiaohongshu.com/login',
+    pages: [
+      {
+        key: 'xiaohongshu', url: 'https://creator.xiaohongshu.com/statistics/data-analysis',
+        wait: 20000, pageSize: 50, ready: /发布于|曝光/,
+      },
+      // 首页近 7 日概览单独取一趟（环比与完播率只在首页有）
+      { key: 'xiaohongshuOverview', url: 'https://creator.xiaohongshu.com/new/home', wait: 20000, ready: /曝光数/ },
+    ],
+  },
 ];
 
-// 连一个 page target，返回 { send, sleep, text, close }
-async function openPage(port, host) {
-  const targets = (await (await fetch(`${BASE}/json/list`)).json()).filter(t => t.type === 'page');
-  const target = targets.find(t => t.url.includes(host)) || targets[0];
-  if (!target) throw new Error(`[${host}] 无可用 page target`);
-  const ws = new WebSocket(`ws://127.0.0.1:${port}/devtools/page/${target.id}`);
+// 判定「掉登录」的页面特征：命中且没抓到数据，就记 expired 而不是空数据
+const EXPIRED_HINT = /扫码登录|短信登录|请使用[^\n]{0,10}扫描|登录后(?:查看|管理|使用)|请先登录|账号登录|重新登录/;
+
+const BASE = port => `http://127.0.0.1:${port}`;
+
+async function cdpAlive(port) {
+  try {
+    const r = await fetch(`${BASE(port)}/json/version`, { signal: AbortSignal.timeout(4000) });
+    return r.ok;
+  } catch { return false; }
+}
+
+// 按平台拉起独立实例；已在跑就直接复用（比如用户刚手动登录的那个窗口）
+async function ensureEdge(pl, { visible = false } = {}) {
+  if (await cdpAlive(pl.port)) return;
+  const profile = path.join(PROFILES, pl.key);
+  fs.mkdirSync(profile, { recursive: true });
+  const proc = spawn(EDGE, [
+    visible ? '--start-maximized' : '--headless=new',
+    `--remote-debugging-port=${pl.port}`,
+    `--user-data-dir=${profile}`,
+    '--no-first-run', '--no-default-browser-check', '--disable-gpu',
+    '--window-size=1440,900',
+    // profile 不设上限会随天数涨到几 GB，这里把磁盘/媒体缓存各压到 50MB
+    '--disk-cache-size=52428800', '--media-cache-size=52428800',
+    'about:blank',
+  ], { detached: true, stdio: 'ignore', windowsHide: !visible });
+  proc.unref();
+  for (let i = 0; i < 40; i++) {
+    await sleep(500);
+    if (await cdpAlive(pl.port)) return;
+  }
+  throw new Error(`Edge 没在 ${pl.port} 就绪（profile ${profile}）`);
+}
+
+// 关掉实例：走 CDP 的 Browser.close，让 Edge 自己收尾，避免 profile 锁残留
+async function closeBrowser(port) {
+  try {
+    const v = await (await fetch(`${BASE(port)}/json/version`)).json();
+    const ws = new WebSocket(v.webSocketDebuggerUrl);
+    await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
+    ws.send(JSON.stringify({ id: 1, method: 'Browser.close' }));
+    await sleep(1500);
+    ws.close();
+  } catch {}
+}
+
+async function connect(pl) {
+  let targets = (await (await fetch(`${BASE(pl.port)}/json/list`)).json()).filter(t => t.type === 'page');
+  if (!targets.length) {
+    await fetch(`${BASE(pl.port)}/json/new?about:blank`, { method: 'PUT' });
+    await sleep(800);
+    targets = (await (await fetch(`${BASE(pl.port)}/json/list`)).json()).filter(t => t.type === 'page');
+  }
+  const target = targets.find(t => t.url.includes(pl.host)) || targets[0];
+  if (!target) throw new Error('没有可用页面');
+  const ws = new WebSocket(`ws://127.0.0.1:${pl.port}/devtools/page/${target.id}`);
   await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
   let id = 0;
   const pending = new Map();
@@ -55,50 +142,144 @@ async function openPage(port, host) {
     const r = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise });
     return r.result?.result?.value ?? '';
   };
-  return { send, sleep, evaluate, close: () => ws.close() };
+  await send('Page.enable');
+  await send('Runtime.enable');
+  await send('Network.enable');
+  return {
+    send, evaluate,
+    navigate: async (url, wait) => { await send('Page.navigate', { url }); await sleep(wait || 6000); },
+    url: () => evaluate('location.href'),
+    text: () => evaluate('document.body.innerText || ""'),
+    close: () => { try { ws.close(); } catch {} },
+  };
 }
 
-async function fetchText(port, page) {
-  const p = await openPage(port, page.host);
+const statePath = key => path.join(SESSIONS, `${key}.json`);
+
+// 登录态备份：cookie 是这四家后台唯一的凭证，落成 JSON，profile 重建也能注回去
+async function restoreCookies(s, key) {
+  const p = statePath(key);
+  if (!fs.existsSync(p)) return 0;
+  let n = 0;
   try {
-    await p.send('Page.enable');
-    await p.send('Page.navigate', { url: page.url });
-    await sleep(page.wait || 6000);
-    let text = await p.evaluate('document.body.innerText || ""');
-    if (page.pageSize) {
-      // 优先把每页条数改大（如「50 条/页」），一次拿全，避免翻页丢条
-      const ok = await p.evaluate(`(() => {
-        const hit = [...document.querySelectorAll('*')].find(e =>
-          e.children.length === 0 && /^${page.pageSize} 条\\/页$/.test((e.innerText || '').trim()));
-        if (!hit) return 'nf';
-        hit.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        return 'ok';
-      })()`);
-      if (ok === 'ok') {
-        await sleep(4000);
-        text = await p.evaluate('document.body.innerText || ""');
+    const st = JSON.parse(fs.readFileSync(p, 'utf8'));
+    for (const c of st.cookies || []) {
+      const params = {
+        name: c.name, value: c.value, domain: c.domain, path: c.path || '/',
+        secure: !!c.secure, httpOnly: !!c.httpOnly,
+      };
+      if (c.sameSite) params.sameSite = c.sameSite;
+      if (c.expires && c.expires > 0) params.expires = c.expires;
+      const r = await s.send('Network.setCookie', params);
+      if (r?.result?.success !== false) n++;
+    }
+  } catch (e) { console.error(`[${key}] 备份 cookie 注回失败：${e.message}`); }
+  return n;
+}
+
+// profile 里是否已有该平台的强特征登录 cookie
+async function hasAuthCookie(s, key) {
+  const cookies = (await s.send('Storage.getCookies', {})).result?.cookies || [];
+  const names = new Set(cookies.map(c => c.name));
+  return (AUTH_COOKIE[key] || []).some(n => names.has(n));
+}
+
+async function saveCookies(s, key) {
+  const r = await s.send('Storage.getCookies', {});
+  const cookies = r?.result?.cookies || [];
+  fs.mkdirSync(SESSIONS, { recursive: true });
+  fs.writeFileSync(statePath(key), JSON.stringify({
+    savedAt: new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' }).replace(' ', 'T'),
+    count: cookies.length,
+    cookies,
+  }, null, 2), 'utf8');
+  return cookies.length;
+}
+
+async function clickPageSize(s, pageSize) {
+  const ok = await s.evaluate(`(() => {
+    const hit = [...document.querySelectorAll('*')].find(e =>
+      e.children.length === 0 && /^${pageSize} 条\\/页$/.test((e.innerText || '').trim()));
+    if (!hit) return 'nf';
+    hit.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    return 'ok';
+  })()`);
+  if (ok === 'ok') await sleep(4000);
+  return ok === 'ok';
+}
+
+// 分页累积：点第 N 页（小红书是 .d-pagination-page 的 div，不是 li/span）
+async function paginate(s, text, pages = 1) {
+  for (let n = 2; n <= pages; n++) {
+    const clicked = await s.evaluate(`(() => {
+      const pick = (sel) => [...document.querySelectorAll(sel)]
+        .filter(e => !/disabled/.test(e.className || ''))
+        .find(e => (e.innerText || '').trim().split('\\n')[0] === '${n}');
+      const hit = pick('.d-pagination-page') || pick('.ant-pagination-item')
+        || [...document.querySelectorAll('li,span,button,a')].find(e =>
+            e.children.length === 0 && (e.innerText || '').trim() === '${n}'
+            && e.getBoundingClientRect().top > window.innerHeight * 0.3);
+      if (!hit) return 'nf';
+      hit.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      return 'ok';
+    })()`);
+    if (clicked !== 'ok') break;
+    await sleep(5000);
+    text += '\n' + (await s.text());
+  }
+  return text;
+}
+
+// 轮询到页面出现列表特征就走，不再死等固定秒数；页面在登录页则立即返回
+async function waitReady(s, page) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < (page.wait || 20000)) {
+    await sleep(1200);
+    if (/\/login|\/passport/.test(await s.url())) break;
+    const t = await s.text();
+    if (page.ready && page.ready.test(t)) { await sleep(1200); return t; }
+  }
+  return await s.text();
+}
+
+// 抓一个平台的全部页；失败抛错，由上层记进 status。
+// 不管成不成，退出前都存一次 cookie —— 刚扫码的登录态不能白丢。
+async function collectPlatform(pl, { visible = false } = {}) {
+  await ensureEdge(pl, { visible });
+  const s = await connect(pl);
+  const texts = {};
+  let token = null;
+  let saved = 0;
+  try {
+    // profile 里已有登录 cookie 就不要拿旧备份覆盖：备份可能比 profile 更旧
+    if (!(await hasAuthCookie(s, pl.key))) await restoreCookies(s, pl.key);
+    for (const page of pl.pages) {
+      let url = page.url;
+      if (page.tokenFrom) {
+        // 微信：先进首页拿当次 token，不再写死
+        await s.navigate('https://mp.weixin.qq.com/', 3000);
+        const home = await s.url();
+        const m = /[?&]token=(\d+)/.exec(home);
+        if (m) {
+          token = m[1];
+          url = `https://mp.weixin.qq.com/cgi-bin/home?t=home/index&lang=zh_CN&token=${token}`;
+        }
       }
+      await s.navigate(url, 1500);
+      let text = await waitReady(s, page);
+      if (page.pageSize) {
+        await clickPageSize(s, page.pageSize);
+        text = await s.text();
+      }
+      if (page.pages) text = await paginate(s, text, page.pages);
+      texts[page.key] = text;
     }
-    // 分页累积：点第 N 页（小红书是 .d-pagination-page 的 div，不是 li/span）
-    for (let n = 2; n <= (page.pages || 1); n++) {
-      const clicked = await p.evaluate(`(() => {
-        const pick = (sel) => [...document.querySelectorAll(sel)]
-          .filter(e => !/disabled/.test(e.className || ''))
-          .find(e => (e.innerText || '').trim().split('\\n')[0] === '${n}');
-        const hit = pick('.d-pagination-page') || pick('.ant-pagination-item')
-          || [...document.querySelectorAll('li,span,button,a')].find(e =>
-              e.children.length === 0 && (e.innerText || '').trim() === '${n}'
-              && e.getBoundingClientRect().top > window.innerHeight * 0.3);
-        if (!hit) return 'nf';
-        hit.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        return 'ok';
-      })()`);
-      if (clicked !== 'ok') break;
-      await sleep(5000);
-      text += '\n' + (await p.evaluate('document.body.innerText || ""'));
-    }
-    return text;
-  } finally { p.close(); }
+    saved = await saveCookies(s, pl.key);
+    return { texts, token, saved };
+  } catch (e) {
+    try { saved = await saveCookies(s, pl.key); } catch {}
+    throw e;
+  } finally { s.close(); }
 }
 
 // 后台数字带千分位与百分号：「1.28%」「11,484」都要能转成纯数值，否则完播率一律变 0。
@@ -457,12 +638,96 @@ function analyze(data) {
   return out;
 }
 
-async function main() {
-  const texts = {};
-  for (const p of PAGES) {
-    try { texts[p.key] = await fetchText(PORT, p); }
-    catch (e) { texts[p.key] = ''; console.error(`抓取 ${p.key} 失败：${e.message}`); }
+// 判定是否已登录的强特征 cookie（没有就退回「cookie 有没有变多」来判断）
+const AUTH_COOKIE = {
+  douyin: ['sessionid', 'sessionid_ss'],
+  wechat: ['slave_sid', 'bizuin'],
+  kuaishou: ['kuaishou.web.cp.api_st'],
+  xiaohongshu: ['web_session'],
+};
+
+const ALL_KEYS = ['douyin', 'wechat', 'kuaishou', 'xiaohongshu'];
+
+// 只数条数、不做全量分析，用来判断「这一趟到底抓到没有」
+function countWorks(key, texts) {
+  switch (key) {
+    case 'douyin': return parseDouyin(texts.douyin || '').works.length;
+    case 'wechat': return parseWechat(texts.wechat || '').works.length;
+    case 'kuaishou': return parseKuaishou(texts.kuaishou || '').works.length;
+    case 'xiaohongshu': return parseXiaohongshu(texts.xiaohongshu || '', texts.xiaohongshuOverview || '').works.length;
+    default: return 0;
   }
+}
+
+// 手动登录模式：开可见窗口，等你扫完码，自动存 cookie 并关窗
+async function runLogin(key) {
+  const pl = PLATFORMS.find(p => p.key === key);
+  if (!pl) throw new Error(`未知平台：${key}（可选 douyin / wechat / kuaishou / xiaohongshu）`);
+  await ensureEdge(pl, { visible: true });
+  const s = await connect(pl);
+  try {
+    await restoreCookies(s, pl.key);
+    const before = ((await s.send('Storage.getCookies', {})).result?.cookies || []).length;
+    await s.navigate(pl.loginUrl, 4000);
+    console.log(`已打开 ${key}：${pl.loginUrl}`);
+    console.log('请在窗口里完成扫码登录，脚本每 5 秒查一次，成功后自动保存并关窗（最长 15 分钟）');
+    const deadline = Date.now() + 15 * 60 * 1000;
+    let ok = false;
+    while (Date.now() < deadline) {
+      await sleep(5000);
+      const cookies = (await s.send('Storage.getCookies', {})).result?.cookies || [];
+      const names = new Set(cookies.map(c => c.name));
+      const hasAuth = (AUTH_COOKIE[key] || []).some(n => names.has(n));
+      const u = await s.url();
+      const stillLogin = /\/login|\/passport/.test(u);
+      // 只看 cookie 名字不行：旧的失效 cookie 还在，必须确认已离开登录页
+      if (!stillLogin && (hasAuth || cookies.length > before)) { ok = true; break; }
+    }
+    const saved = await saveCookies(s, key);
+    console.log(ok
+      ? `登录成功：已存 ${saved} 条 cookie → ${statePath(key)}`
+      : `等待超时：已存当前 ${saved} 条 cookie，若之后仍抓不到请重跑本命令`);
+    if (!ok) process.exitCode = 3;
+  } finally {
+    s.close();
+    await closeBrowser(pl.port);
+  }
+}
+
+async function main() {
+  const loginKey = arg('login', '');
+  if (loginKey) return runLogin(loginKey);
+
+  const only = arg('only', '');
+  const wanted = only ? PLATFORMS.filter(p => p.key === only) : PLATFORMS;
+  if (!wanted.length) throw new Error(`--only 平台不存在：${only}`);
+
+  const texts = {};
+  const status = {};
+  for (const pl of wanted) {
+    console.log(`[${pl.key}] 开始（端口 ${pl.port}，${HAS('visible') ? '可见窗口' : '无头'}）`);
+    let r = null;
+    // 0 条不急着判「掉登录」：先就地重试一次，仍为 0 才认
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        r = await collectPlatform(pl, { visible: HAS('visible') });
+        status[pl.key] = { state: 'ok', cookies: r.saved };
+        if (r.token) status[pl.key].token = r.token;
+        if (countWorks(pl.key, r.texts) > 0) break;
+        if (attempt === 1) {
+          console.log(`[${pl.key}] 第 1 次 0 条，3 秒后重试`);
+          await sleep(3000);
+        }
+      } catch (e) {
+        status[pl.key] = { state: 'error', error: e.message };
+        console.error(`[${pl.key}] 第 ${attempt} 次失败：${e.message}`);
+        if (attempt === 1) await sleep(3000);
+      }
+    }
+    if (r) Object.assign(texts, r.texts);
+    await closeBrowser(pl.port);
+  }
+
   const observedAt = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' }).replace(' ', 'T');
   const data = {
     observedAt,
@@ -472,15 +737,52 @@ async function main() {
     wechat: parseWechat(texts.wechat || ''),
     kuaishou: parseKuaishou(texts.kuaishou || ''),
     xiaohongshu: parseXiaohongshu(texts.xiaohongshu || '', texts.xiaohongshuOverview || ''),
+    status: {},
   };
+  // --only 只刷一家时，其余平台原样沿用上一版快照，不能把别家数据清成 0
+  if (only && fs.existsSync(OUT)) {
+    try {
+      const prev = JSON.parse(fs.readFileSync(OUT, 'utf8'));
+      for (const k of ALL_KEYS) {
+        if (!wanted.some(p => p.key === k) && prev[k]) data[k] = prev[k];
+      }
+      data.status = { ...(prev.status || {}) };
+    } catch (e) {
+      console.error(`读取上一版快照失败，按全量写：${e.message}`);
+    }
+  }
   data.analysis = analyze(data);
+
+  const counts = {
+    douyin: data.douyin.works.length,
+    wechat: data.wechat.works.length,
+    kuaishou: data.kuaishou.works.length,
+    xiaohongshu: data.xiaohongshu.works.length,
+  };
+  // 单平台 0 条要能自己说清是「掉登录」「页面改版」还是「真没数据」
+  for (const pl of wanted) {
+    const st = status[pl.key] || { state: 'empty' };
+    st.count = counts[pl.key] || 0;
+    if (st.count > 0) st.state = 'ok';
+    else if (st.state === 'ok' || !st.state) {
+      const t = texts[pl.key] || '';
+      st.state = EXPIRED_HINT.test(t.slice(0, 800)) ? 'expired'
+        : (t.length > 2000 ? 'drift' : 'empty');
+    }
+    data.status[pl.key] = st;
+  }
 
   const outPath = path.resolve(OUT);
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(data, null, 2) + '\n', 'utf8');
   console.log(`已写入 ${outPath}`);
-  console.log(`抖音 ${data.douyin.works.length} 条 / 微信 ${data.wechat.works.length} 篇 / 快手 ${data.kuaishou.works.length} 条 / 小红书 ${data.xiaohongshu.works.length} 篇`);
+  for (const pl of wanted) {
+    const st = data.status[pl.key];
+    console.log(`${pl.key}: ${st.count} 条 [${st.state}]${st.error ? ' ' + st.error : ''}`);
+  }
+  if (wanted.every(p => (data.status[p.key].count || 0) === 0)) process.exitCode = 2;
 }
+
 if (process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith('collect-analytics.mjs')) {
   main().catch(e => { console.error('ERR', e.message); process.exit(1); });
 }

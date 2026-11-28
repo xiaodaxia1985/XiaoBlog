@@ -1,41 +1,52 @@
 ﻿<#
 .SYNOPSIS
-  四平台数据每日自动抓取 → 写入 site 快照 → 推送 GitHub → 触发服务器部署/入库。
+  四平台后台数据定时抓取 → 写站点快照 → 只提交有数据的部分 → 推送部署。
 
 .DESCRIPTION
   由 Windows 任务计划程序在 09:00 / 22:00 调用。流程：
-    1. 探活专用 Edge 调试端口（9224）；不在线则用持久化 profile 无头拉起，跑完关掉
-    2. node scripts/collect-analytics.mjs 抓四平台 → public/data/analytics.json
-    3. 校验 JSON（四平台至少要有一条数据，否则视为登录态失效，不提交）
-    4. git commit + push（先试系统代理 7897，失败再直连）
-  日志固定写 .tmp\analytics-collect.log（项目内，不落 C 盘）。
+    1. 逐平台拉起独立 Edge 实例（各自 profile、各自端口），抓完立刻关掉
+    2. node scripts\collect-analytics.mjs 写 public\data\analytics.json（带每平台 status）
+    3. 单平台 0 条 → 判掉登录，写 .tmp\analytics-alerts.json，只提示那一个平台
+    4. 至少一个平台有数才 commit + push（直连优先，失败再拉 Clash 走 7897）
+  日志固定 .tmp\analytics-collect.log；登录态与 cookie 备份放 .runtime（不入库）。
 
 .EXAMPLE
   pwsh -ExecutionPolicy Bypass -File scripts\daily-collect.ps1
+  pwsh -ExecutionPolicy Bypass -File scripts\daily-collect.ps1 -Only xiaohongshu -DryRun
 #>
 param(
-  [int]$Port = 9224,
-  [string]$Proxy = 'http://127.0.0.1:7897',
-  [switch]$DryRun
+  [switch]$DryRun,
+  [string]$Only = '',
+  [switch]$Visible,
+  [switch]$NoPush,
+  [string]$Proxy = 'http://127.0.0.1:7897'
 )
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
-# 外部程序（git/node）吐的是 UTF-8，而默认控制台编码是 GBK，不统一会让日志和
-# commit message 全变乱码。
+# 外部程序吐 UTF-8，控制台默认 GBK，不统一会导致日志与 commit message 乱码
 $OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false) } catch {}
 
-$SiteRoot = Split-Path -Parent $PSScriptRoot          # ...\site\XiaoBlog
-$ProjRoot = Split-Path -Parent (Split-Path -Parent $SiteRoot)  # ...\个人商业实战
-$LogPath  = Join-Path $ProjRoot '.tmp\analytics-collect.log'
-$Profile_ = Join-Path $ProjRoot '.tmp\edge-profile'
-$NodeExe  = 'C:\Program Files\nodejs\node.exe'
-$EdgeExe  = 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
-$GitExe   = 'C:\Program Files\Git\cmd\git.exe'
+$SiteRoot = Split-Path -Parent $PSScriptRoot
+$ProjRoot = Split-Path -Parent (Split-Path -Parent $SiteRoot)
+$LogPath = Join-Path $ProjRoot '.tmp\analytics-collect.log'
+$AlertPath = Join-Path $ProjRoot '.tmp\analytics-alerts.json'
+$Profiles = Join-Path $ProjRoot '.runtime\profiles'
+$Sessions = Join-Path $ProjRoot '.runtime\sessions'
 $JsonPath = Join-Path $SiteRoot 'public\data\analytics.json'
+$NodeExe = 'C:\Program Files\nodejs\node.exe'
+$GitExe = 'C:\Program Files\Git\cmd\git.exe'
 
 New-Item -ItemType Directory -Path (Split-Path $LogPath) -Force | Out-Null
+New-Item -ItemType Directory -Path $Sessions -Force | Out-Null
+
+# 日志按 5MB 轮转一份，避免无限增长
+try {
+  if ((Test-Path -LiteralPath $LogPath) -and (Get-Item -LiteralPath $LogPath).Length -gt 5MB) {
+    Move-Item -LiteralPath $LogPath -Destination "$LogPath.1" -Force
+  }
+} catch {}
 
 function Write-Log([string]$Msg) {
   $line = '[' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + '] ' + $Msg
@@ -43,9 +54,6 @@ function Write-Log([string]$Msg) {
   Write-Host $line
 }
 
-# 调用外部程序：合并 stderr、不让 git 的正常进度输出（PowerShell 5.1 会把它包成
-# NativeCommandError）在 $ErrorActionPreference='Stop' 下被当成异常抛出。
-# 返回输出行，退出码放在 $script:NativeExit。
 function Invoke-Native([string]$Exe, [string[]]$ArgList) {
   $ErrorActionPreference = 'Continue'
   $out = & $Exe @ArgList 2>&1
@@ -53,12 +61,7 @@ function Invoke-Native([string]$Exe, [string[]]$ArgList) {
   return @($out | ForEach-Object { $_.ToString() })
 }
 
-function Test-Cdp {
-  try { $null = Invoke-RestMethod "http://127.0.0.1:$Port/json/version" -TimeoutSec 4; return $true }
-  catch { return $false }
-}
-
-# ---------- 代理 ----------
+# ---------- 代理（只服务 git push） ----------
 $ClashExe = 'C:\Program Files\Clash Verge\clash-verge.exe'
 
 function Test-ProxyPort {
@@ -70,8 +73,6 @@ function Test-ProxyPort {
   } catch { return $false }
 }
 
-# push 连不上时把 Clash Verge 拉起来（它会自动恢复 7897 端口）。
-# 已在运行就不再重复启动，也不去动它的节点选择。
 function Start-ProxyIfNeeded {
   if (Test-ProxyPort) { Write-Log '代理 7897 在线'; return $true }
   if (-not (Test-Path -LiteralPath $ClashExe)) { Write-Log '找不到 Clash Verge，无法开代理'; return $false }
@@ -85,65 +86,103 @@ function Start-ProxyIfNeeded {
   return $false
 }
 
-$startedEdge = $null
-try {
-  # ---------- 1. 调试端口 ----------
-  if ($DryRun) { Write-Log '[dry] 跳过 CDP 检活' }
-  elseif (Test-Cdp) { Write-Log "CDP $Port 在线" }
-  else {
-    Write-Log "CDP $Port 不在线，用持久化 profile 无头拉起"
-    if (-not (Test-Path -LiteralPath $EdgeExe)) { throw "找不到 Edge: $EdgeExe" }
-    if (-not (Test-Path -LiteralPath $Profile_)) { throw "找不到登录态 profile: $Profile_（需先手动扫码登录一次）" }
-    $startedEdge = Start-Process -FilePath $EdgeExe -WindowStyle Hidden -PassThru -ArgumentList @(
-      '--headless=new',
-      "--remote-debugging-port=$Port",
-      "--user-data-dir=`"$Profile_`"",
-      '--no-first-run', '--no-default-browser-check', '--disable-gpu',
-      'about:blank'
-    )
-    $ok = $false
-    for ($i = 0; $i -lt 20; $i++) { Start-Sleep -Seconds 1; if (Test-Cdp) { $ok = $true; break } }
-    if (-not $ok) { throw "无头 Edge 启动后 CDP $Port 仍未就绪" }
-    Write-Log '无头 Edge 已就绪'
-  }
+# 收尾：只杀挂在 .runtime\profiles 下的 Edge，别碰用户自己的浏览器
+function Stop-EdgeByProfile {
+  Get-CimInstance Win32_Process -Filter "Name='msedge.exe'" -ErrorAction SilentlyContinue |
+    Where-Object { $_.CommandLine -and $_.CommandLine -like "*$Profiles*" } |
+    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+}
 
-  # ---------- 2. 抓数 ----------
+try {
   if (-not (Test-Path -LiteralPath $NodeExe)) {
     $cmd = Get-Command node -ErrorAction SilentlyContinue
     if (-not $cmd) { throw '找不到 node.exe' }
     $NodeExe = $cmd.Source
   }
+
+  # ---------- 1. 抓数 ----------
+  $nodeArgs = @(
+    'scripts\collect-analytics.mjs',
+    '--profiles', $Profiles,
+    '--sessions', $Sessions,
+    '--out', $JsonPath
+  )
+  if ($Only) { $nodeArgs += @('--only', $Only) }
+  if ($Visible) { $nodeArgs += '--visible' }
+
   if ($DryRun) {
-    Write-Log ('[dry] node scripts/collect-analytics.mjs --port ' + $Port)
+    Write-Log ('[dry] node ' + ($nodeArgs -join ' '))
   } else {
     Push-Location $SiteRoot
     try {
-      Write-Log '开始抓取四平台…'
-      $raw = & $NodeExe 'scripts\collect-analytics.mjs' '--port' $Port '--out' 'public\data\analytics.json' 2>&1
-      $raw | ForEach-Object { Write-Log ('  ' + $_) }
-      if ($LASTEXITCODE -ne 0) { throw "采集脚本退出码 $LASTEXITCODE" }
+      Write-Log '开始抓取四平台（逐平台独立实例）…'
+      & $NodeExe @nodeArgs 2>&1 | ForEach-Object { Write-Log ('  ' + $_) }
+      $code = $LASTEXITCODE
+      Write-Log "采集脚本退出码 $code"
     } finally { Pop-Location }
   }
 
-  # ---------- 3. 校验 ----------
+  # ---------- 2. 校验 & 单平台告警 ----------
+  $alerts = @()
   if (-not $DryRun) {
     if (-not (Test-Path -LiteralPath $JsonPath)) { throw "没有生成 $JsonPath" }
     $j = Get-Content -LiteralPath $JsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
-    $counts = @(
-      [pscustomobject]@{ n = '抖音'; v = @($j.douyin.works).Count },
-      [pscustomobject]@{ n = '微信'; v = @($j.wechat.works).Count },
-      [pscustomobject]@{ n = '快手'; v = @($j.kuaishou.works).Count },
-      [pscustomobject]@{ n = '小红书'; v = @($j.xiaohongshu.works).Count }
+    $rows = @(
+      [pscustomobject]@{ n = '抖音'; k = 'douyin' },
+      [pscustomobject]@{ n = '微信'; k = 'wechat' },
+      [pscustomobject]@{ n = '快手'; k = 'kuaishou' },
+      [pscustomobject]@{ n = '小红书'; k = 'xiaohongshu' }
     )
-    Write-Log ('条数: ' + (($counts | ForEach-Object { "$($_.n) $($_.v)" }) -join ' · ') + " · 观测 $($j.observedAt)")
-    $total = ($counts | Measure-Object -Property v -Sum).Sum
+    # 只跑了某一家时，校验与告警都只看这一家，不拿没跑的三家凑「全零」
+    if ($Only) { $rows = @($rows | Where-Object { $_.k -eq $Only }) }
+    $parts = @()
+    foreach ($r in $rows) {
+      $st = $j.status.($r.k)
+      $count = if ($st -and $null -ne $st.count) { [int]$st.count } else { @($j.($r.k).works).Count }
+      $state = if ($st) { [string]$st.state } else { 'empty' }
+      $parts += "$($r.n) $count [$state]"
+      if ($count -le 0) {
+        $fix = if ($state -eq 'drift') { '页面结构变了：改解析器，别去扫码' } else {
+          switch ($r.k) {
+            'xiaohongshu' { 'pwsh scripts\login-platform.ps1 -Platform xiaohongshu' }
+            'douyin' { 'pwsh scripts\login-platform.ps1 -Platform douyin' }
+            'wechat' { 'pwsh scripts\login-platform.ps1 -Platform wechat' }
+            'kuaishou' { 'pwsh scripts\login-platform.ps1 -Platform kuaishou' }
+          }
+        }
+        $alerts += [pscustomobject]@{
+          platform = $r.k
+          name = $r.n
+          state = $state
+          count = $count
+          error = if ($st) { [string]$st.error } else { '' }
+          fix = $fix
+          at = (Get-Date -Format 'yyyy-MM-dd HH:mm')
+        }
+      }
+    }
+    Write-Log ('条数: ' + ($parts -join ' · ') + " · 观测 $($j.observedAt)")
+    if ($alerts.Count) {
+      $alerts | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $AlertPath -Encoding utf8
+      foreach ($a in $alerts) { Write-Log ("!! $($a.name) 没数据（$($a.state)）→ 需重新登录：$($a.fix)") }
+    } elseif (Test-Path -LiteralPath $AlertPath) {
+      Remove-Item -LiteralPath $AlertPath -Force
+    }
+
+    $total = ($rows | ForEach-Object {
+      $st = $j.status.($_.k)
+      if ($st -and $null -ne $st.count) { [int]$st.count } else { @($j.($_.k).works).Count }
+    } | Measure-Object -Sum).Sum
     if ($total -le 0) {
-      throw '四平台全部 0 条，判定登录态失效，本次不提交（请在 9224 实例里重新扫码）'
+      $label = if ($Only) { $Only } else { '四平台' }
+      throw "$label 全部 0 条，判定登录态失效，本次不提交"
     }
   }
 
-  # ---------- 4. 提交并推送 ----------
+  # ---------- 3. 提交并推送 ----------
   if ($DryRun) { Write-Log '[dry] 跳过 git 操作'; return }
+  if ($NoPush) { Write-Log '指定了 -NoPush，只写本地不推送'; return }
+
   Push-Location $SiteRoot
   try {
     Invoke-Native $GitExe @('add', 'public/data/analytics.json') | Out-Null
@@ -153,14 +192,12 @@ try {
       return
     }
     $stamp = (Get-Date -Format 'yyyy-MM-dd HH:mm')
-    $msg = 'data: 四平台数据快照 ' + $stamp
+    $tag = if ($alerts.Count) { '（' + (($alerts | ForEach-Object { $_.name + ' 掉登录' }) -join '、') + '）' } else { '' }
+    $msg = "data: 四平台数据快照 $stamp$tag"
     Invoke-Native $GitExe @('-c', 'user.name=analytics-bot', '-c', 'user.email=analytics-bot@local', 'commit', '-m', $msg) |
       ForEach-Object { Write-Log ('  ' + $_) }
 
     $pushed = $false
-    # 直连先试 2 次；两次都不成就开代理（Clash Verge），代理下再试 3 次。
-    # 家宽到 GitHub 会间歇性 reset / Empty reply，但连着 2 次失败基本就是链路被掐，
-    # 干等没用，直接把代理拉起来。
     for ($i = 1; $i -le 2; $i++) {
       $out = Invoke-Native $GitExe @('push', 'origin', 'main')
       $out | ForEach-Object { Write-Log ('  ' + $_) }
@@ -192,11 +229,5 @@ catch {
   exit 1
 }
 finally {
-  if ($startedEdge -and -not $startedEdge.HasExited) {
-    try { Stop-Process -Id $startedEdge.Id -Force -ErrorAction SilentlyContinue } catch {}
-    Get-CimInstance Win32_Process -Filter "Name='msedge.exe'" -ErrorAction SilentlyContinue |
-      Where-Object { $_.CommandLine -and $_.CommandLine -like "*$Profile_*" } |
-      ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
-    Write-Log '已关闭本次拉起的无头 Edge'
-  }
+  Stop-EdgeByProfile
 }
