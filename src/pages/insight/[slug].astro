@@ -296,9 +296,9 @@ const jsonLd = articleGraph({
     :root{
       --bg-card:var(--surface);
       --radius:12px;
-      --art-w:760px;
-      --toc-w:196px;
-      --content-gap:48px;
+      --art-w:780px;
+      --toc-w:232px;
+      --content-gap:44px;
     }
     body{font-size:16px;line-height:1.75;font-feature-settings:"palt" 1;}
     img{display:block;}
@@ -364,6 +364,10 @@ const jsonLd = articleGraph({
     .markdown li{margin:0 0 8px;}
     .markdown li::marker{color:var(--accent);}
     .markdown img{display:block;max-width:100%;height:auto;border-radius:10px;border:1px solid var(--border);background:var(--surface-2);}
+    .markdown img.img-zoom{cursor:zoom-in;}
+    .img-overlay{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:3vw;background:rgba(12,12,12,.86);cursor:zoom-out;}
+    .img-overlay.is-on{display:flex;}
+    .img-overlay img{max-width:94vw;max-height:92vh;width:auto;height:auto;border-radius:10px;box-shadow:0 24px 70px rgba(0,0,0,.55);}
     .markdown figure{margin:32px 0;}
     .markdown figcaption{margin-top:8px;color:var(--text-muted);font-size:12px;line-height:1.7;}
 
@@ -375,13 +379,24 @@ const jsonLd = articleGraph({
     .markdown tbody tr:nth-child(even){background:rgba(var(--accent-rgb),.032);}
     .markdown table caption{caption-side:top;text-align:left;color:var(--text-muted);font-size:12.5px;padding-bottom:10px;}
     .markdown .kv{margin:28px 0;border-top:2px solid var(--accent);}
-    .markdown .kv .row{display:grid;grid-template-columns:max-content 1fr;gap:22px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--border);}
+    .markdown .kv .row{display:grid;grid-template-columns:max-content 1fr;gap:22px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--border);}
     .markdown .kv .row:last-child{border-bottom:none;}
     .markdown .kv .k{color:var(--text-muted);font-size:13px;line-height:1.6;letter-spacing:.01em;font-variant-numeric:tabular-nums;white-space:nowrap;}
-    .markdown .kv .v{font-size:15px;line-height:1.62;color:var(--text);}
+    .markdown .kv .v{font-size:16px;line-height:1.66;color:var(--text);}
+    .markdown .kv.tw-seg{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,auto);grid-template-columns:1fr 1fr;column-gap:46px;}
+    .markdown .kv.tw-seg .row{grid-template-columns:78px 1fr;gap:26px;padding:12px 0;}
+    .markdown .kv.tw-seg .k{text-align:right;font-size:12.5px;}
+    .markdown .kv.tw-spec{display:grid;grid-auto-flow:column;grid-template-rows:repeat(4,auto);grid-template-columns:1fr 1fr;column-gap:46px;}
+    .markdown .kv.tw-spec .row{grid-template-columns:max-content 1fr;gap:24px;padding:12px 0;}
+    .markdown .kv.tw-cost{max-width:520px;}
     .markdown .kv.tw-cost .row{grid-template-columns:1fr max-content;gap:18px;}
     .markdown .kv.tw-cost .v{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
-    @media(max-width:720px){.markdown .kv .row{grid-template-columns:max-content 1fr;gap:14px;}}
+    @media(max-width:720px){
+      .markdown .kv.tw-seg,.markdown .kv.tw-spec{display:block;}
+      .markdown .kv .row{grid-template-columns:max-content 1fr;gap:14px;}
+      .markdown .kv.tw-seg .row{grid-template-columns:78px 1fr;}
+      .markdown .kv.tw-cost{max-width:100%;}
+    }
     @media(max-width:720px){.markdown table{display:block;overflow-x:auto;font-size:14px;}}
     body.is-focus-mode .article-toc,body.is-focus-mode .opinion-card{display:none;}
     body.is-focus-mode .article-body > .art-inner{max-width:880px;}
@@ -517,7 +532,7 @@ const jsonLd = articleGraph({
     }
 
     /* 阅读体验补强：稳定的目录列、清晰的正文节奏与可触达控件。 */
-    .reading-layout{width:100%;max-width:1004px;margin:0 auto;grid-template-columns:minmax(150px,var(--toc-w)) minmax(0,var(--art-w));}
+    .reading-layout{width:100%;max-width:1056px;margin:0 auto;grid-template-columns:minmax(150px,var(--toc-w)) minmax(0,var(--art-w));}
     .article-toc{min-width:0;}
     .article-toc nav{max-height:calc(100vh - 190px);overflow:auto;padding-right:6px;}
     .toc-link{overflow-wrap:anywhere;}
@@ -757,6 +772,44 @@ const jsonLd = articleGraph({
       card.addEventListener('lostpointercapture', function () { endDrag(false); });
 
       paint();
+    })();
+  </script>
+
+  <script>
+    (function () {
+      var imgs = Array.prototype.slice.call(document.querySelectorAll('.markdown img'));
+      if (!imgs.length) return;
+      var overlay = null;
+      function close() {
+        if (!overlay) return;
+        overlay.classList.remove('is-on');
+        document.body.style.overflow = '';
+      }
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') close();
+      });
+      function open(src, alt) {
+        if (!overlay) {
+          overlay = document.createElement('div');
+          overlay.className = 'img-overlay';
+          overlay.setAttribute('role', 'dialog');
+          overlay.addEventListener('click', close);
+          document.body.appendChild(overlay);
+        }
+        overlay.innerHTML = '';
+        var big = document.createElement('img');
+        big.src = src;
+        if (alt) big.alt = alt;
+        overlay.appendChild(big);
+        overlay.classList.add('is-on');
+        document.body.style.overflow = 'hidden';
+      }
+      imgs.forEach(function (img) {
+        img.classList.add('img-zoom');
+        img.addEventListener('click', function () {
+          open(img.currentSrc || img.src, img.alt);
+        });
+      });
     })();
   </script>
 </BaseLayout>
