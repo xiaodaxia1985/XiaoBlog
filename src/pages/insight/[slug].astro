@@ -363,15 +363,18 @@ const jsonLd = articleGraph({
     .markdown ul,.markdown ol{margin:0 0 26px;padding-left:1.4em;color:var(--body);font-size:var(--reading-font,17px);line-height:1.85;}
     .markdown li{margin:0 0 8px;}
     .markdown li::marker{color:var(--accent);}
-    .markdown img{max-width:100%;height:auto;border-radius:6px;border:1px solid var(--border);}
+    .markdown img{display:block;max-width:100%;height:auto;border-radius:10px;border:1px solid var(--border);background:var(--surface-2);}
     .markdown figure{margin:32px 0;}
     .markdown figcaption{margin-top:8px;color:var(--text-muted);font-size:12px;line-height:1.7;}
 
     .markdown pre{max-width:100%;overflow:auto;padding:18px 20px;margin:24px 0;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;line-height:1.65;}
     .markdown pre code{padding:0;background:transparent;white-space:pre;}
-    .markdown table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse;margin:24px 0;font-size:14px;}
-    .markdown th,.markdown td{padding:10px 12px;border:1px solid var(--border);text-align:left;vertical-align:top;}
-    .markdown th{color:var(--text);background:var(--overlay-strong);}
+    .markdown table{display:table;width:100%;max-width:100%;border-collapse:collapse;margin:30px 0;font-size:15px;line-height:1.62;border-top:2px solid var(--accent);}
+    .markdown th,.markdown td{padding:12px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--border);}
+    .markdown th{color:var(--text);background:var(--surface-2);font-weight:600;font-size:13.5px;letter-spacing:.02em;}
+    .markdown tbody tr:nth-child(even){background:rgba(var(--accent-rgb),.032);}
+    .markdown table caption{caption-side:top;text-align:left;color:var(--text-muted);font-size:12.5px;padding-bottom:10px;}
+    @media(max-width:720px){.markdown table{display:block;overflow-x:auto;font-size:14px;}}
     body.is-focus-mode .article-toc,body.is-focus-mode .opinion-card{display:none;}
     body.is-focus-mode .article-body > .art-inner{max-width:880px;}
     body.is-focus-mode .reading-layout{display:block;}
@@ -520,9 +523,10 @@ const jsonLd = articleGraph({
     .markdown hr{border:0;border-top:1px solid var(--border);margin:36px 0;}
     .markdown blockquote p:last-child{margin-bottom:0;}
     .markdown pre{tab-size:2;-webkit-overflow-scrolling:touch;}
-    .markdown table{width:100%;display:block;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;}
+    .markdown table{width:100%;display:table;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;}
     .markdown th{white-space:nowrap;}
-    .markdown td{min-width:100px;}
+    .markdown td{min-width:0;}
+    @media(max-width:720px){.markdown table{display:block;}}
     .markdown a{overflow-wrap:anywhere;}
     .article-end{width:100%;}
     @media(max-width:1060px){

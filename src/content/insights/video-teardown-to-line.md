@@ -59,7 +59,7 @@ ffprobe -v error -select_streams v:0 -show_entries stream=width,height,r_frame_r
 
 但第一次实际运行时发现，字幕顶部被切掉了。经过几次调整，最终确定起点应该是 606，高度保持 110。这件事也增加了一个检查动作：**不要计算出坐标就直接批量执行，先抽几张图片确认字幕没被裁切，再处理整条视频**。
 
-<img src="/images/vstudio-bars-probe.webp" alt="字幕条试位三张（0.5s / 86s / 117.3s）：crop=1280:110:0:606，三张字都完整才整片抽" style="display:block;max-width:100%;height:auto;margin:28px 0">
+<img src="/images/vstudio-bars-probe.webp" alt="字幕条试位三张（0.5s / 86s / 117.3s）：crop=1280:110:0:606，三张字都完整才整片抽" style="display:block;width:100%;height:auto;margin:32px 0">
 
 ```bash
 ffmpeg -i ref.mp4 -vf "crop=1280:110:0:606,fps=10" -q:v 3 bars/%04d.jpg
@@ -85,7 +85,7 @@ ffmpeg -ss 12.34 -i ref.mp4 -frames:v 1 -vf scale=640:-1 frames/f0131.jpg
 
 这里有两个细节。第一，尽量抽取每句话开始的位置，而不是中间位置：一句话刚开始时画面通常已经完成切换，比较容易看到完整版式，中间位置可能正好处于动画过程中，抽出来不一定有代表性。第二，文件名一定要补零，例如 f001、f002 一直到 f132，否则排序时 f10 可能排在 f2 前面，后面做联系表就会乱。图片宽度统一设为 640 像素，因为这一步主要研究画面结构，不是识别细小文字。最终得到 132 张完整画面，耗时约 28 秒。
 
-<img src="/images/vstudio-frame-000.webp" alt="每个换句点抽一张全帧：这里是第 1 句（其余 131 张同规格）" style="display:block;max-width:100%;height:auto;margin:28px 0">
+<img src="/images/vstudio-frame-000.webp" alt="每个换句点抽一张全帧：这里是第 1 句（其余 131 张同规格）" style="display:block;width:100%;height:auto;margin:32px 0">
 
 到这里，ffmpeg 和脚本已经把基础活干完了。但真正重要的分析，现在才开始。
 
@@ -101,7 +101,7 @@ ffmpeg -ss 12.34 -i ref.mp4 -frames:v 1 -vf scale=640:-1 frames/f0131.jpg
 
 为什么之前的 12 个采样点没发现这些变化？因为每隔 20 秒取一张图，采样频率太低，很多短时间内发生的版式变化根本没被捕捉到。直到按平均 1.78 秒一个切换位置观察，整条视频的版式变化才真正呈现出来。**研究一个动态过程，不能用过低的采样频率去判断它的变化规律**。
 
-<img src="/images/vstudio-sheet-132.webp" alt="132 帧联系表（11 列 × 12 行）：一屏一句，整片版式连起来看" style="display:block;max-width:100%;height:auto;margin:28px 0">
+<img src="/images/vstudio-sheet-132.webp" alt="132 帧联系表（11 列 × 12 行）：一屏一句，整片版式连起来看" style="display:block;width:100%;height:auto;margin:32px 0">
 
 ### 7. 把整条视频分成不同的内容阶段
 
@@ -158,7 +158,7 @@ ffmpeg -ss 12.34 -i ref.mp4 -frames:v 1 -vf scale=640:-1 frames/f0131.jpg
 | 文案槽位 | 每屏容纳多少句话、每句话的字数 |
 | 声音 | 语速、停顿和音效要求 |
 
-<img src="/images/vstudio-spec.webp" alt="版式标注：A 左卡 448×544 r18｜B 眉标｜C 账号+时间码｜D 面板标题｜E 内容卡｜F 字幕条" style="display:block;max-width:100%;height:auto;margin:28px 0">
+<img src="/images/vstudio-spec.webp" alt="版式标注：A 左卡 448×544 r18｜B 眉标｜C 账号+时间码｜D 面板标题｜E 内容卡｜F 字幕条" style="display:block;width:100%;height:auto;margin:32px 0">
 
 这里有一个特别容易被忽略的字段：切点表。最初我认为有了 13 个内容阶段的起止时间就够了，比如第三段是 30 到 46 秒，产线只需要知道在这个范围内生成对应内容；后来发现完全不够，因为段表只能告诉产线一段内容的整体时间范围，却没有告诉它每句话应该在什么时候切换。一条视频的版式可以做得很像，但如果每个画面出现的时间不对，整条视频看起来还是会非常生硬。
 
@@ -174,7 +174,7 @@ ffmpeg -ss 12.34 -i ref.mp4 -frames:v 1 -vf scale=640:-1 frames/f0131.jpg
 
 11 月 26 日晚上 20:09，豆包交来第一版分析报告。报告看起来非常完整：5 种版面状态、约 130 张卡片、12 段明暗切换，还配了版式标注图、时间线图和五种状态对照图。20:20，我看完觉得有戏，让它先投一条一分钟的样片；20:29，样片出来了；21:29，我把它打回了。
 
-<img src="/images/vstudio-timeline.webp" alt="第一版报告的时间线：全片 130 次切卡、字幕换句 212 次——抽帧视角的结论，后来被 132 个换句点推翻" style="display:block;max-width:100%;height:auto;margin:28px 0">
+<img src="/images/vstudio-timeline.webp" alt="第一版报告的时间线：全片 130 次切卡、字幕换句 212 次——抽帧视角的结论，后来被 132 个换句点推翻" style="display:block;width:100%;height:auto;margin:32px 0">
 
 其中有一句话，我觉得特别值得记录：
 
@@ -220,7 +220,7 @@ ffmpeg -ss 12.34 -i ref.mp4 -frames:v 1 -vf scale=640:-1 frames/f0131.jpg
 
 第一是拆解方法。从视频筛选到最终规格整理，每一步都有明确的操作方法和判断标准，同时也记录了最初犯过的错误，以及后来为什么要改。第二是完整的分析证据，包括 2346 张字幕图片、132 个换句点、132 张完整画面、132 帧的联系表，以及 11 组参数对照数据——这些不是为了展示工作量，是让整个拆解过程能够被复核。第三是制作规格，一份包含八个字段的 JSON，把版式、配色、内容结构、切换时间、表现手法和声音要求整理成产线可以读取的数据。第四是最终样片，15 屏、58.62 秒、8.5MB，这是用自己的素材做出来的版本，也是这次实践最重要的验收结果。
 
-<img src="/images/vstudio-pipeline.webp" alt="按实测证据复原的生产流水线：写稿配音 → 真人拍摄 → 网页版式 → 真网页录屏 → 合成层 → 明暗换肤与卡片生长 → 字幕轨 → 片头片尾" style="display:block;max-width:100%;height:auto;margin:28px 0">
+<img src="/images/vstudio-pipeline.webp" alt="按实测证据复原的生产流水线：写稿配音 → 真人拍摄 → 网页版式 → 真网页录屏 → 合成层 → 明暗换肤与卡片生长 → 字幕轨 → 片头片尾" style="display:block;width:100%;height:auto;margin:32px 0">
 
 再看看实际花费的时间：
 
