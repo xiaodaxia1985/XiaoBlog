@@ -374,6 +374,9 @@ const jsonLd = articleGraph({
     .markdown th{color:var(--text);background:var(--surface-2);font-weight:600;font-size:13.5px;letter-spacing:.02em;}
     .markdown tbody tr:nth-child(even){background:rgba(var(--accent-rgb),.032);}
     .markdown table caption{caption-side:top;text-align:left;color:var(--text-muted);font-size:12.5px;padding-bottom:10px;}
+    .markdown table.tw-seg th:first-child,.markdown table.tw-seg td:first-child{width:126px;white-space:nowrap;font-variant-numeric:tabular-nums;}
+    .markdown table.tw-spec th:first-child,.markdown table.tw-spec td:first-child{width:158px;}
+    .markdown table.tw-cost th:last-child,.markdown table.tw-cost td:last-child{width:96px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;}
     @media(max-width:720px){.markdown table{display:block;overflow-x:auto;font-size:14px;}}
     body.is-focus-mode .article-toc,body.is-focus-mode .opinion-card{display:none;}
     body.is-focus-mode .article-body > .art-inner{max-width:880px;}
