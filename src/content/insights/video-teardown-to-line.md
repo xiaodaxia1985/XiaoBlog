@@ -109,22 +109,21 @@ ffmpeg -ss 12.34 -i ref.mp4 -frames:v 1 -vf scale=640:-1 frames/f0131.jpg
 
 > 段表：13 段，每段的起止秒与任务
 
-<table class="tw-seg">
-  <tr><th>时间</th><th>内容任务</th></tr>
-  <tr><td>0–9 秒</td><td>立论</td></tr>
-  <tr><td>9–30 秒</td><td>说明值不值得一</td></tr>
-  <tr><td>30–46 秒</td><td>讲怎么开始</td></tr>
-  <tr><td>46–56 秒</td><td>算账</td></tr>
-  <tr><td>56–64 秒</td><td>防坑</td></tr>
-  <tr><td>64–81 秒</td><td>进一步说明价值</td></tr>
-  <tr><td>81–111 秒</td><td>目录与兑现</td></tr>
-  <tr><td>111–127 秒</td><td>翻牌，进入新表现形式</td></tr>
-  <tr><td>127–177 秒</td><td>讲解机制</td></tr>
-  <tr><td>177–204 秒</td><td>展示证据</td></tr>
-  <tr><td>204–213 秒</td><td>加码</td></tr>
-  <tr><td>213–227 秒</td><td>收尾</td></tr>
-  <tr><td>227–234.6 秒</td><td>片尾</td></tr>
-</table>
+<div class="kv tw-seg">
+  <div class="row"><div class="k">0–9 秒</div><div class="v">立论</div></div>
+  <div class="row"><div class="k">9–30 秒</div><div class="v">说明值不值得一</div></div>
+  <div class="row"><div class="k">30–46 秒</div><div class="v">讲怎么开始</div></div>
+  <div class="row"><div class="k">46–56 秒</div><div class="v">算账</div></div>
+  <div class="row"><div class="k">56–64 秒</div><div class="v">防坑</div></div>
+  <div class="row"><div class="k">64–81 秒</div><div class="v">进一步说明价值</div></div>
+  <div class="row"><div class="k">81–111 秒</div><div class="v">目录与兑现</div></div>
+  <div class="row"><div class="k">111–127 秒</div><div class="v">翻牌，进入新表现形式</div></div>
+  <div class="row"><div class="k">127–177 秒</div><div class="v">讲解机制</div></div>
+  <div class="row"><div class="k">177–204 秒</div><div class="v">展示证据</div></div>
+  <div class="row"><div class="k">204–213 秒</div><div class="v">加码</div></div>
+  <div class="row"><div class="k">213–227 秒</div><div class="v">收尾</div></div>
+  <div class="row"><div class="k">227–234.6 秒</div><div class="v">片尾</div></div>
+</div>
 
 这里特别关注 111 秒这个位置。它大约位于整条视频的 48% 处，是一次明显的表现形式转变——前面主要在讲观点，到这里开始转向实际演示，我把这种变化叫作「翻牌」。找到这个位置，就能理解整条视频的重心在哪里，以后制作自己的视频，也可以根据内容安排一个类似的转折。
 
@@ -148,17 +147,16 @@ ffmpeg -ss 12.34 -i ref.mp4 -frames:v 1 -vf scale=640:-1 frames/f0131.jpg
 
 > 规格的八个字段
 
-<table class="tw-spec">
-  <tr><th>字段</th><th>具体内容</th></tr>
-  <tr><td>画幅与帧率</td><td>视频尺寸、帧率</td></tr>
-  <tr><td>形态库</td><td>不同版式的结构与尺寸参数</td></tr>
-  <tr><td>配色</td><td>暗色、亮色背景及具体颜色值</td></tr>
-  <tr><td>段表</td><td>每个内容阶段的任务和起止时间</td></tr>
-  <tr><td>手法表</td><td>每种制作手法及其触发条件</td></tr>
-  <tr><td>切点表</td><td>132 个切换位置，精确到帧</td></tr>
-  <tr><td>文案槽位</td><td>每屏容纳多少句话、每句话的字数</td></tr>
-  <tr><td>声音</td><td>语速、停顿和音效要求</td></tr>
-</table>
+<div class="kv tw-spec">
+  <div class="row"><div class="k">画幅与帧率</div><div class="v">视频尺寸、帧率</div></div>
+  <div class="row"><div class="k">形态库</div><div class="v">不同版式的结构与尺寸参数</div></div>
+  <div class="row"><div class="k">配色</div><div class="v">暗色、亮色背景及具体颜色值</div></div>
+  <div class="row"><div class="k">段表</div><div class="v">每个内容阶段的任务和起止时间</div></div>
+  <div class="row"><div class="k">手法表</div><div class="v">每种制作手法及其触发条件</div></div>
+  <div class="row"><div class="k">切点表</div><div class="v">132 个切换位置，精确到帧</div></div>
+  <div class="row"><div class="k">文案槽位</div><div class="v">每屏容纳多少句话、每句话的字数</div></div>
+  <div class="row"><div class="k">声音</div><div class="v">语速、停顿和音效要求</div></div>
+</div>
 
 <img src="/images/vstudio-spec.webp" alt="版式标注：A 左卡 448×544 r18｜B 眉标｜C 账号+时间码｜D 面板标题｜E 内容卡｜F 字幕条" style="display:block;width:100%;height:auto;margin:32px 0">
 
@@ -228,13 +226,12 @@ ffmpeg -ss 12.34 -i ref.mp4 -frames:v 1 -vf scale=640:-1 frames/f0131.jpg
 
 > 机器干这四件事的耗时
 
-<table class="tw-cost">
-  <tr><th>工作</th><th>耗时</th></tr>
-  <tr><td>提取 2346 张字幕图片</td><td>5 秒</td></tr>
-  <tr><td>计算帧差，找出 132 个切换点</td><td>5 秒</td></tr>
-  <tr><td>抽取 132 张完整画面</td><td>28 秒</td></tr>
-  <tr><td>生成联系表</td><td>2 秒</td></tr>
-</table>
+<div class="kv tw-cost">
+  <div class="row"><div class="k">提取 2346 张字幕图片</div><div class="v">5 秒</div></div>
+  <div class="row"><div class="k">计算帧差，找出 132 个切换点</div><div class="v">5 秒</div></div>
+  <div class="row"><div class="k">抽取 132 张完整画面</div><div class="v">28 秒</div></div>
+  <div class="row"><div class="k">生成联系表</div><div class="v">2 秒</div></div>
+</div>
 
 机器处理这些基础工作不到一分钟，真正耗时间的是人的观察、判断、归纳和修正。这次实践让我更清楚地看到，自动化真正能节省的不只是操作时间——它更重要的价值，是把原本不知道从哪里开始的工作，变成一套有步骤、有标准、可以重复执行的流程。
 

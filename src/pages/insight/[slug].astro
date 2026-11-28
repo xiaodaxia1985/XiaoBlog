@@ -374,9 +374,14 @@ const jsonLd = articleGraph({
     .markdown th{color:var(--text);background:var(--surface-2);font-weight:600;font-size:13.5px;letter-spacing:.02em;}
     .markdown tbody tr:nth-child(even){background:rgba(var(--accent-rgb),.032);}
     .markdown table caption{caption-side:top;text-align:left;color:var(--text-muted);font-size:12.5px;padding-bottom:10px;}
-    .markdown table.tw-seg th:first-child,.markdown table.tw-seg td:first-child{width:126px;white-space:nowrap;font-variant-numeric:tabular-nums;}
-    .markdown table.tw-spec th:first-child,.markdown table.tw-spec td:first-child{width:158px;}
-    .markdown table.tw-cost th:last-child,.markdown table.tw-cost td:last-child{width:96px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;}
+    .markdown .kv{margin:28px 0;border-top:2px solid var(--accent);}
+    .markdown .kv .row{display:grid;grid-template-columns:max-content 1fr;gap:22px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--border);}
+    .markdown .kv .row:last-child{border-bottom:none;}
+    .markdown .kv .k{color:var(--text-muted);font-size:13px;line-height:1.6;letter-spacing:.01em;font-variant-numeric:tabular-nums;white-space:nowrap;}
+    .markdown .kv .v{font-size:15px;line-height:1.62;color:var(--text);}
+    .markdown .kv.tw-cost .row{grid-template-columns:1fr max-content;gap:18px;}
+    .markdown .kv.tw-cost .v{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
+    @media(max-width:720px){.markdown .kv .row{grid-template-columns:max-content 1fr;gap:14px;}}
     @media(max-width:720px){.markdown table{display:block;overflow-x:auto;font-size:14px;}}
     body.is-focus-mode .article-toc,body.is-focus-mode .opinion-card{display:none;}
     body.is-focus-mode .article-body > .art-inner{max-width:880px;}
